@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
+use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\YuranController;
