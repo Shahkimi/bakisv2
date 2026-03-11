@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Kawalan\StoreJawatanRequest;
+use App\Http\Requests\Admin\Kawalan\UpdateJawatanRequest;
 use App\Models\Jawatan;
 use App\Services\JawatanService;
 use Illuminate\Http\JsonResponse;
@@ -31,19 +33,9 @@ final class JawatanController extends Controller
         abort(400, 'Invalid request');
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreJawatanRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'kod_jawatan' => ['required', 'string', 'max:10', 'unique:jawatans,kod_jawatan'],
-            'nama_jawatan' => ['required', 'string', 'max:255'],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'kod_jawatan.required' => 'Kod jawatan wajib diisi.',
-            'kod_jawatan.unique' => 'Kod jawatan ini sudah wujud.',
-            'nama_jawatan.required' => 'Nama jawatan wajib diisi.',
-        ]);
-
-        $jawatan = Jawatan::create($validated);
+        $jawatan = $this->jawatanService->create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -57,19 +49,9 @@ final class JawatanController extends Controller
         ]);
     }
 
-    public function update(Request $request, Jawatan $jawatan): JsonResponse
+    public function update(UpdateJawatanRequest $request, Jawatan $jawatan): JsonResponse
     {
-        $validated = $request->validate([
-            'kod_jawatan' => ['required', 'string', 'max:10', 'unique:jawatans,kod_jawatan,' . $jawatan->id],
-            'nama_jawatan' => ['required', 'string', 'max:255'],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'kod_jawatan.required' => 'Kod jawatan wajib diisi.',
-            'kod_jawatan.unique' => 'Kod jawatan ini sudah wujud.',
-            'nama_jawatan.required' => 'Nama jawatan wajib diisi.',
-        ]);
-
-        $jawatan->update($validated);
+        $this->jawatanService->update($jawatan, $request->validated());
 
         return response()->json([
             'success' => true,

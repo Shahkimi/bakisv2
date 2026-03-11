@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Kawalan\StoreJabatanRequest;
+use App\Http\Requests\Admin\Kawalan\UpdateJabatanRequest;
 use App\Models\Jabatan;
 use App\Services\JabatanService;
 use Illuminate\Http\JsonResponse;
@@ -31,17 +33,9 @@ final class JabatanController extends Controller
         abort(400, 'Invalid request');
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreJabatanRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'nama_jabatan' => ['required', 'string', 'max:255', 'unique:jabatans,nama_jabatan'],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'nama_jabatan.required' => 'Nama jabatan wajib diisi.',
-            'nama_jabatan.unique' => 'Nama jabatan ini sudah wujud.',
-        ]);
-
-        $jabatan = Jabatan::create($validated);
+        $jabatan = $this->jabatanService->create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -54,17 +48,9 @@ final class JabatanController extends Controller
         ]);
     }
 
-    public function update(Request $request, Jabatan $jabatan): JsonResponse
+    public function update(UpdateJabatanRequest $request, Jabatan $jabatan): JsonResponse
     {
-        $validated = $request->validate([
-            'nama_jabatan' => ['required', 'string', 'max:255', 'unique:jabatans,nama_jabatan,' . $jabatan->id],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'nama_jabatan.required' => 'Nama jabatan wajib diisi.',
-            'nama_jabatan.unique' => 'Nama jabatan ini sudah wujud.',
-        ]);
-
-        $jabatan->update($validated);
+        $this->jabatanService->update($jabatan, $request->validated());
 
         return response()->json([
             'success' => true,
@@ -81,7 +67,7 @@ final class JabatanController extends Controller
     {
         // Optional: Check if jabatan has members before deleting to prevent constraint violation
         if ($jabatan->members()->exists()) {
-             return response()->json([
+            return response()->json([
                 'success' => false,
                 'message' => 'Tidak boleh memadam jabatan yang mempunyai ahli berdaftar.',
             ], 422);

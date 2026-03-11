@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Pembayaran\RejectPaymentRequest;
 use App\Models\Payment;
 use App\Services\MemberService;
+use App\Services\PaymentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +19,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final class PembayaranController extends Controller
 {
     public function __construct(
-        private readonly MemberService $memberService
+        private readonly MemberService $memberService,
+        private readonly PaymentService $paymentService,
     ) {}
 
     public function bukti(Payment $payment): StreamedResponse|RedirectResponse
@@ -38,25 +42,22 @@ final class PembayaranController extends Controller
 
     public function index(Request $request): View
     {
-        $statusFilter = $request->query('status', 'pending');
-        if ($statusFilter !== 'all' && ! in_array($statusFilter, ['pending', 'approved', 'rejected'], true)) {
-            $statusFilter = 'pending';
-        }
-
-        $query = Payment::query()
-            ->with(['member', 'yuran', 'approvedBy'])
-            ->latest('payments.created_at');
-
-        if ($statusFilter !== 'all') {
-            $query->where('status', $statusFilter);
-        }
-
-        $payments = $query->paginate(15)->withQueryString();
+        ['payments' => $payments, 'statusFilter' => $statusFilter] = $this->paymentService
+            ->listForAdmin($request->query('status'));
 
         return view('admin.pembayaran.index', [
             'payments' => $payments,
             'statusFilter' => $statusFilter,
         ]);
+    }
+
+    public function getData(Request $request): JsonResponse
+    {
+        if ($request->ajax()) {
+            return $this->paymentService->getDataTableData($request);
+        }
+
+        abort(400, 'Invalid request');
     }
 
     public function approve(Payment $payment): RedirectResponse
@@ -72,19 +73,18 @@ final class PembayaranController extends Controller
             ->with('success', 'Pembayaran telah disahkan. Status ahli telah dikemas kini kepada Aktif.');
     }
 
-    public function reject(Request $request, Payment $payment): RedirectResponse
+    public function reject(RejectPaymentRequest $request, Payment $payment): RedirectResponse
     {
         if ($payment->status !== Payment::STATUS_PENDING) {
             return redirect()->route('admin.pembayaran.index')
                 ->with('error', 'Pembayaran ini telah diproses.');
         }
 
-        $payment->update([
-            'status' => Payment::STATUS_REJECTED,
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'catatan_admin' => $request->input('catatan_admin'),
-        ]);
+        $this->paymentService->rejectPendingPayment(
+            payment: $payment,
+            catatanAdmin: $request->validated()['catatan_admin'] ?? null,
+            approvedById: auth()->id(),
+        );
 
         return redirect()->route('admin.pembayaran.index')
             ->with('success', 'Pembayaran telah ditolak.');

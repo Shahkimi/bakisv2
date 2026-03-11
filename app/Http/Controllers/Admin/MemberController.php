@@ -15,7 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
-class MemberController extends Controller
+final class MemberController extends Controller
 {
     public function __construct(
         private readonly MemberService $memberService

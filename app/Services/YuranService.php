@@ -11,6 +11,18 @@ use Illuminate\Http\Request;
 
 final readonly class YuranService
 {
+    public function create(array $data): Yuran
+    {
+        return Yuran::create($data);
+    }
+
+    public function update(Yuran $yuran, array $data): Yuran
+    {
+        $yuran->update($data);
+
+        return $yuran;
+    }
+
     public function getDataTableData(Request $request): JsonResponse
     {
         $query = Yuran::query()->select(['id', 'jenis_yuran', 'jumlah', 'is_active']);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Kawalan\StoreYuranRequest;
+use App\Http\Requests\Admin\Kawalan\UpdateYuranRequest;
 use App\Models\Yuran;
 use App\Services\YuranService;
 use Illuminate\Http\JsonResponse;
@@ -31,21 +33,9 @@ final class YuranController extends Controller
         abort(400, 'Invalid request');
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreYuranRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'jenis_yuran' => ['required', 'string', 'max:255', 'unique:yurans,jenis_yuran'],
-            'jumlah' => ['required', 'numeric', 'min:0'],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'jenis_yuran.required' => 'Jenis yuran wajib diisi.',
-            'jenis_yuran.unique' => 'Jenis yuran ini sudah wujud.',
-            'jumlah.required' => 'Jumlah wajib diisi.',
-            'jumlah.numeric' => 'Jumlah mesti nombor.',
-            'jumlah.min' => 'Jumlah mesti sekurang-kurangnya 0.',
-        ]);
-
-        $yuran = Yuran::create($validated);
+        $yuran = $this->yuranService->create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -59,21 +49,9 @@ final class YuranController extends Controller
         ]);
     }
 
-    public function update(Request $request, Yuran $yuran): JsonResponse
+    public function update(UpdateYuranRequest $request, Yuran $yuran): JsonResponse
     {
-        $validated = $request->validate([
-            'jenis_yuran' => ['required', 'string', 'max:255', 'unique:yurans,jenis_yuran,' . $yuran->id],
-            'jumlah' => ['required', 'numeric', 'min:0'],
-            'is_active' => ['required', 'boolean'],
-        ], [
-            'jenis_yuran.required' => 'Jenis yuran wajib diisi.',
-            'jenis_yuran.unique' => 'Jenis yuran ini sudah wujud.',
-            'jumlah.required' => 'Jumlah wajib diisi.',
-            'jumlah.numeric' => 'Jumlah mesti nombor.',
-            'jumlah.min' => 'Jumlah mesti sekurang-kurangnya 0.',
-        ]);
-
-        $yuran->update($validated);
+        $this->yuranService->update($yuran, $request->validated());
 
         return response()->json([
             'success' => true,

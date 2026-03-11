@@ -11,6 +11,18 @@ use Illuminate\Http\Request;
 
 final readonly class JabatanService
 {
+    public function create(array $data): Jabatan
+    {
+        return Jabatan::create($data);
+    }
+
+    public function update(Jabatan $jabatan, array $data): Jabatan
+    {
+        $jabatan->update($data);
+
+        return $jabatan;
+    }
+
     public function getDataTableData(Request $request): JsonResponse
     {
         $query = Jabatan::query()->select(['id', 'nama_jabatan', 'is_active']);
