@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Pembayaran\RejectPaymentRequest;
+use App\Models\Jabatan;
 use App\Models\Payment;
 use App\Services\MemberService;
 use App\Services\PaymentService;
@@ -45,15 +46,24 @@ final class PembayaranController extends Controller
         ['payments' => $payments, 'statusFilter' => $statusFilter] = $this->paymentService
             ->listForAdmin($request->query('status'));
 
+        $jabatans = Jabatan::where('is_active', true)
+            ->orderBy('nama_jabatan')
+            ->get();
+
         return view('admin.pembayaran.index', [
             'payments' => $payments,
             'statusFilter' => $statusFilter,
+            'jabatans' => $jabatans,
         ]);
     }
 
     public function getData(Request $request): JsonResponse
     {
-        if ($request->ajax()) {
+        $isDataTablesRequest = $request->ajax()
+            || $request->wantsJson()
+            || $request->has('draw');
+
+        if ($isDataTablesRequest) {
             return $this->paymentService->getDataTableData($request);
         }
 

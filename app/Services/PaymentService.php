@@ -63,6 +63,11 @@ final readonly class PaymentService
             $query->where('status', $statusFilter);
         }
 
+        $jabatanFilter = $request->input('jabatan_filter');
+        if ($jabatanFilter !== null && $jabatanFilter !== '') {
+            $query->whereHas('member', fn (Builder $q) => $q->where('jabatan_id', (int) $jabatanFilter));
+        }
+
         $this->applySearch($query, $request);
 
         $totalRecords = Payment::count();
@@ -102,7 +107,7 @@ final readonly class PaymentService
     {
         $order = $request->input('order.0');
         if (! $order || ! isset($order['column'], $order['dir'])) {
-            $query->orderByDesc('id');
+            $query->orderByDesc('tahun_bayar')->orderByDesc('id');
 
             return;
         }
@@ -120,7 +125,7 @@ final readonly class PaymentService
         $dir = $order['dir'] === 'asc' ? 'asc' : 'desc';
         $column = $columns[$columnIndex] ?? 'id';
 
-        $query->orderBy($column, $dir);
+        $query->orderBy($column, $dir)->orderBy('id', $dir);
     }
 
     /** @return \Illuminate\Support\Collection<int, Payment> */
