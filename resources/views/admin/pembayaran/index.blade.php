@@ -64,6 +64,11 @@
                                 "></span>
                             @endif
                             {{ $cfg['label'] }}
+                            @if($val === 'pending')
+                                <span id="pendingCountBadge" class="hidden ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold transition-all duration-200">
+                                    <span class="pending-count"></span>
+                                </span>
+                            @endif
                         </span>
                     </button>
                 @endforeach
@@ -110,21 +115,11 @@
             <div class="w-full overflow-x-auto rounded-xl">
                 <table class="w-full min-w-full" id="pembayaran-table" style="width:100%;">
                     <thead>
-                        <tr class="bg-gradient-to-r from-indigo-600 to-indigo-500">
-                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-indigo-100" style="width:30%;min-width:180px;">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="h-3.5 w-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    Maklumat Ahli
-                                </span>
-                            </th>
-                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-indigo-100" style="width:30%;min-width:180px;">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="h-3.5 w-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    No Resit / Rujukan
-                                </span>
-                            </th>
-                            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-indigo-100" style="width:15%;min-width:100px;">Status</th>
-                            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-indigo-100" style="width:25%;min-width:160px;">Tindakan</th>
+                        <tr class="border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:30%;min-width:180px;">Maklumat Ahli</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:30%;min-width:180px;">No Resit / Rujukan</th>
+                            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:15%;min-width:100px;">Status</th>
+                            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:25%;min-width:160px;">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -197,8 +192,12 @@
 <style>
 /* ── DataTable Core ── */
 table.dataTable { border-collapse:collapse !important; width:100% !important; }
-table.dataTable thead th { background:transparent; padding:0; border:0; }
-table.dataTable tbody tr { background:#fff; border-bottom:1px solid #f3f4f6; transition:background .15s; }
+table.dataTable thead th { padding:0.875rem 1rem; border:0; vertical-align:middle; }
+#pembayaran-table thead tr { background:#f9fafb !important; }
+#pembayaran-table thead th { background:transparent !important; color:#374151 !important; }
+.dark #pembayaran-table thead tr { background:rgba(55,65,81,.5) !important; }
+.dark #pembayaran-table thead th { color:#e5e7eb !important; }
+table.dataTable tbody tr { background:#fff; border-bottom:1px solid #e5e7eb; transition:background .15s; }
 table.dataTable tbody tr:hover { background:#f5f3ff; }
 .dark table.dataTable tbody tr { background:#1f2937; border-bottom-color:#374151; }
 .dark table.dataTable tbody tr:hover { background:#312e81/10; }
@@ -208,28 +207,35 @@ table.dataTable tbody tr:last-child td { border-bottom:0; }
 
 /* ── Wrapper Controls ── */
 .dataTables_wrapper { font-size:.875rem; }
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter { padding:0.5rem 0; }
 .dataTables_wrapper .dataTables_filter { text-align:right; }
-.dataTables_wrapper .dataTables_filter label { display:inline-flex; align-items:center; gap:.5rem; color:#6b7280; font-weight:500; }
+.dataTables_wrapper > .row:first-child { margin-bottom:1rem; align-items:center; }
+.dataTables_wrapper table.dataTable { margin-top:0 !important; }
+.dataTables_wrapper .dataTables_filter label { display:inline-flex; align-items:center; gap:.5rem; color:#374151; font-weight:500; }
 .dataTables_wrapper .dataTables_filter input {
-    border:1px solid #e5e7eb; border-radius:.625rem; padding:.45rem .875rem;
-    background:#fff; color:#111827; outline:none; transition:border .15s, box-shadow .15s;
+    border:2px solid #e5e7eb !important; border-radius:.75rem !important; padding:.5rem 1rem !important;
+    background:#fff !important; color:#111827 !important; outline:none !important;
+    font-size:.875rem !important; min-width:12rem; transition:border .2s, box-shadow .2s;
 }
-.dataTables_wrapper .dataTables_filter input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
-.dark .dataTables_wrapper .dataTables_filter input { border-color:#4b5563; background:#374151; color:#f3f4f6; }
-.dataTables_wrapper .dataTables_length label { display:inline-flex; align-items:center; gap:.5rem; color:#6b7280; font-weight:500; }
+.dataTables_wrapper .dataTables_filter input:focus { border-color:#4f46e5 !important; box-shadow:0 0 0 3px rgba(79,70,229,.2) !important; }
+.dark .dataTables_wrapper .dataTables_filter input { border-color:#4b5563 !important; background:#374151 !important; color:#f3f4f6 !important; }
+.dataTables_wrapper .dataTables_length label { display:inline-flex; align-items:center; gap:.5rem; color:#374151; font-weight:500; }
 .dataTables_wrapper .dataTables_length select {
-    border:1px solid #e5e7eb; border-radius:.625rem; padding:.375rem 2rem .375rem .75rem;
-    background:#fff; color:#111827; cursor:pointer;
+    border:2px solid #e5e7eb !important; border-radius:.75rem !important; padding:.5rem 2rem .5rem .75rem !important;
+    background:#fff !important; color:#111827 !important; cursor:pointer !important; font-size:.875rem !important;
 }
-.dark .dataTables_wrapper .dataTables_length select { border-color:#4b5563; background:#374151; color:#f3f4f6; }
-.dataTables_wrapper .dataTables_info { color:#6b7280; padding-top:.75rem; }
+.dataTables_wrapper .dataTables_length select:focus { border-color:#4f46e5 !important; outline:none !important; }
+.dark .dataTables_wrapper .dataTables_length select { border-color:#4b5563 !important; background:#374151 !important; color:#f3f4f6 !important; }
+.dataTables_wrapper .dataTables_info { color:#6b7280; padding-top:1rem; font-size:.875rem; }
 .dark .dataTables_wrapper .dataTables_info { color:#9ca3af; }
-.dataTables_wrapper .dataTables_paginate { padding-top:.75rem; }
+.dataTables_wrapper .dataTables_paginate { padding-top:1rem; }
 .dataTables_wrapper .dataTables_paginate .paginate_button {
-    display:inline-flex; align-items:center; justify-content:center;
-    min-width:2rem; height:2rem; padding:0 .5rem;
-    margin:0 2px; border-radius:.5rem; border:1px solid #e5e7eb !important;
-    background:#fff; color:#374151 !important; font-size:.8125rem; cursor:pointer; transition:all .15s;
+    display:inline-flex !important; align-items:center; justify-content:center;
+    min-width:2.25rem; height:2.25rem; padding:0 .5rem;
+    margin:0 2px; border-radius:.5rem !important; border:2px solid #e5e7eb !important;
+    background:#fff !important; color:#374151 !important; font-size:.875rem !important; font-weight:500;
+    cursor:pointer; transition:all .2s;
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background:#f3f4f6 !important; border-color:#d1d5db !important; }
 .dataTables_wrapper .dataTables_paginate .paginate_button.current { background:#4f46e5 !important; color:#fff !important; border-color:#4f46e5 !important; font-weight:600; }
@@ -379,15 +385,31 @@ $(document).ready(function () {
 
     function renderStatusBadge(status) {
         const map = {
-            approved: { bg:'bg-emerald-50 dark:bg-emerald-900/30', text:'text-emerald-700 dark:text-emerald-300', dot:'bg-emerald-400', label:'Disahkan',
+            approved: { bg:'bg-emerald-50 dark:bg-emerald-900/30', text:'text-emerald-700 dark:text-emerald-300', label:'Disahkan',
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' },
-            pending:  { bg:'bg-amber-50 dark:bg-amber-900/30',   text:'text-amber-700 dark:text-amber-300',   dot:'bg-amber-400',   label:'Menunggu',
+            pending:  { bg:'bg-amber-50 dark:bg-amber-900/30',   text:'text-amber-700 dark:text-amber-300',   label:'Menunggu',
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>' },
-            rejected: { bg:'bg-red-50 dark:bg-red-900/30',       text:'text-red-700 dark:text-red-300',       dot:'bg-red-400',     label:'Ditolak',
+            rejected: { bg:'bg-red-50 dark:bg-red-900/30',       text:'text-red-700 dark:text-red-300',       label:'Ditolak',
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' },
         };
         const s = map[status] || map.rejected;
         return `<span class="inline-flex items-center gap-1.5 rounded-full ${s.bg} ${s.text} px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10">${s.icon}${s.label}</span>`;
+    }
+
+    function renderStatusWithLihat(row) {
+        const statusHtml = renderStatusBadge(row.status);
+        if (!row.bukti_bayaran) {
+            return `<div class="flex flex-col items-center gap-1">${statusHtml}</div>`;
+        }
+        const imgUrl = '/admin/pembayaran/' + row.id + '/bukti';
+        const lihatBtn = `<button type="button"
+            data-bukti-url="${imgUrl}"
+            data-member="${escapeHtml((row.member||{}).nama||'')}"
+            class="js-bukti-btn group mt-1.5 inline-flex items-center gap-2 rounded-lg border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/25 px-3 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-300 shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 active:scale-[0.98]">
+            <svg class="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Lihat
+        </button>`;
+        return `<div class="flex flex-col items-center gap-0.5">${statusHtml}${lihatBtn}</div>`;
     }
 
     function renderBuktiCell(row) {
@@ -406,18 +428,6 @@ $(document).ready(function () {
 
     function renderActionsCell(row) {
         const parts = [];
-        if (row.bukti_bayaran) {
-            const imgUrl = '/admin/pembayaran/' + row.id + '/bukti';
-            parts.push(`<button type="button"
-                data-bukti-url="${imgUrl}"
-                data-member="${escapeHtml((row.member||{}).nama||'')}"
-                class="js-bukti-btn group inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:border-indigo-300 transition-all">
-                <svg class="h-3.5 w-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                Lihat
-            </button>`);
-        }
         if (row.status === 'pending') {
             const approveUrl = '/admin/pembayaran/' + row.id + '/approve';
             const rejectUrl  = '/admin/pembayaran/' + row.id + '/reject';
@@ -465,7 +475,7 @@ $(document).ready(function () {
         columns: [
             { data:'member',             name:'member',             orderable:false, render:(_,__,row) => renderMemberCell(row) },
             { data:'no_resit_transfer',  name:'no_resit_transfer',  render:(_,__,row) => renderResitDetailsCell(row) },
-            { data:'status',             name:'status',             className:'text-center', render: d => renderStatusBadge(d) },
+            { data:'status',             name:'status',             className:'text-center', render:(_,__,row) => renderStatusWithLihat(row) },
             { data:'id',                 name:'actions',            orderable:false, searchable:false, className:'text-center', render:(_,__,row) => renderActionsCell(row) },
         ],
         order: [[1,'desc']],
@@ -501,8 +511,38 @@ $(document).ready(function () {
         });
     });
 
+    function updatePendingCount() {
+        const jabatanValue = jabatanSelect ? jabatanSelect.value : '';
+        const url = '{{ route("admin.pembayaran.pending-count") }}?jabatan_filter=' + encodeURIComponent(jabatanValue);
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('pendingCountBadge');
+                const badge = document.querySelector('.pending-count');
+
+                if (!container || !badge) {
+                    return;
+                }
+
+                if (data.count === 0) {
+                    container.classList.add('hidden');
+                    badge.textContent = '';
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                badge.textContent = data.count;
+            })
+            .catch(err => console.error('Failed to fetch pending count:', err));
+    }
+
+    updatePendingCount();
+
     if (jabatanSelect) {
-        jabatanSelect.addEventListener('change', () => table.ajax.reload());
+        jabatanSelect.addEventListener('change', () => {
+            table.ajax.reload();
+            updatePendingCount();
+        });
     }
 
     // ── Bukti lightbox ────────────────────────────────────────────────

@@ -10,6 +10,7 @@ use App\Models\Jabatan;
 use App\Models\Payment;
 use App\Services\MemberService;
 use App\Services\PaymentService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,18 @@ final class PembayaranController extends Controller
         }
 
         abort(400, 'Invalid request');
+    }
+
+    public function getPendingCount(Request $request): JsonResponse
+    {
+        $query = Payment::query()->where('status', Payment::STATUS_PENDING);
+
+        $jabatanFilter = $request->input('jabatan_filter');
+        if ($jabatanFilter !== null && $jabatanFilter !== '') {
+            $query->whereHas('member', fn (Builder $q) => $q->where('jabatan_id', (int) $jabatanFilter));
+        }
+
+        return response()->json(['count' => $query->count()]);
     }
 
     public function approve(Payment $payment): RedirectResponse

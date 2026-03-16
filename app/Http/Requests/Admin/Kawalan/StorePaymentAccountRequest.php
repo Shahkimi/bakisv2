@@ -20,7 +20,7 @@ final class StorePaymentAccountRequest extends FormRequest
         return [
             'account_name' => ['required', 'string', 'max:255'],
             'account_number' => ['required', 'string', 'max:255'],
-            'qr_image' => ['required', File::image()->max(2048)->allowSvg()],
+            'qr_image' => ['required', File::image(allowSvg: true)->max(2048)],
             'is_active' => ['required', 'boolean'],
         ];
     }

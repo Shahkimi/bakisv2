@@ -44,6 +44,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('members', AdminMemberController::class);
     Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
     Route::get('pembayaran/data', [PembayaranController::class, 'getData'])->name('pembayaran.data');
+    Route::get('pembayaran/pending-count', [PembayaranController::class, 'getPendingCount'])->name('pembayaran.pending-count');
     Route::get('pembayaran/{payment}/bukti', [PembayaranController::class, 'bukti'])->name('pembayaran.bukti');
     Route::post('pembayaran/{payment}/approve', [PembayaranController::class, 'approve'])->name('pembayaran.approve');
     Route::post('pembayaran/{payment}/reject', [PembayaranController::class, 'reject'])->name('pembayaran.reject');

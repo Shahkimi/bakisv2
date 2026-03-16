@@ -287,7 +287,12 @@ $(document).ready(function() {
     function renderQrThumb(row) {
         if (!row.has_qr) return '<span class="text-gray-400 text-xs">–</span>';
         const url = accountQrUrl(row.id);
-        return '<a href="' + escapeAttr(url) + '" target="_blank" class="inline-block"><img src="' + escapeAttr(url) + '" alt="QR" class="qr-thumb" width="40" height="40"></a>';
+        return '' +
+            '<button type="button" class="js-qr-preview inline-flex items-center justify-center" ' +
+                'data-qr-url="' + escapeAttr(url) + '" ' +
+                'aria-label="Lihat imej QR">' +
+                '<img src="' + escapeAttr(url) + '" alt="QR" class="qr-thumb" width="40" height="40">' +
+            '</button>';
     }
 
     function renderStatusBadge(row) {
@@ -305,8 +310,10 @@ $(document).ready(function() {
         const accountName = escapeAttr(a.account_name);
         const accountNumber = escapeAttr(a.account_number);
         const active = a.is_active ? '1' : '0';
+        const hasQr = !!row.has_qr;
+        const qrUrl = hasQr ? accountQrUrl(row.id) : '';
         return '<div class="flex items-center gap-2">' +
-            '<button type="button" class="btn-edit-account inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '">Edit</button>' +
+            '<button type="button" class="btn-edit-account inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '" data-has-qr="' + (hasQr ? '1' : '0') + '" data-qr-url="' + escapeAttr(qrUrl) + '">Edit</button>' +
             '<button type="button" class="btn-delete-account inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition" data-id="' + id + '" data-account-name="' + accountName + '">Padam</button></div>';
     }
 
@@ -335,6 +342,22 @@ $(document).ready(function() {
             paginate: { first: 'Pertama', last: 'Akhir', next: 'Seterusnya', previous: 'Sebelumnya' },
             zeroRecords: 'Tiada rekod sepadan'
         }
+    });
+
+    // QR thumbnail preview in SweetAlert
+    $(document).on('click', '.js-qr-preview', function () {
+        const url = $(this).data('qr-url');
+        if (!url) return;
+
+        Swal.fire({
+            title: 'Preview QR',
+            imageUrl: url,
+            imageAlt: 'Imej QR',
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: 360,
+            padding: '1.5rem',
+        });
     });
 
     function bindToggleInModal(modalEl) {
@@ -382,13 +405,20 @@ $(document).ready(function() {
 
             previewFilenameEl.textContent = file.name;
             previewFilesizeEl.textContent = formatFileSize(file.size);
-            if (prompt) prompt.classList.add('hidden');
-            if (preview) preview.classList.remove('hidden');
+            if (prompt) {
+                prompt.classList.add('hidden');
+                prompt.style.display = 'none';
+            }
+            if (preview) {
+                preview.classList.remove('hidden');
+                preview.style.display = 'flex';
+            }
 
             previewImg.alt = '';
             var reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
+                previewImg.style.display = 'block'; 
             };
             reader.onerror = function() {
                 previewImg.removeAttribute('src');
@@ -495,7 +525,7 @@ $(document).ready(function() {
                     </div>
                     <div class="field">
                         <div class="toggle-wrap">
-                            <span class="toggle-label">Status</span>
+                            <span class="toggle-label">Status Aktif</span>
                             <div class="toggle-track active" id="swal-toggle" role="button" tabindex="0"><span class="toggle-thumb"></span></div>
                         </div>
                         <input type="hidden" id="swal-active" name="is_active" value="1" />
@@ -552,6 +582,8 @@ $(document).ready(function() {
         const accountName = $(this).data('account-name') || '';
         const accountNumber = $(this).data('account-number') || '';
         const active = $(this).data('active') === 1 || $(this).data('active') === '1';
+        const hasQr = $(this).data('has-qr') === 1 || $(this).data('has-qr') === '1';
+        const existingQrUrl = $(this).data('qr-url') || '';
 
         Swal.fire({
             title: '<span style="display:flex;align-items:center;gap:0.5rem;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Akaun Bayaran</span>',
@@ -594,7 +626,7 @@ $(document).ready(function() {
                     </div>
                     <div class="field">
                         <div class="toggle-wrap">
-                            <span class="toggle-label">Status</span>
+                            <span class="toggle-label">Status Aktif</span>
                             <div class="toggle-track ${active ? 'active' : ''}" id="swal-toggle" role="button" tabindex="0"><span class="toggle-thumb"></span></div>
                         </div>
                         <input type="hidden" id="swal-active" name="is_active" value="${active ? '1' : '0'}" />
@@ -608,8 +640,38 @@ $(document).ready(function() {
             width: '420px',
             customClass: { popup: 'account-edit-swal' },
             didOpen: function() {
-                bindToggleInModal(document.querySelector('.account-edit-swal'));
+                const modalEl = document.querySelector('.account-edit-swal');
+                bindToggleInModal(modalEl);
                 initializeFileUpload('qr-upload-zone', 'swal-qr-image', 'upload-prompt', 'upload-preview');
+
+                // Prefill existing QR preview for edit
+                if (hasQr && existingQrUrl) {
+                    const uploadZone = modalEl.querySelector('#qr-upload-zone');
+                    if (uploadZone) {
+                        const prompt = uploadZone.querySelector('#upload-prompt');
+                        const preview = uploadZone.querySelector('#upload-preview');
+                        const previewImg = uploadZone.querySelector('#preview-image');
+                        const previewFilenameEl = uploadZone.querySelector('#preview-filename');
+                        const previewFilesizeEl = uploadZone.querySelector('#preview-filesize');
+
+                        if (preview && previewImg && previewFilenameEl && previewFilesizeEl) {
+                            if (prompt) {
+                                prompt.classList.add('hidden');
+                                prompt.style.display = 'none';
+                            }
+
+                            preview.classList.remove('hidden');
+                            preview.style.display = 'flex';
+
+                            previewImg.src = existingQrUrl;
+                            previewImg.alt = 'Imej QR sedia ada';
+                            previewImg.style.display = 'block';
+
+                            previewFilenameEl.textContent = 'Imej QR sedia ada';
+                            previewFilesizeEl.textContent = '';
+                        }
+                    }
+                }
             },
             preConfirm: function() {
                 const name = (document.getElementById('swal-account-name').value || '').trim();

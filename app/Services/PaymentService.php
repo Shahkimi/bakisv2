@@ -169,7 +169,7 @@ final readonly class PaymentService
 
     private function normalizeStatusFilter(?string $statusFilter): string
     {
-        $statusFilter = $statusFilter ?? 'pending';
+        $statusFilter = $statusFilter ?? 'all';
 
         if ($statusFilter === 'all') {
             return 'all';
