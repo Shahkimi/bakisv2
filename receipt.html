@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Membership Receipt</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      min-height: 100vh;
+    }
+
+    .receipt {
+      background: #fff;
+      width: 520px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .receipt-header {
+      background: #1a73e8;
+      color: #fff;
+      padding: 28px 32px;
+      text-align: center;
+    }
+    .receipt-header .org-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .receipt-header .org-tagline {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+    .receipt-header .badge {
+      display: inline-block;
+      margin-top: 14px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Status Banner ── */
+    .status-banner {
+      background: #e8f5e9;
+      border-bottom: 1px solid #c8e6c9;
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-banner .dot {
+      width: 10px; height: 10px;
+      background: #43a047;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-banner span {
+      font-size: 0.82rem;
+      color: #2e7d32;
+      font-weight: 600;
+    }
+    .status-banner .receipt-no {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: #555;
+    }
+
+    /* ── Body ── */
+    .receipt-body {
+      padding: 24px 32px;
+    }
+
+    .section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 10px;
+      margin-top: 20px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* Member Info */
+    .member-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+    }
+    .info-item label {
+      display: block;
+      font-size: 0.72rem;
+      color: #888;
+      margin-bottom: 2px;
+    }
+    .info-item span {
+      font-size: 0.88rem;
+      color: #222;
+      font-weight: 500;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px dashed #e0e0e0;
+      margin: 20px 0;
+    }
+
+    /* Membership Plan */
+    .plan-box {
+      background: #f7f9ff;
+      border: 1px solid #d0dcff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plan-box .plan-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1a73e8;
+    }
+    .plan-box .plan-period {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 3px;
+    }
+    .plan-box .plan-price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #222;
+    }
+
+    /* Payment Breakdown */
+    .breakdown {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    .breakdown tr td {
+      padding: 6px 0;
+      color: #444;
+    }
+    .breakdown tr td:last-child {
+      text-align: right;
+      font-weight: 500;
+    }
+    .breakdown .total-row td {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #111;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    /* Payment Method */
+    .pay-method {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.86rem;
+      color: #444;
+    }
+    .pay-method .icon {
+      font-size: 1.2rem;
+    }
+
+    /* Validity */
+    .validity-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .validity-row strong { color: #222; }
+
+    /* ── Footer ── */
+    .receipt-footer {
+      background: #fafafa;
+      border-top: 1px solid #eee;
+      padding: 18px 32px;
+      text-align: center;
+    }
+    .receipt-footer p {
+      font-size: 0.78rem;
+      color: #888;
+      line-height: 1.6;
+    }
+    .receipt-footer .thank-you {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    /* ── Print Button ── */
+    .btn-print {
+      display: block;
+      width: calc(100% - 64px);
+      margin: 0 32px 24px;
+      padding: 12px;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.2s;
+    }
+    .btn-print:hover { background: #1558c0; }
+
+    /* ── Print Styles ── */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt { box-shadow: none; border-radius: 0; width: 100%; }
+      .btn-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="receipt">
+
+  <!-- Header -->
+  <div class="receipt-header">
+    <div class="org-name">🏛️ MyOrganization</div>
+    <div class="org-tagline">Km 6, Jln Langgar, Bandar, 05460 Alor Setar, Kedah. <br>Tel: +60 4-XXX XXXX</div>
+    <div class="badge">✔ Payment Receipt</div>
+  </div>
+
+  <!-- Status Banner -->
+  <div class="status-banner">
+    <div class="dot"></div>
+    <span>Payment Successful</span>
+    <span class="receipt-no">Receipt No: RCP-2026-00123</span>
+  </div>
+
+  <!-- Body -->
+  <div class="receipt-body">
+
+    <!-- Member Info -->
+    <div class="section-title">Member Information</div>
+    <div class="member-info">
+      <div class="info-item">
+        <label>Full Name</label>
+        <span>Ahmad bin Abdullah</span>
+      </div>
+      <div class="info-item">
+        <label>Member ID</label>
+        <span>MBR-2026-0042</span>
+      </div>
+      <div class="info-item">
+        <label>Email</label>
+        <span>ahmad@example.com</span>
+      </div>
+      <div class="info-item">
+        <label>Phone</label>
+        <span>+60 12-345 6789</span>
+      </div>
+      <div class="info-item">
+        <label>Issue Date</label>
+        <span>16 March 2026</span>
+      </div>
+      <div class="info-item">
+        <label>Transaction ID</label>
+        <span>TXN-20260316-88A</span>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- Membership Plan -->
+    <div class="section-title">Membership Plan</div>
+    <div class="plan-box">
+      <div>
+        <div class="plan-name">Pembaharuan Keahlian</div>
+      </div>
+      <div class="plan-price">RM 10.00</div>
+    </div>
+    
+
+    <hr class="divider"/>
+
+    <!-- Payment Breakdown -->
+    <div class="section-title">Payment Breakdown</div>
+    <table class="breakdown">
+      <tr>
+        <td>Membership Fee</td>
+        <td>RM 10.00</td>
+      </tr>
+      <tr class="total-row">
+        <td>Total Paid</td>
+        <td>RM 10.00</td>
+      </tr>
+    </table>
+
+    <hr class="divider"/>
+
+    <!-- Payment Method -->
+    <div class="section-title">Payment Method</div>
+    <div class="pay-method">
+      <span class="icon">💳</span>
+      <span>Online Banking (FPX) · Ref: FPX20260316001</span>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- Validity -->
+    <div class="section-title">Membership Validity</div>
+    <div class="validity-row">
+      <span>Start Date</span>
+      <strong>16 March 2026</strong>
+    </div>
+    <div class="validity-row">
+      <span>Expiry Date</span>
+      <strong>15 March 2027</strong>
+    </div>
+
+  </div><!-- /receipt-body -->
+
+  <!-- Print Button -->
+  <button class="btn-print" onclick="window.print()">🖨️ Print Receipt</button>
+
+  <!-- Footer -->
+  <div class="receipt-footer">
+    <p class="thank-you">Thank you for your membership!</p>
+    <p>This is a computer-generated receipt and does not require a signature.<br>
+       For enquiries, contact us at <strong>support@myorg.com</strong></p>
+  </div>
+
+</div>
+
+</body>
+</html>
