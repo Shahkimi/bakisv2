@@ -9,10 +9,14 @@ use App\Http\Requests\RegisterMemberRequest;
 use App\Http\Requests\RenewalPaymentRequest;
 use App\Models\Jabatan;
 use App\Models\Jawatan;
+use App\Models\PaymentAccount;
 use App\Services\MemberService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class SemakController extends Controller
@@ -52,9 +56,12 @@ class SemakController extends Controller
             $result['member']->load('payments.yuran');
         }
 
+        $paymentAccounts = $this->getActivePaymentAccountsForSemak();
+
         return view('semak.result', [
             'result' => $result,
             'checkedNoKp' => $noKp,
+            'paymentAccounts' => $paymentAccounts,
         ]);
     }
 
@@ -78,9 +85,12 @@ class SemakController extends Controller
             $result['member']->load('payments.yuran');
         }
 
+        $paymentAccounts = $this->getActivePaymentAccountsForSemak();
+
         return view('semak.result', [
             'result' => $result,
             'checkedNoKp' => $noKp,
+            'paymentAccounts' => $paymentAccounts,
         ]);
     }
 
@@ -135,5 +145,42 @@ class SemakController extends Controller
         }
 
         return view('semak.success', ['member' => $member]);
+    }
+
+    /**
+     * Active payment accounts with temporary signed QR URLs (semak-only display).
+     *
+     * @return Collection<int, object{id: int, account_name: string, account_number: string, qr_image_url: string|null}>
+     */
+    private function getActivePaymentAccountsForSemak(): Collection
+    {
+        return PaymentAccount::query()
+            ->active()
+            ->orderBy('account_name')
+            ->get()
+            ->map(function (PaymentAccount $account) {
+                return (object) [
+                    'id' => $account->id,
+                    'account_name' => $account->account_name,
+                    'account_number' => $account->account_number,
+                    'qr_image_url' => $account->getTemporaryQrUrl(60),
+                ];
+            });
+    }
+
+    /**
+     * Stream QR image for payment account (signed URL only, for semak views).
+     */
+    public function showQr(PaymentAccount $paymentAccount): StreamedResponse
+    {
+        if (empty($paymentAccount->qr_image_path) || ! Storage::disk('local')->exists($paymentAccount->qr_image_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response(
+            $paymentAccount->qr_image_path,
+            $paymentAccount->account_name.'-qr.'.pathinfo($paymentAccount->qr_image_path, PATHINFO_EXTENSION),
+            ['Content-Type' => Storage::disk('local')->mimeType($paymentAccount->qr_image_path)]
+        );
     }
 }

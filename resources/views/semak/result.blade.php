@@ -164,6 +164,26 @@
             @endif
 
             @if($member && in_array($status, ['expired', 'rejected'], true))
+                @php $paymentAccounts = $paymentAccounts ?? collect(); @endphp
+                @if($paymentAccounts->isNotEmpty())
+                    <div class="mt-5 rounded-2xl border border-teal-200 dark:border-teal-800/50 bg-teal-50/70 dark:bg-teal-900/10 p-4 sm:p-5">
+                        <h2 class="text-sm font-semibold text-teal-900 dark:text-teal-200">Bayar ke Akaun</h2>
+                        <p class="mt-1 text-xs text-teal-800/90 dark:text-teal-300">Sila bank in ke salah satu akaun di bawah. Imbas kod QR atau salin no. akaun.</p>
+                        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach($paymentAccounts as $account)
+                                <div class="rounded-xl border border-teal-200/80 dark:border-teal-700/50 bg-white dark:bg-gray-800/50 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                    @if($account->qr_image_url ?? null)
+                                        <img src="{{ $account->qr_image_url }}" alt="QR {{ $account->account_name }}" class="w-24 h-24 sm:w-20 sm:h-20 object-contain rounded-lg border border-gray-200 dark:border-gray-600 flex-shrink-0">
+                                    @endif
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-gray-900 dark:text-white">{{ $account->account_name }}</p>
+                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">No. Akaun: <span class="font-mono font-medium">{{ $account->account_number }}</span></p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 <div class="mt-5 rounded-2xl border border-orange-200 dark:border-orange-800/50 bg-orange-50/70 dark:bg-orange-900/10 p-4 sm:p-5">
                     <h2 class="text-sm font-semibold text-orange-900 dark:text-orange-200">Bayar Pembaharuan</h2>
                     <p class="mt-1 text-xs text-orange-800/90 dark:text-orange-300">Yuran pembaharuan RM10.00. Admin akan mengesahkan pembayaran anda.</p>

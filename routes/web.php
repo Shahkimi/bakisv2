@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
+use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\YuranController;
 use App\Http\Controllers\Auth\LoginController;
@@ -15,6 +16,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect('/dashboard');
     }
+
     return view('welcome');
 });
 
@@ -30,6 +32,7 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::get('/semak', [SemakController::class, 'index'])->name('semak.index');
     Route::post('/semak', [SemakController::class, 'check'])->name('semak.check');
     Route::get('/semak/result', [SemakController::class, 'showResult'])->name('semak.result');
+    Route::get('/semak/qr/{paymentAccount}', [SemakController::class, 'showQr'])->name('semak.qr')->middleware('signed');
     Route::post('/semak/bayar', [SemakController::class, 'bayar'])->name('semak.bayar');
     Route::post('/semak/daftar', [SemakController::class, 'register'])->name('semak.register');
     Route::get('/semak/success', [SemakController::class, 'success'])->name('semak.success');
@@ -64,6 +67,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/', [YuranController::class, 'store'])->name('store');
         Route::put('{yuran}', [YuranController::class, 'update'])->name('update');
         Route::delete('{yuran}', [YuranController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('kawalan/account')->name('kawalan.account.')->group(function () {
+        Route::get('/', [PaymentAccountController::class, 'index'])->name('index');
+        Route::get('data', [PaymentAccountController::class, 'getData'])->name('data');
+        Route::get('{paymentAccount}/qr', [PaymentAccountController::class, 'showQr'])->name('qr');
+        Route::post('/', [PaymentAccountController::class, 'store'])->name('store');
+        Route::put('{paymentAccount}', [PaymentAccountController::class, 'update'])->name('update');
+        Route::delete('{paymentAccount}', [PaymentAccountController::class, 'destroy'])->name('destroy');
     });
 });
 

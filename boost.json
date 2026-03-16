@@ -1,0 +1,20 @@
+{
+    "agents": [
+        "cursor"
+    ],
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "sail": false,
+    "skills": [
+        "tailwindcss-development",
+        "ckm:banner-design",
+        "ckm:brand",
+        "ckm:design",
+        "ckm:design-system",
+        "ckm:slides",
+        "ckm:ui-styling",
+        "ui-ux-pro-max"
+    ]
+}

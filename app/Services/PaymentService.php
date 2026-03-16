@@ -91,7 +91,7 @@ final readonly class PaymentService
             return;
         }
 
-        $term = '%' . addcslashes((string) $searchValue, '%_\\') . '%';
+        $term = '%'.addcslashes((string) $searchValue, '%_\\').'%';
 
         $query->where(function (Builder $q) use ($term): void {
             $q->where('no_resit_transfer', 'like', $term)
@@ -112,20 +112,25 @@ final readonly class PaymentService
             return;
         }
 
-        $columns = [
-            0 => 'id',
-            1 => 'no_resit_transfer',
-            2 => 'tahun_bayar',
-            3 => 'id', // jumlah (computed) – order by id fallback
-            4 => 'id', // jenis (computed) – order by id fallback
-            5 => 'status',
-        ];
-
         $columnIndex = (int) $order['column'];
         $dir = $order['dir'] === 'asc' ? 'asc' : 'desc';
+
+        $columns = [
+            0 => 'member',      // Maklumat Ahli – order by member nama
+            1 => 'no_resit_transfer',
+            2 => 'status',
+            3 => 'id',          // Tindakan – non-orderable, fallback to id
+        ];
+
         $column = $columns[$columnIndex] ?? 'id';
 
-        $query->orderBy($column, $dir)->orderBy('id', $dir);
+        if ($column === 'member') {
+            $query->join('members', 'payments.member_id', '=', 'members.id')
+                ->orderBy('members.nama', $dir)
+                ->orderBy('payments.id', $dir);
+        } else {
+            $query->orderBy('payments.'.$column, $dir)->orderBy('payments.id', $dir);
+        }
     }
 
     /** @return \Illuminate\Support\Collection<int, Payment> */
@@ -155,7 +160,7 @@ final readonly class PaymentService
             'no_resit_transfer' => $payment->no_resit_transfer ?? '–',
             'tahun_bayar' => $payment->tahun_bayar,
             'jumlah' => (float) $payment->jumlah,
-            'jumlah_formatted' => 'RM ' . number_format((float) $payment->jumlah, 2),
+            'jumlah_formatted' => 'RM '.number_format((float) $payment->jumlah, 2),
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
@@ -178,4 +183,3 @@ final readonly class PaymentService
         return $statusFilter;
     }
 }
-
