@@ -156,6 +156,10 @@
                 class="hidden max-h-[70vh] max-w-full rounded-xl object-contain shadow-md ring-1 ring-gray-200 dark:ring-gray-700"
                 onload="document.getElementById('buktiLoading').classList.add('hidden');this.classList.remove('hidden');"
                 onerror="document.getElementById('buktiLoading').classList.add('hidden');document.getElementById('buktiImgError').classList.remove('hidden');">
+            <iframe id="buktiFrame" src="" title="Bukti Pembayaran"
+                class="hidden h-[70vh] w-full rounded-xl bg-white dark:bg-gray-900 shadow-md ring-1 ring-gray-200 dark:ring-gray-700"
+                loading="lazy"
+                referrerpolicy="no-referrer"></iframe>
             <div id="buktiImgError" class="hidden flex-col items-center gap-3 text-center">
                 <svg class="h-12 w-12 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -548,6 +552,7 @@ $(document).ready(function () {
     // ── Bukti lightbox ────────────────────────────────────────────────
     const buktiModal   = document.getElementById('buktiModal');
     const buktiImg     = document.getElementById('buktiImg');
+    const buktiFrame   = document.getElementById('buktiFrame');
     const buktiImgErr  = document.getElementById('buktiImgError');
     const buktiLoading = document.getElementById('buktiLoading');
     const buktiTitle   = document.getElementById('buktiModalTitle');
@@ -555,10 +560,12 @@ $(document).ready(function () {
 
     function openBuktiModal(url, memberNama) {
         buktiImg.classList.add('hidden');
+        buktiFrame?.classList.add('hidden');
         buktiImgErr.classList.add('hidden');
         buktiImgErr.classList.remove('flex');
         buktiLoading.classList.remove('hidden');
         buktiImg.src = '';
+        if (buktiFrame) buktiFrame.src = '';
         buktiTitle.textContent = memberNama ? 'Bukti Pembayaran – ' + memberNama : 'Bukti Pembayaran';
         buktiDl.href = url;
         setTimeout(() => { buktiImg.src = url; }, 60);
@@ -571,8 +578,21 @@ $(document).ready(function () {
         buktiModal.classList.add('hidden');
         buktiModal.classList.remove('flex');
         buktiImg.src = '';
+        if (buktiFrame) buktiFrame.src = '';
         document.body.style.overflow = '';
     }
+
+    // If the proof is a PDF, <img> will fail; fall back to iframe viewer.
+    buktiImg?.addEventListener('error', () => {
+        if (!buktiFrame || !buktiDl?.href) {
+            return;
+        }
+
+        buktiLoading.classList.add('hidden');
+        buktiImgErr.classList.add('hidden');
+        buktiFrame.classList.remove('hidden');
+        buktiFrame.src = buktiDl.href;
+    });
 
     $(document).on('click', '.js-bukti-btn', function () {
         openBuktiModal(this.dataset.buktiUrl, this.dataset.member);

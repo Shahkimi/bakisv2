@@ -28,13 +28,13 @@ final class PembayaranController extends Controller
     public function bukti(Payment $payment): StreamedResponse|RedirectResponse
     {
         if (! $payment->bukti_bayaran) {
-            return redirect()->route('admin.pembayaran.index')->with('error', 'Tiada bukti pembayaran.');
+            abort(404);
         }
 
         $path = 'members/payments/'.basename($payment->bukti_bayaran);
 
         if (! Storage::disk('public')->exists($path)) {
-            return redirect()->route('admin.pembayaran.index')->with('error', 'Fail bukti tidak dijumpai.');
+            abort(404);
         }
 
         return Storage::disk('public')->response($path, basename($path), [
