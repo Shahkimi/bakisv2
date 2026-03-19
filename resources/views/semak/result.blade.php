@@ -441,6 +441,65 @@
         fileInput.addEventListener('change', () => {
             if (fileInput.files && fileInput.files[0]) {
                 const name = fileInput.files[0].name;
+                const file = fileInput.files[0];
+                const maxBytes = 5120 * 1024; // 5MB
+
+                const allowedExt = /\.(jpe?g|png|pdf)$/i;
+                if (!allowedExt.test(name)) {
+                    alert('Jenis fail tidak sah. Hanya JPG, PNG atau PDF dibenarkan.');
+                    fileInput.value = '';
+                    fileNameEl.textContent = 'Fail dipilih';
+
+                    dzPreview.classList.add('hidden');
+                    dzPreview.classList.remove('flex');
+                    dzDefault.classList.remove('hidden');
+                    dzDefault.classList.add('flex');
+
+                    return;
+                }
+
+                const suspicious = /(php|phtml|phar|exe|sh|bash|bat|cmd|js|html?|svg|xml)/i;
+                if (suspicious.test(name)) {
+                    alert('Fail yang dicurigai dikesan. Muat naik ditolak.');
+                    fileInput.value = '';
+                    fileNameEl.textContent = 'Fail dipilih';
+
+                    dzPreview.classList.add('hidden');
+                    dzPreview.classList.remove('flex');
+                    dzDefault.classList.remove('hidden');
+                    dzDefault.classList.add('flex');
+
+                    return;
+                }
+
+                if (file.size > maxBytes) {
+                    alert('Fail terlalu besar. Maksimum 5MB.');
+                    fileInput.value = '';
+                    fileNameEl.textContent = 'Fail dipilih';
+
+                    dzPreview.classList.add('hidden');
+                    dzPreview.classList.remove('flex');
+                    dzDefault.classList.remove('hidden');
+                    dzDefault.classList.add('flex');
+
+                    return;
+                }
+
+                // Best-effort MIME check (client-side).
+                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                if (file.type && !allowedTypes.includes(file.type)) {
+                    alert('Jenis fail tidak sah (MIME).');
+                    fileInput.value = '';
+                    fileNameEl.textContent = 'Fail dipilih';
+
+                    dzPreview.classList.add('hidden');
+                    dzPreview.classList.remove('flex');
+                    dzDefault.classList.remove('hidden');
+                    dzDefault.classList.add('flex');
+
+                    return;
+                }
+
                 fileNameEl.textContent = name.length > 32 ? name.substring(0, 32) + '…' : name;
                 dzDefault.classList.add('hidden');
                 dzDefault.classList.remove('flex');

@@ -31,15 +31,25 @@ final class PembayaranController extends Controller
             abort(404);
         }
 
-        $path = 'members/payments/'.basename($payment->bukti_bayaran);
+        $filename = basename($payment->bukti_bayaran);
+        $path = 'members/payments/'.$filename;
 
-        if (! Storage::disk('public')->exists($path)) {
-            abort(404);
+        $localDisk = Storage::disk('local');
+        if ($localDisk->exists($path)) {
+            return $localDisk->response($path, $filename, [
+                'Content-Type' => $localDisk->mimeType($path),
+            ]);
         }
 
-        return Storage::disk('public')->response($path, basename($path), [
-            'Content-Type' => Storage::disk('public')->mimeType($path),
-        ]);
+        // Backward compatibility for proofs already uploaded to the public disk.
+        $publicDisk = Storage::disk('public');
+        if ($publicDisk->exists($path)) {
+            return $publicDisk->response($path, $filename, [
+                'Content-Type' => $publicDisk->mimeType($path),
+            ]);
+        }
+
+        abort(404);
     }
 
     public function index(Request $request): View

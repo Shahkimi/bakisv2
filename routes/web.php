@@ -28,7 +28,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth')->name('dashboard');
 
-Route::middleware('throttle:5,1')->group(function () {
+Route::middleware('throttle:3,10')->group(function () {
     Route::get('/semak', [SemakController::class, 'index'])->name('semak.index');
     Route::post('/semak', [SemakController::class, 'check'])->name('semak.check');
     Route::get('/semak/result', [SemakController::class, 'showResult'])->name('semak.result');

@@ -9,7 +9,6 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\Yuran;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 final readonly class MemberService
 {
@@ -46,6 +45,7 @@ final readonly class MemberService
             if ($paymentThisYear->status === Payment::STATUS_PENDING) {
                 return ['status' => 'pending', 'member' => $member, 'payment' => $paymentThisYear];
             }
+
             return ['status' => 'rejected', 'member' => $member, 'payment' => $paymentThisYear];
         }
 
