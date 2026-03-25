@@ -12,7 +12,7 @@ final class PostcodeController extends Controller
     {
         $jsonPath = public_path('data/postcodes.json');
 
-        if (!file_exists($jsonPath)) {
+        if (! file_exists($jsonPath)) {
             return response()->json(['error' => 'Data not found'], 500);
         }
 
@@ -26,7 +26,7 @@ final class PostcodeController extends Controller
                         'postcode' => $code,
                         'city' => $city['name'],
                         'state' => $this->mapStateName($state['name']),
-                        'state_code' => $state['code']
+                        'state_code' => $state['code'],
                     ]);
                 }
             }
@@ -34,7 +34,7 @@ final class PostcodeController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'Poskod tidak dijumpai'
+            'message' => 'Poskod tidak dijumpai',
         ], 404);
     }
 

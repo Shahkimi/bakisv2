@@ -35,4 +35,3 @@ final class StoreYuranRequest extends FormRequest
         ];
     }
 }
-

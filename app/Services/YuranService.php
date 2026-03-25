@@ -47,15 +47,16 @@ final readonly class YuranService
         if ($searchValue === null || $searchValue === '') {
             return;
         }
-        $term = '%' . addcslashes($searchValue, '%_\\') . '%';
+        $term = '%'.addcslashes($searchValue, '%_\\').'%';
         $query->where('jenis_yuran', 'like', $term);
     }
 
     private function applyOrdering(Builder $query, Request $request): void
     {
         $order = $request->input('order.0');
-        if (!$order || !isset($order['column'], $order['dir'])) {
+        if (! $order || ! isset($order['column'], $order['dir'])) {
             $query->orderBy('jenis_yuran', 'asc');
+
             return;
         }
         $columns = ['id', 'jenis_yuran', 'jumlah', 'is_active'];
@@ -79,7 +80,7 @@ final readonly class YuranService
             'id' => $yuran->id,
             'jenis_yuran' => e($yuran->jenis_yuran),
             'jumlah' => $yuran->jumlah,
-            'jumlah_formatted' => 'RM ' . number_format((float) $yuran->jumlah, 2),
+            'jumlah_formatted' => 'RM '.number_format((float) $yuran->jumlah, 2),
             'is_active' => $yuran->is_active,
             'actions' => [
                 'id' => $yuran->id,

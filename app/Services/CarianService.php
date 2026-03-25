@@ -37,7 +37,7 @@ final readonly class CarianService
         if ($searchValue === null || $searchValue === '') {
             return;
         }
-        $term = '%' . addcslashes($searchValue, '%_\\') . '%';
+        $term = '%'.addcslashes($searchValue, '%_\\').'%';
         $query->where(function (Builder $q) use ($term): void {
             $q->where('nama', 'like', $term)
                 ->orWhere('no_ahli', 'like', $term)
@@ -49,8 +49,9 @@ final readonly class CarianService
     private function applyOrdering(Builder $query, Request $request): void
     {
         $order = $request->input('order.0');
-        if (!$order || !isset($order['column'], $order['dir'])) {
+        if (! $order || ! isset($order['column'], $order['dir'])) {
             $query->latest('members.id');
+
             return;
         }
         $columns = [

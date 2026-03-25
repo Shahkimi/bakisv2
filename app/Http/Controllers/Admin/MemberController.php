@@ -10,6 +10,7 @@ use App\Models\Jabatan;
 use App\Models\Jawatan;
 use App\Models\Member;
 use App\Models\MemberStatus;
+use App\Models\Yuran;
 use App\Services\MemberService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,8 +32,9 @@ final class MemberController extends Controller
         $jabatans = Jabatan::where('is_active', true)->orderBy('nama_jabatan')->get();
         $jawatans = Jawatan::where('is_active', true)->orderBy('nama_jawatan')->get();
         $statuses = MemberStatus::where('is_active', true)->orderBy('name')->get();
+        $yurans = Yuran::where('is_active', true)->orderBy('jenis_yuran')->get();
 
-        return view('admin.members.create', compact('jabatans', 'jawatans', 'statuses'));
+        return view('admin.members.create', compact('jabatans', 'jawatans', 'statuses', 'yurans'));
     }
 
     public function store(StoreMemberRequest $request): RedirectResponse

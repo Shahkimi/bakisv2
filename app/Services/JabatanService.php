@@ -47,15 +47,16 @@ final readonly class JabatanService
         if ($searchValue === null || $searchValue === '') {
             return;
         }
-        $term = '%' . addcslashes($searchValue, '%_\\') . '%';
+        $term = '%'.addcslashes($searchValue, '%_\\').'%';
         $query->where('nama_jabatan', 'like', $term);
     }
 
     private function applyOrdering(Builder $query, Request $request): void
     {
         $order = $request->input('order.0');
-        if (!$order || !isset($order['column'], $order['dir'])) {
+        if (! $order || ! isset($order['column'], $order['dir'])) {
             $query->orderBy('nama_jabatan', 'asc');
+
             return;
         }
         $columns = ['id', 'nama_jabatan', 'is_active'];

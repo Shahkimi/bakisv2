@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Payment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreMemberRequest extends FormRequest
 {
@@ -39,6 +39,10 @@ class StoreMemberRequest extends FormRequest
             'catatan' => ['nullable', 'string'],
             'tarikh_daftar' => ['required', 'date'],
             'approve_immediately' => ['nullable', 'boolean'],
+            'payment_combo' => ['nullable', 'string', Rule::in([
+                'registration_only',
+                'registration_advance_next_year',
+            ])],
             'tahun_bayar' => [
                 $this->boolean('approve_immediately') ? 'required' : 'nullable',
                 'integer', 'min:2000', 'max:2100',
@@ -58,5 +62,50 @@ class StoreMemberRequest extends FormRequest
         ];
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $combo = $this->input('payment_combo', 'registration_only');
+
+            $hasMula = $this->filled('tahun_mula');
+            $hasTamat = $this->filled('tahun_tamat');
+
+            // If one of the year inputs is provided, require both.
+            if ($hasMula !== $hasTamat) {
+                if (! $hasMula) {
+                    $validator->errors()->add('tahun_mula', 'Tahun mula dan tahun tamat perlu diisi bersama.');
+                }
+
+                if (! $hasTamat) {
+                    $validator->errors()->add('tahun_tamat', 'Tahun mula dan tahun tamat perlu diisi bersama.');
+                }
+
+                return;
+            }
+
+            if (! $hasMula || ! $hasTamat) {
+                // Let the backend auto-fill using tahun_bayar when year inputs are not provided.
+                return;
+            }
+
+            $tahunMula = (int) $this->input('tahun_mula');
+            $tahunTamat = (int) $this->input('tahun_tamat');
+
+            if ($combo === 'registration_only') {
+                if ($tahunMula !== $tahunTamat) {
+                    $validator->errors()->add('tahun_tamat', 'Untuk Pendaftaran Keahlian, tahun tamat mesti sama dengan tahun mula (1 tahun).');
+                }
+
+                return;
+            }
+
+            if ($combo === 'registration_advance_next_year') {
+                if ($tahunTamat !== $tahunMula + 1) {
+                    $validator->errors()->add('tahun_tamat', 'Untuk Pendaftaran + 1 Tahun Advance, tahun tamat mesti satu tahun selepas tahun mula (2 tahun liputan).');
+                }
+            }
+        });
     }
 }

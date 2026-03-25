@@ -31,4 +31,3 @@ final class StoreJabatanRequest extends FormRequest
         ];
     }
 }
-

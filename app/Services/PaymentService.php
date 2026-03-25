@@ -9,6 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 final readonly class PaymentService
 {
@@ -133,7 +134,7 @@ final readonly class PaymentService
         }
     }
 
-    /** @return \Illuminate\Support\Collection<int, Payment> */
+    /** @return Collection<int, Payment> */
     private function getPaginatedData(Builder $query, Request $request)
     {
         $start = $request->integer('start', 0);

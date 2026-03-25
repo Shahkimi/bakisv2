@@ -8,6 +8,19 @@
      x-transition:leave-end="opacity-0 transform -translate-y-6 sm:-translate-y-10 scale-[0.96]"
      class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 flex-1 min-h-0 overflow-auto"
      style="display: none;">
+    @php
+        /** @var \Illuminate\Support\Collection<int,\App\Models\Yuran> $yurans */
+        $pendaftaranYuran = $yurans?->first(fn ($yuran) => (float) $yuran->jumlah === 12.0);
+        $pembaharuan10Yuran = $yurans?->first(fn ($yuran) => (float) $yuran->jumlah === 10.0 && (int) $yuran->tempoh_tahun === 1);
+
+        $pendaftaranId = $pendaftaranYuran?->id ?? 1;
+        $pendaftaranJumlah = (float) ($pendaftaranYuran?->jumlah ?? 12.00);
+        $advanceJumlah = (float) ($pembaharuan10Yuran?->jumlah ?? 10.00);
+
+        $oldPaymentCombo = old('payment_combo', 'registration_only');
+        $advanceTotal = $pendaftaranJumlah + $advanceJumlah;
+    @endphp
+
     <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Maklumat Pembayaran</h3>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Isi jika ahli telah bayar. Centang di bawah untuk sahkan & aktifkan ahli serta-merta.</p>
 
@@ -25,18 +38,31 @@
                 </div>
                 <div class="space-y-2 lg:col-span-2">
                     <label for="yuran_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Yuran <span class="text-red-500" x-show="approvePayment" x-cloak>*</span></label>
+                    <input type="hidden" name="payment_combo" id="payment_combo" value="{{ $oldPaymentCombo }}">
                     <select name="yuran_id" id="yuran_id" :required="approvePayment" class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         <option value="">-- Pilih Yuran --</option>
-                        @foreach(\App\Models\Yuran::where('is_active', true)->orderBy('jenis_yuran')->get() as $yuran)
-                            <option value="{{ $yuran->id }}" {{ old('yuran_id', '1') == $yuran->id ? 'selected' : '' }}>
-                                {{ $yuran->jenis_yuran }} - RM {{ number_format($yuran->jumlah, 2) }}
-                            </option>
-                        @endforeach
+                        <option
+                            value="{{ $pendaftaranId }}"
+                            data-payment-combo="registration_only"
+                            {{ $oldPaymentCombo === 'registration_only' ? 'selected' : '' }}
+                        >
+                            Pendaftaran Keahlian - RM {{ number_format($pendaftaranJumlah, 2) }}
+                        </option>
+
+                        <option
+                            value="{{ $pendaftaranId }}"
+                            data-payment-combo="registration_advance_next_year"
+                            {{ $oldPaymentCombo === 'registration_advance_next_year' ? 'selected' : '' }}
+                        >
+                            Pendaftaran + 1 Tahun Advance - RM {{ number_format($advanceTotal, 2) }}
+                        </option>
                     </select>
                 </div>
                 <div class="space-y-2 sm:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Liputan tahun</label>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Pilihan; untuk bayaran mengejar (contoh: 2022–2024)</p>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tahun liputan keahlian</label>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        Untuk pendaftaran biasa atau advance (contoh: 2024 hingga 2025).
+                    </p>
                     <div class="flex flex-wrap items-center gap-3">
                         <input type="number" name="tahun_mula" id="tahun_mula" value="{{ old('tahun_mula') }}" min="2000" max="2100" placeholder="Tahun mula" aria-label="Tahun mula" class="w-full sm:w-36 px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 transition">
                         <span class="text-gray-400 shrink-0">hingga</span>
@@ -94,4 +120,62 @@
             <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 ml-9">Centang jika bayaran telah diterima dan ahli hendak diaktifkan serta-merta.</p>
         </section>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const yuranSelect = document.getElementById('yuran_id');
+            const comboInput = document.getElementById('payment_combo');
+            const tahunBayarInput = document.getElementById('tahun_bayar');
+            const tahunMulaInput = document.getElementById('tahun_mula');
+            const tahunTamatInput = document.getElementById('tahun_tamat');
+
+            if (!yuranSelect || !comboInput || !tahunBayarInput || !tahunMulaInput || !tahunTamatInput) return;
+
+            let manualOverride = @json(!empty(old('tahun_mula')) || !empty(old('tahun_tamat')));
+
+            const computeAndApply = () => {
+                const selectedOption = yuranSelect.selectedOptions && yuranSelect.selectedOptions[0];
+                const combo = selectedOption?.dataset?.paymentCombo || comboInput.value || 'registration_only';
+
+                comboInput.value = combo;
+
+                // If user already edited the year inputs, don't overwrite them.
+                if (manualOverride) return;
+
+                const tahunBayar = parseInt(tahunBayarInput.value, 10);
+                if (Number.isNaN(tahunBayar)) return;
+
+                if (combo === 'registration_only') {
+                    tahunMulaInput.value = tahunBayar;
+                    tahunTamatInput.value = tahunBayar;
+                    return;
+                }
+
+                if (combo === 'registration_advance_next_year') {
+                    tahunMulaInput.value = tahunBayar;
+                    tahunTamatInput.value = tahunBayar + 1;
+                }
+            };
+
+            yuranSelect.addEventListener('change', function () {
+                manualOverride = false;
+                computeAndApply();
+            });
+
+            tahunBayarInput.addEventListener('input', function () {
+                if (manualOverride) return;
+                computeAndApply();
+            });
+
+            const markManualOverride = function () {
+                manualOverride = true;
+            };
+
+            tahunMulaInput.addEventListener('input', markManualOverride);
+            tahunTamatInput.addEventListener('input', markManualOverride);
+
+            // Initial apply for default state (do nothing if old values exist).
+            computeAndApply();
+        });
+    </script>
 </div>

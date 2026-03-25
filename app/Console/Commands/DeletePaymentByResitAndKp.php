@@ -29,11 +29,12 @@ final class DeletePaymentByResitAndKp extends Command
 
         if ($count === 0) {
             $this->warn("No payment found with no_resit {$noResit} and no_kp {$noKp}.");
+
             return self::SUCCESS;
         }
 
         $query->delete();
-        $this->info("Deleted {$count} payment record(s): id(s) " . implode(', ', $ids));
+        $this->info("Deleted {$count} payment record(s): id(s) ".implode(', ', $ids));
 
         return self::SUCCESS;
     }

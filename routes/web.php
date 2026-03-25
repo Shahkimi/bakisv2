@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
+use App\Http\Controllers\Admin\KutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PembayaranController;
@@ -42,6 +43,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('carian', fn () => redirect()->route('admin.members.index'))->name('carian.index');
     Route::get('carian/data', [CarianController::class, 'getData'])->name('carian.data');
     Route::resource('members', AdminMemberController::class);
+
+    Route::prefix('kutipan')->name('kutipan.')->group(function () {
+        Route::get('/', [KutipanController::class, 'index'])->name('index');
+        Route::get('/autocomplete', [KutipanController::class, 'autocomplete'])->name('autocomplete');
+        Route::get('/member/{encryptedNoKp}', [KutipanController::class, 'member'])->name('member');
+        Route::post('/collect', [KutipanController::class, 'collect'])->name('collect');
+    });
+
     Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
     Route::get('pembayaran/data', [PembayaranController::class, 'getData'])->name('pembayaran.data');
     Route::get('pembayaran/pending-count', [PembayaranController::class, 'getPendingCount'])->name('pembayaran.pending-count');

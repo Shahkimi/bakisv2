@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 final class LoginController extends Controller
@@ -25,9 +27,9 @@ final class LoginController extends Controller
         return redirect()->intended('/dashboard');
     }
 
-    public function logout(\Illuminate\Http\Request $request): RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
-        \Illuminate\Support\Facades\Auth::logout();
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

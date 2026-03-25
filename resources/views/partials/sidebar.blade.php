@@ -52,6 +52,16 @@
             </svg>
             <span class="font-medium truncate">Pembayaran</span>
         </a>
+
+        <!-- Kutipan Yuran -->
+        <a href="{{ route('admin.kutipan.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kutipan.*') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 13c0 1.657-1.79 3-4 3s-4-1.343-4-3" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8z" />
+            </svg>
+            <span class="font-medium truncate">Kutipan Yuran</span>
+        </a>
         <!-- Kawalan (dropdown) -->
         <div class="kawalan-nav-group">
             <details class="group/details" {{ request()->routeIs('admin.kawalan.jabatan.*') || request()->routeIs('admin.kawalan.jawatan.*') || request()->routeIs('admin.kawalan.yuran.*') || request()->routeIs('admin.kawalan.account.*') ? 'open' : '' }}>

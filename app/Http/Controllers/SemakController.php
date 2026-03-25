@@ -100,7 +100,7 @@ class SemakController extends Controller
 
         try {
             $this->memberService->submitRenewalPayment($noKp, $request->validated());
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             return redirect()->route('semak.result', ['no_kp' => $noKp])

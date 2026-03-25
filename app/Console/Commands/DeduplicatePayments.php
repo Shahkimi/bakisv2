@@ -33,12 +33,14 @@ final class DeduplicatePayments extends Command
 
         if ($groupCount === 0) {
             $this->info('No duplicate payment groups found. Nothing to do.');
+
             return self::SUCCESS;
         }
 
         $this->warn("Found {$groupCount} duplicate group(s) affecting {$totalToDelete} row(s) to be removed (keeping 1 per group).");
         if (! $this->confirm('Proceed with deletion?', true)) {
             $this->info('Aborted.');
+
             return self::SUCCESS;
         }
 
@@ -54,6 +56,7 @@ final class DeduplicatePayments extends Command
         }
 
         $this->info("Done. Deleted {$deleted} duplicate payment row(s).");
+
         return self::SUCCESS;
     }
 }

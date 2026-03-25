@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Admin\Pembayaran;
+namespace App\Http\Requests\Admin\Kutipan;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class RejectPaymentRequest extends FormRequest
+final class SearchMemberRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ final class RejectPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catatan_admin' => ['nullable', 'string'],
+            'search' => ['required', 'string', 'max:255'],
         ];
     }
 }

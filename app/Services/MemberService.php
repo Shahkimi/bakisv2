@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\Yuran;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 final readonly class MemberService
@@ -116,7 +117,7 @@ final readonly class MemberService
                 'tarikh_daftar' => $data['tarikh_daftar'] ?? now()->toDateString(),
             ];
 
-            if (! empty($data['gambar']) && $data['gambar'] instanceof \Illuminate\Http\UploadedFile) {
+            if (! empty($data['gambar']) && $data['gambar'] instanceof UploadedFile) {
                 $memberData['gambar'] = $this->fileUploadService->uploadMemberPhoto($data['gambar'], $data['no_kp']);
             }
 
@@ -133,7 +134,7 @@ final readonly class MemberService
 
             $payment = Payment::create($paymentData);
 
-            if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof \Illuminate\Http\UploadedFile) {
+            if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
                 $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
                 $payment->update(['bukti_bayaran' => $path]);
             }
@@ -166,18 +167,21 @@ final readonly class MemberService
                 'tarikh_daftar' => $data['tarikh_daftar'] ?? now()->toDateString(),
             ];
 
-            if (! empty($data['gambar']) && $data['gambar'] instanceof \Illuminate\Http\UploadedFile) {
+            if (! empty($data['gambar']) && $data['gambar'] instanceof UploadedFile) {
                 $memberData['gambar'] = $this->fileUploadService->uploadMemberPhoto($data['gambar'], $data['no_kp']);
             }
 
             $member = Member::create($memberData);
 
             $approveImmediately = ! empty($data['approve_immediately']);
-            $hasPayment = ! empty($data['no_resit_transfer']) || (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof \Illuminate\Http\UploadedFile);
+            $hasPayment = ! empty($data['no_resit_transfer']) || (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile);
 
             if ($hasPayment) {
                 $tahunBayar = (int) ($data['tahun_bayar'] ?? date('Y'));
                 $yuranId = isset($data['yuran_id']) ? (int) $data['yuran_id'] : (Yuran::where('jumlah', 12)->first()?->id ?? 1);
+                $paymentCombo = isset($data['payment_combo']) && is_string($data['payment_combo'])
+                    ? $data['payment_combo']
+                    : 'registration_only';
                 $paymentData = [
                     'member_id' => $member->id,
                     'tahun_bayar' => $tahunBayar,
@@ -188,15 +192,50 @@ final readonly class MemberService
                     'approved_by' => $approveImmediately ? auth()->id() : null,
                     'approved_at' => $approveImmediately ? now() : null,
                 ];
-                if (isset($data['tahun_mula'], $data['tahun_tamat'])) {
-                    $paymentData['tahun_mula'] = (int) $data['tahun_mula'];
-                    $paymentData['tahun_tamat'] = (int) $data['tahun_tamat'];
-                }
-                $payment = Payment::create($paymentData);
 
-                if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof \Illuminate\Http\UploadedFile) {
-                    $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
-                    $payment->update(['bukti_bayaran' => $path]);
+                if ($paymentCombo === 'registration_advance_next_year') {
+                    $tahunMula = isset($data['tahun_mula']) && $data['tahun_mula'] !== null
+                        ? (int) $data['tahun_mula']
+                        : $tahunBayar;
+                    $tahunTamat = isset($data['tahun_tamat']) && $data['tahun_tamat'] !== null
+                        ? (int) $data['tahun_tamat']
+                        : ($tahunBayar + 1);
+
+                    $pembaharuanYuran10Id = Yuran::query()
+                        ->where('jumlah', 10.00)
+                        ->where('tempoh_tahun', 1)
+                        ->value('id');
+
+                    $registrationPaymentData = $paymentData;
+                    $registrationPaymentData['yuran_id'] = $yuranId;
+                    $registrationPaymentData['tahun_mula'] = $tahunMula;
+                    $registrationPaymentData['tahun_tamat'] = $tahunMula;
+
+                    $advancePaymentData = $paymentData;
+                    $advancePaymentData['yuran_id'] = (int) ($pembaharuanYuran10Id ?? 2);
+                    $advancePaymentData['tahun_mula'] = $tahunTamat;
+                    $advancePaymentData['tahun_tamat'] = $tahunTamat;
+
+                    $registrationPayment = Payment::create($registrationPaymentData);
+                    $advancePayment = Payment::create($advancePaymentData);
+
+                    if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
+                        $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $registrationPayment->id);
+                        $registrationPayment->update(['bukti_bayaran' => $path]);
+                        $advancePayment->update(['bukti_bayaran' => $path]);
+                    }
+                } else {
+                    if (isset($data['tahun_mula'], $data['tahun_tamat'])) {
+                        $paymentData['tahun_mula'] = (int) $data['tahun_mula'];
+                        $paymentData['tahun_tamat'] = (int) $data['tahun_tamat'];
+                    }
+
+                    $payment = Payment::create($paymentData);
+
+                    if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
+                        $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
+                        $payment->update(['bukti_bayaran' => $path]);
+                    }
                 }
 
                 if ($approveImmediately) {
@@ -247,7 +286,7 @@ final readonly class MemberService
             'status' => Payment::STATUS_PENDING,
         ]);
 
-        if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof \Illuminate\Http\UploadedFile) {
+        if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
             $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
             $payment->update(['bukti_bayaran' => $path]);
         }

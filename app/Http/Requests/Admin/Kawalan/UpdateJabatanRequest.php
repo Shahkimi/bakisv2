@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Kawalan;
 
+use App\Models\Jabatan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ final class UpdateJabatanRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        /** @var \App\Models\Jabatan|null $jabatan */
+        /** @var Jabatan|null $jabatan */
         $jabatan = $this->route('jabatan');
 
         return [
@@ -40,4 +41,3 @@ final class UpdateJabatanRequest extends FormRequest
         ];
     }
 }
-

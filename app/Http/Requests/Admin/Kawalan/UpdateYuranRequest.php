@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Kawalan;
 
+use App\Models\Yuran;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ final class UpdateYuranRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        /** @var \App\Models\Yuran|null $yuran */
+        /** @var Yuran|null $yuran */
         $yuran = $this->route('yuran');
 
         return [
@@ -44,4 +45,3 @@ final class UpdateYuranRequest extends FormRequest
         ];
     }
 }
-

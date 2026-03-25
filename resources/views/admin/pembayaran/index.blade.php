@@ -79,11 +79,11 @@
             <div class="h-8 w-px bg-gray-200 dark:bg-gray-600 hidden sm:block"></div>
 
             {{-- Jabatan Filter --}}
-            <div class="jabatan-filter-wrap relative shrink-0" style="min-width:220px;">
+            <div class="jabatan-filter-wrap relative shrink-0" style="min-width:360px;">
                 <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <select id="jabatanFilter" class="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 pl-10 pr-4 py-2.5 text-sm text-gray-800 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                <select id="jabatanFilter" class="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 pl-11 pr-5 py-3 text-sm text-gray-800 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     <option value="">Semua Jabatan</option>
                     @foreach ($jabatans as $jabatan)
                         <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>

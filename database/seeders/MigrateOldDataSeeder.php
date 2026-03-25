@@ -9,6 +9,8 @@ use App\Models\Jawatan;
 use App\Models\Member;
 use App\Models\MemberStatus;
 use App\Models\Payment;
+use App\Models\User;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +35,7 @@ class MigrateOldDataSeeder extends Seeder
         $this->importPayments($oldDB);
     }
 
-    private function importJabatans(\Illuminate\Database\Connection $oldDB): void
+    private function importJabatans(Connection $oldDB): void
     {
         $rows = $oldDB->table('tbjabatan')->get();
         foreach ($rows as $row) {
@@ -44,7 +46,7 @@ class MigrateOldDataSeeder extends Seeder
         }
     }
 
-    private function importJawatans(\Illuminate\Database\Connection $oldDB): void
+    private function importJawatans(Connection $oldDB): void
     {
         $rows = $oldDB->table('tbjawatan')->get();
         foreach ($rows as $row) {
@@ -58,7 +60,7 @@ class MigrateOldDataSeeder extends Seeder
         }
     }
 
-    private function importMembers(\Illuminate\Database\Connection $oldDB): void
+    private function importMembers(Connection $oldDB): void
     {
         $pendingStatus = MemberStatus::where('code', 'pending')->first()
             ?? MemberStatus::where('code', 'tidak_aktif')->first();
@@ -152,10 +154,10 @@ class MigrateOldDataSeeder extends Seeder
         }
     }
 
-    private function importPayments(\Illuminate\Database\Connection $oldDB): void
+    private function importPayments(Connection $oldDB): void
     {
         $rows = $oldDB->table('tbakaun')->get();
-        $firstUser = \App\Models\User::query()->orderBy('id')->first();
+        $firstUser = User::query()->orderBy('id')->first();
         $approvedBy = $firstUser?->id;
         $approvedAt = $approvedBy ? now() : null;
         $now = now();

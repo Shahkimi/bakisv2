@@ -47,7 +47,7 @@ final readonly class JawatanService
         if ($searchValue === null || $searchValue === '') {
             return;
         }
-        $term = '%' . addcslashes($searchValue, '%_\\') . '%';
+        $term = '%'.addcslashes($searchValue, '%_\\').'%';
         $query->where(function (Builder $q) use ($term): void {
             $q->where('kod_jawatan', 'like', $term)
                 ->orWhere('nama_jawatan', 'like', $term);
@@ -57,8 +57,9 @@ final readonly class JawatanService
     private function applyOrdering(Builder $query, Request $request): void
     {
         $order = $request->input('order.0');
-        if (!$order || !isset($order['column'], $order['dir'])) {
+        if (! $order || ! isset($order['column'], $order['dir'])) {
             $query->orderBy('nama_jawatan', 'asc');
+
             return;
         }
         $columns = ['id', 'kod_jawatan', 'nama_jawatan', 'is_active'];

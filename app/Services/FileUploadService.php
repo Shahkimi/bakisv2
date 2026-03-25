@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class FileUploadService
 {
     public function uploadMemberPhoto(UploadedFile $file, string $noKp): string
     {
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $disk = Storage::disk('public');
         $directory = 'members/photos';
         $disk->makeDirectory($directory);
 
@@ -23,7 +24,7 @@ final readonly class FileUploadService
 
     public function uploadPaymentProof(UploadedFile $file, int $paymentId): string
     {
-        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        $disk = Storage::disk('local');
         $directory = 'members/payments';
         $disk->makeDirectory($directory);
 
