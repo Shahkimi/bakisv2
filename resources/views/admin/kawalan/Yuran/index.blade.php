@@ -139,9 +139,10 @@ $(document).ready(function() {
         const jenisYuran = escapeAttr(a.jenis_yuran);
         const jumlah = a.jumlah != null ? String(a.jumlah) : '';
         const active = a.is_active ? '1' : '0';
+        const show = a.is_show ? '1' : '0';
         return '<div class="flex items-center gap-2">' +
             '<button type="button" class="btn-edit-yuran inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" ' +
-            'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '" data-jumlah="' + escapeAttr(jumlah) + '" data-active="' + active + '">Edit</button>' +
+            'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '" data-jumlah="' + escapeAttr(jumlah) + '" data-active="' + active + '" data-show="' + show + '">Edit</button>' +
             '<button type="button" class="btn-delete-yuran inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition" ' +
             'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '">Padam</button></div>';
     }
@@ -187,6 +188,7 @@ $(document).ready(function() {
         const jenisYuran = $(this).data('jenis-yuran');
         const jumlah = $(this).data('jumlah');
         const active = $(this).data('active') === 1 || $(this).data('active') === '1';
+        const show = $(this).data('show') === 1 || $(this).data('show') === '1';
         const safeJenis = (jenisYuran || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         Swal.fire({
@@ -209,6 +211,15 @@ $(document).ready(function() {
                             </div>
                         </div>
                         <input type="hidden" id="swal-active" name="is_active" value="${active ? '1' : '0'}" />
+                    </div>
+                    <div class="field">
+                        <div class="toggle-wrap">
+                            <span class="toggle-label">Show Main Page</span>
+                            <div class="toggle-track ${show ? 'active' : ''}" id="swal-toggle-show" role="button" tabindex="0" aria-pressed="${show}">
+                                <span class="toggle-thumb"></span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="swal-is-show" name="is_show" value="${show ? '1' : '0'}" />
                     </div>
                 </form>
             `,
@@ -241,6 +252,21 @@ $(document).ready(function() {
                         }
                     });
                 }
+
+                const toggleShow = document.getElementById('swal-toggle-show');
+                const hiddenShow = document.getElementById('swal-is-show');
+                if (toggleShow && hiddenShow) {
+                    toggleShow.addEventListener('click', function() {
+                        const isShow = toggleShow.classList.toggle('active');
+                        hiddenShow.value = isShow ? '1' : '0';
+                    });
+                    toggleShow.addEventListener('keydown', function(e) {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            toggleShow.click();
+                        }
+                    });
+                }
             },
             preConfirm: function() {
                 const jenisVal = (document.getElementById('swal-jenis').value || '').trim();
@@ -254,7 +280,8 @@ $(document).ready(function() {
                     return false;
                 }
                 const isActive = document.getElementById('swal-active').value === '1';
-                return { jenis_yuran: jenisVal, jumlah: parseFloat(jumlahVal), is_active: isActive };
+                const isShow = document.getElementById('swal-is-show').value === '1';
+                return { jenis_yuran: jenisVal, jumlah: parseFloat(jumlahVal), is_active: isActive, is_show: isShow };
             }
         }).then(function(result) {
             if (!result.isConfirmed || !result.value) return;
@@ -265,6 +292,7 @@ $(document).ready(function() {
             formData.append('jenis_yuran', result.value.jenis_yuran);
             formData.append('jumlah', result.value.jumlah);
             formData.append('is_active', result.value.is_active ? '1' : '0');
+            formData.append('is_show', result.value.is_show ? '1' : '0');
 
             fetch('{{ url("admin/kawalan/yuran") }}/' + id, {
                 method: 'POST',
@@ -314,6 +342,15 @@ $(document).ready(function() {
                         </div>
                         <input type="hidden" id="swal-active" name="is_active" value="1" />
                     </div>
+                    <div class="field">
+                        <div class="toggle-wrap">
+                            <span class="toggle-label">Show Main Page</span>
+                            <div class="toggle-track" id="swal-toggle-show" role="button" tabindex="0" aria-pressed="false">
+                                <span class="toggle-thumb"></span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="swal-is-show" name="is_show" value="0" />
+                    </div>
                 </form>
             `,
             showCancelButton: true,
@@ -345,6 +382,21 @@ $(document).ready(function() {
                         }
                     });
                 }
+
+                const toggleShow = document.getElementById('swal-toggle-show');
+                const hiddenShow = document.getElementById('swal-is-show');
+                if (toggleShow && hiddenShow) {
+                    toggleShow.addEventListener('click', function() {
+                        const isShow = toggleShow.classList.toggle('active');
+                        hiddenShow.value = isShow ? '1' : '0';
+                    });
+                    toggleShow.addEventListener('keydown', function(e) {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            toggleShow.click();
+                        }
+                    });
+                }
             },
             preConfirm: function() {
                 const jenisVal = (document.getElementById('swal-jenis').value || '').trim();
@@ -358,7 +410,8 @@ $(document).ready(function() {
                     return false;
                 }
                 const isActive = document.getElementById('swal-active').value === '1';
-                return { jenis_yuran: jenisVal, jumlah: parseFloat(jumlahVal), is_active: isActive };
+                const isShow = document.getElementById('swal-is-show').value === '1';
+                return { jenis_yuran: jenisVal, jumlah: parseFloat(jumlahVal), is_active: isActive, is_show: isShow };
             }
         }).then(function(result) {
             if (!result.isConfirmed || !result.value) return;
@@ -368,6 +421,7 @@ $(document).ready(function() {
             formData.append('jenis_yuran', result.value.jenis_yuran);
             formData.append('jumlah', result.value.jumlah);
             formData.append('is_active', result.value.is_active ? '1' : '0');
+            formData.append('is_show', result.value.is_show ? '1' : '0');
 
             fetch('{{ route("admin.kawalan.yuran.store") }}', {
                 method: 'POST',
@@ -447,6 +501,7 @@ $(document).ready(function() {
         const jenisYuran = (rowData && rowData.actions && rowData.actions.jenis_yuran) ? rowData.actions.jenis_yuran : '';
         const jumlah = (rowData && rowData.actions && rowData.actions.jumlah != null) ? rowData.actions.jumlah : 0;
         const newActive = btn.data('active') != 1;
+        const currentShow = (rowData && rowData.actions && rowData.actions.is_show) ? '1' : '0';
 
         const formData = new URLSearchParams();
         formData.append('_token', csrfToken);
@@ -454,6 +509,7 @@ $(document).ready(function() {
         formData.append('jenis_yuran', jenisYuran);
         formData.append('jumlah', jumlah);
         formData.append('is_active', newActive ? '1' : '0');
+        formData.append('is_show', currentShow);
 
         fetch('{{ url("admin/kawalan/yuran") }}/' + id, {
             method: 'POST',

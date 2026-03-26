@@ -25,7 +25,7 @@ final readonly class YuranService
 
     public function getDataTableData(Request $request): JsonResponse
     {
-        $query = Yuran::query()->select(['id', 'jenis_yuran', 'jumlah', 'is_active']);
+        $query = Yuran::query()->select(['id', 'jenis_yuran', 'jumlah', 'is_active', 'is_show']);
 
         $this->applySearch($query, $request);
         $totalRecords = Yuran::count();
@@ -82,11 +82,13 @@ final readonly class YuranService
             'jumlah' => $yuran->jumlah,
             'jumlah_formatted' => 'RM '.number_format((float) $yuran->jumlah, 2),
             'is_active' => $yuran->is_active,
+            'is_show' => $yuran->is_show,
             'actions' => [
                 'id' => $yuran->id,
                 'jenis_yuran' => $yuran->jenis_yuran,
                 'jumlah' => $yuran->jumlah,
                 'is_active' => $yuran->is_active,
+                'is_show' => $yuran->is_show,
             ],
         ];
     }

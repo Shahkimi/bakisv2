@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Kutipan\AutocompleteMemberRequest;
+use App\Http\Requests\Admin\Kutipan\CollectMultiYearPaymentRequest;
 use App\Http\Requests\Admin\Kutipan\CollectPaymentRequest;
 use App\Http\Requests\Admin\Kutipan\SearchMemberRequest;
 use App\Services\KutipanService;
@@ -45,6 +46,8 @@ final class KutipanController extends Controller
             'member' => $data['member'],
             'renewal' => $data['renewal'],
             'history' => $data['history'],
+            'unpaid_years' => $data['unpaid_years'],
+            'renewal_min_year' => $data['renewal_min_year'],
         ]);
     }
 
@@ -56,5 +59,10 @@ final class KutipanController extends Controller
     public function collect(CollectPaymentRequest $request): JsonResponse
     {
         return $this->kutipanService->collectPayment($request->validated());
+    }
+
+    public function collectMultiYear(CollectMultiYearPaymentRequest $request): JsonResponse
+    {
+        return $this->kutipanService->collectPaymentsForYears($request->validated());
     }
 }

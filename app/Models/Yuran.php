@@ -14,6 +14,7 @@ class Yuran extends Model
         'jumlah',
         'tempoh_tahun',
         'is_active',
+        'is_show',
     ];
 
     protected function casts(): array
@@ -22,6 +23,7 @@ class Yuran extends Model
             'jumlah' => 'decimal:2',
             'tempoh_tahun' => 'integer',
             'is_active' => 'boolean',
+            'is_show' => 'boolean',
         ];
     }
 

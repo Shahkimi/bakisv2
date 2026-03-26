@@ -20,6 +20,7 @@ final class StoreYuranRequest extends FormRequest
             'jenis_yuran' => ['required', 'string', 'max:255', 'unique:yurans,jenis_yuran'],
             'jumlah' => ['required', 'numeric', 'min:0'],
             'is_active' => ['required', 'boolean'],
+            'is_show' => ['required', 'boolean'],
         ];
     }
 
@@ -32,6 +33,7 @@ final class StoreYuranRequest extends FormRequest
             'jumlah.required' => 'Jumlah wajib diisi.',
             'jumlah.numeric' => 'Jumlah mesti nombor.',
             'jumlah.min' => 'Jumlah mesti sekurang-kurangnya 0.',
+            'is_show.required' => 'Pilihan Show Main Page wajib dibuat.',
         ];
     }
 }

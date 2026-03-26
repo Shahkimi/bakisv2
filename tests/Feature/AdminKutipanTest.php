@@ -11,6 +11,7 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Yuran;
+use App\Services\KutipanService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
@@ -191,6 +192,7 @@ final class AdminKutipanTest extends TestCase
             'member_id' => $member->id,
             'yuran_id' => $refs['pembaharuanYuran10']->id,
             'tahun_bayar' => $tahun,
+            'bilangan_tahun' => 1,
             'tahun_mula' => $tahun,
             'tahun_tamat' => $tahun,
             'no_resit_transfer' => 'RESIT-KUT-001',
@@ -235,5 +237,176 @@ final class AdminKutipanTest extends TestCase
         $response2->assertStatus(422)
             ->assertJsonPath('success', false)
             ->assertJsonPath('message', 'Ahli sudah aktif untuk tahun ini.');
+    }
+
+    public function test_collect_multi_year_payments_creates_separate_records(): void
+    {
+        $refs = $this->seedBasicReferenceData();
+        $member = $this->makeRenewalMember($refs, 'AHLI MULTI', '900101011241');
+
+        $user = $this->makeUser();
+        $this->actingAs($user);
+
+        $currentYear = (int) now()->year;
+        $year1 = max(2020, $currentYear - 2);
+        $year2 = max($year1 + 1, $currentYear - 1);
+        $years = [$year1, $year2, $currentYear];
+
+        $payload = [
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'years' => $years,
+            'no_resit_transfer' => 'RESIT-MULTI-001',
+            'catatan_admin' => 'Bayaran pelbagai tahun',
+        ];
+
+        $response = $this->post(route('admin.kutipan.collect-multi-year'), $payload, [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('years', $years);
+
+        $this->assertDatabaseCount('payments', 3);
+
+        $this->assertDatabaseHas('payments', [
+            'member_id' => $member->id,
+            'tahun_mula' => $years[0],
+            'tahun_tamat' => $years[0],
+            'status' => Payment::STATUS_APPROVED,
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'member_id' => $member->id,
+            'tahun_mula' => $years[1],
+            'tahun_tamat' => $years[1],
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'member_id' => $member->id,
+            'tahun_mula' => $years[2],
+            'tahun_tamat' => $years[2],
+        ]);
+
+        $payments = Payment::query()->where('member_id', $member->id)->get();
+        $receipts = $payments->pluck('no_resit_sistem')->unique()->filter();
+        $this->assertCount(1, $receipts);
+    }
+
+    public function test_collect_multi_year_rejects_already_paid_year(): void
+    {
+        $refs = $this->seedBasicReferenceData();
+        $member = $this->makeRenewalMember($refs, 'AHLI PAID', '900101011242');
+
+        $user = $this->makeUser();
+        $currentYear = (int) now()->year;
+        $paidYear = max(2020, $currentYear - 1);
+        $nextYear = min($currentYear, $paidYear + 1);
+
+        Payment::query()->create([
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'tahun_bayar' => $currentYear,
+            'tahun_mula' => $paidYear,
+            'tahun_tamat' => $paidYear,
+            'status' => Payment::STATUS_APPROVED,
+            'no_resit_sistem' => 'RESIT-PAID-00001',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($user);
+
+        $payload = [
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'years' => [$paidYear, $nextYear],
+            'no_resit_transfer' => 'RESIT-FAIL',
+        ];
+
+        $response = $this->post(route('admin.kutipan.collect-multi-year'), $payload, [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['years']);
+    }
+
+    public function test_unpaid_years_start_after_pendaftaran_coverage(): void
+    {
+        $refs = $this->seedBasicReferenceData();
+        $pendaftaranYuran = Yuran::query()->create([
+            'jenis_yuran' => 'Pendaftaran Keahlian',
+            'jumlah' => 12.00,
+            'tempoh_tahun' => 1,
+            'is_active' => true,
+        ]);
+
+        $member = $this->makeRenewalMember($refs, 'AHLI REG', '900101011251');
+        $user = $this->makeUser();
+        $currentYear = (int) now()->year;
+        $registrationYear = $currentYear - 1;
+
+        Payment::query()->create([
+            'member_id' => $member->id,
+            'yuran_id' => $pendaftaranYuran->id,
+            'tahun_bayar' => $registrationYear,
+            'tahun_mula' => $registrationYear,
+            'tahun_tamat' => $registrationYear,
+            'status' => Payment::STATUS_APPROVED,
+            'no_resit_sistem' => 'RESIT-REG-001',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        $service = app(KutipanService::class);
+        $fresh = $member->fresh();
+        $this->assertNotNull($fresh);
+        $this->assertSame($registrationYear + 1, $service->getMinimumRenewalYearAfterPendaftaran($fresh));
+
+        $unpaid = $service->getUnpaidYears($fresh);
+        $this->assertNotContains($registrationYear, $unpaid);
+        $this->assertContains($registrationYear + 1, $unpaid);
+    }
+
+    public function test_collect_multi_year_rejects_year_before_pendaftaran_floor(): void
+    {
+        $refs = $this->seedBasicReferenceData();
+        $pendaftaranYuran = Yuran::query()->create([
+            'jenis_yuran' => 'Pendaftaran Keahlian',
+            'jumlah' => 12.00,
+            'tempoh_tahun' => 1,
+            'is_active' => true,
+        ]);
+
+        $member = $this->makeRenewalMember($refs, 'AHLI FLR', '900101011252');
+        $user = $this->makeUser();
+        $currentYear = (int) now()->year;
+        $registrationYear = $currentYear - 1;
+
+        Payment::query()->create([
+            'member_id' => $member->id,
+            'yuran_id' => $pendaftaranYuran->id,
+            'tahun_bayar' => $registrationYear,
+            'tahun_mula' => $registrationYear,
+            'tahun_tamat' => $registrationYear,
+            'status' => Payment::STATUS_APPROVED,
+            'no_resit_sistem' => 'RESIT-REG-002',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->post(route('admin.kutipan.collect-multi-year'), [
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'years' => [$registrationYear, $currentYear],
+            'no_resit_transfer' => 'RESIT-FLOOR',
+        ], ['Accept' => 'application/json']);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['years']);
     }
 }

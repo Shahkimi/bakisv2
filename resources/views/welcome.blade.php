@@ -442,33 +442,46 @@
         <section class="section" id="plans">
             <h2 class="section-title">Membership Options</h2>
             <div class="plans">
-                <article class="plan">
-                    <h4>Basic Member</h4>
-                    <p class="price">RM30 <small>/ year</small></p>
-                    <ul>
-                        <li>Digital member profile</li>
-                        <li>Community event notifications</li>
-                        <li>Standard support access</li>
-                    </ul>
-                </article>
-                <article class="plan">
-                    <h4>Active Member</h4>
-                    <p class="price">RM80 <small>/ year</small></p>
-                    <ul>
-                        <li>All Basic benefits</li>
-                        <li>Priority event registration</li>
-                        <li>Discounted selected programs</li>
-                    </ul>
-                </article>
-                <article class="plan">
-                    <h4>Premium Member</h4>
-                    <p class="price">RM150 <small>/ year</small></p>
-                    <ul>
-                        <li>All Active benefits</li>
-                        <li>Exclusive networking sessions</li>
-                        <li>Premium member recognition</li>
-                    </ul>
-                </article>
+                @forelse($yurans as $yuran)
+                    <article class="plan">
+                        <h4>{{ $yuran->jenis_yuran }}</h4>
+                        <p class="price">
+                            RM {{ number_format((float) $yuran->jumlah, 2) }}
+                            <small>/ {{ (int) $yuran->tempoh_tahun }} year{{ (int) $yuran->tempoh_tahun === 1 ? '' : 's' }}</small>
+                        </p>
+                        <ul>
+                            @switch($yuran->jenis_yuran)
+                                @case('Pendaftaran Keahlian')
+                                    <li>Digital member profile</li>
+                                    <li>Community event notifications</li>
+                                    <li>Standard support access</li>
+                                    @break
+                                @case('Pembaharuan Keahlian')
+                                    <li>All Basic benefits</li>
+                                    <li>Priority event registration</li>
+                                    <li>Discounted selected programs</li>
+                                    @break
+                                @case('Pembaharuan 2 Tahun')
+                                    <li>All Active benefits</li>
+                                    <li>Exclusive networking sessions</li>
+                                    <li>Premium member recognition</li>
+                                    @break
+                                @default
+                                    <li>Membership benefits</li>
+                                    <li>Access to community updates</li>
+                                    <li>Priority support access</li>
+                            @endswitch
+                        </ul>
+                    </article>
+                @empty
+                    <article class="plan">
+                        <h4>Membership Options</h4>
+                        <p class="price">RM0 <small>/ year</small></p>
+                        <ul>
+                            <li>No active membership options found.</li>
+                        </ul>
+                    </article>
+                @endforelse
             </div>
         </section>
     </main>

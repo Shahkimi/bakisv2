@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class KutipanService
 {
+    /** Years after the current calendar year that may be selected for pembaharuan (prabayar). */
+    public const int RENEWAL_SELECTABLE_YEARS_AHEAD = 2;
+
     public function __construct(
         private MemberService $memberService,
         private FileUploadService $fileUploadService,
@@ -172,10 +175,74 @@ final readonly class KutipanService
     }
 
     /**
+     * First calendar year Pembaharuan may cover, i.e. the year after approved
+     * Pendaftaran Keahlian (RM12) coverage ends. Null when no such registration payment exists.
+     */
+    public function getMinimumRenewalYearAfterPendaftaran(Member $member): ?int
+    {
+        $pendaftaranYuranIds = Yuran::query()
+            ->where('jumlah', 12.00)
+            ->pluck('id');
+
+        if ($pendaftaranYuranIds->isEmpty()) {
+            return null;
+        }
+
+        $registrationPayments = Payment::query()
+            ->where('member_id', $member->id)
+            ->where('status', Payment::STATUS_APPROVED)
+            ->whereIn('yuran_id', $pendaftaranYuranIds)
+            ->get();
+
+        if ($registrationPayments->isEmpty()) {
+            return null;
+        }
+
+        $maxCoverageEnd = $registrationPayments->map(function (Payment $p): int {
+            $mula = $p->tahun_mula ?? $p->tahun_bayar;
+            $tamat = $p->tahun_tamat ?? $mula;
+
+            return max((int) $mula, (int) $tamat);
+        })->max();
+
+        return $maxCoverageEnd + 1;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function getUnpaidYears(Member $member, int $rangeStart = 2020, ?int $rangeEnd = null): array
+    {
+        $rangeEnd = $rangeEnd ?? ((int) now()->year + self::RENEWAL_SELECTABLE_YEARS_AHEAD);
+
+        $renewalFloor = $this->getMinimumRenewalYearAfterPendaftaran($member);
+        if ($renewalFloor !== null) {
+            $rangeStart = max($rangeStart, $renewalFloor);
+        }
+
+        $approvedPayments = Payment::query()
+            ->where('member_id', $member->id)
+            ->where('status', Payment::STATUS_APPROVED)
+            ->get();
+
+        $unpaidYears = [];
+        for ($year = $rangeStart; $year <= $rangeEnd; $year++) {
+            $covered = $approvedPayments->contains(fn (Payment $p) => $p->coversYear($year));
+            if (! $covered) {
+                $unpaidYears[] = $year;
+            }
+        }
+
+        return $unpaidYears;
+    }
+
+    /**
      * @return array{
      *   member: array<string, mixed>,
      *   renewal: array<string, mixed>,
      *   history: array<int, array<string, mixed>>,
+     *   unpaid_years: array<int, int>,
+     *   renewal_min_year: int|null,
      * }
      *
      * @throws DecryptException
@@ -244,6 +311,8 @@ final readonly class KutipanService
                     : 'Ahli telah aktif untuk tahun ini.',
             ],
             'history' => $history,
+            'unpaid_years' => $this->getUnpaidYears($member),
+            'renewal_min_year' => $this->getMinimumRenewalYearAfterPendaftaran($member),
         ];
     }
 
@@ -318,6 +387,87 @@ final readonly class KutipanService
         ]);
     }
 
+    /**
+     * @param array{
+     *   member_id:int,
+     *   yuran_id:int,
+     *   years:array<int, int|string>,
+     *   no_resit_transfer?:string|null,
+     *   bukti_bayaran?:UploadedFile|null,
+     *   catatan_admin?:string|null,
+     * } $data
+     */
+    public function collectPaymentsForYears(array $data): JsonResponse
+    {
+        /** @var Member $member */
+        $member = Member::query()->findOrFail((int) $data['member_id']);
+
+        $years = array_map(static fn (int|string $y): int => (int) $y, $data['years']);
+        $years = array_values(array_unique($years));
+        sort($years);
+
+        /** @var Yuran $yuran */
+        $yuran = Yuran::query()->findOrFail((int) $data['yuran_id']);
+        $perYearAmount = (float) $yuran->jumlah;
+
+        $receiptBatch = DB::transaction(function () use ($member, $data, $years, $yuran): string {
+            $currentYear = (int) now()->year;
+            $batchReceipt = $this->generateReceiptNumber($currentYear);
+            $bukti = $data['bukti_bayaran'] ?? null;
+            $buktiPath = null;
+            /** @var list<int> $paymentIds */
+            $paymentIds = [];
+
+            foreach ($years as $year) {
+                $payment = Payment::create([
+                    'member_id' => $member->id,
+                    'yuran_id' => $yuran->id,
+                    'tahun_bayar' => $currentYear,
+                    'tahun_mula' => $year,
+                    'tahun_tamat' => $year,
+                    'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
+                    'no_resit_sistem' => $batchReceipt,
+                    'bukti_bayaran' => null,
+                    'status' => Payment::STATUS_APPROVED,
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                    'catatan_admin' => $data['catatan_admin'] ?? null,
+                ]);
+
+                $paymentIds[] = $payment->id;
+
+                if ($bukti instanceof UploadedFile && $buktiPath === null) {
+                    $buktiPath = $this->fileUploadService->uploadPaymentProof($bukti, $payment->id);
+                }
+            }
+
+            if ($buktiPath !== null) {
+                Payment::query()->whereIn('id', $paymentIds)->update(['bukti_bayaran' => $buktiPath]);
+            }
+
+            $aktifStatus = MemberStatus::query()
+                ->where('code', 'aktif')
+                ->first();
+
+            $member->update([
+                'no_ahli' => $member->no_ahli ?: 'AHL-'.str_pad((string) $member->id, 5, '0', STR_PAD_LEFT),
+                'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
+            ]);
+
+            return $batchReceipt;
+        });
+
+        $totalAmount = count($years) * $perYearAmount;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bayaran berjaya direkodkan untuk '.count($years).' tahun.',
+            'receipt_no' => $receiptBatch,
+            'years' => $years,
+            'total_amount' => number_format($totalAmount, 2),
+        ]);
+    }
+
     private function generateReceiptNumber(int $tahunBayar): string
     {
         $last = Payment::query()
@@ -363,6 +513,16 @@ final readonly class KutipanService
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
             'catatan_admin' => $payment->catatan_admin,
             'approved_at' => $payment->approved_at?->toDateTimeString(),
+
+            // Backward/forward compatible aliases for frontend rendering.
+            'tahunbayar' => (int) $payment->tahun_bayar,
+            'tahunmula' => isset($payment->tahun_mula) ? (int) $payment->tahun_mula : null,
+            'tahuntamat' => isset($payment->tahun_tamat) ? (int) $payment->tahun_tamat : null,
+            'jenislabel' => $jenisLabel,
+            'jumlahformatted' => 'RM '.number_format($jumlah, 2),
+            'noresittransfer' => $payment->no_resit_transfer ?? '–',
+            'noresitsistem' => $payment->no_resit_sistem ?? null,
+            'approvedat' => $payment->approved_at?->toDateTimeString(),
         ];
     }
 }

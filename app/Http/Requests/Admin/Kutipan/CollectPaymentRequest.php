@@ -29,8 +29,9 @@ final class CollectPaymentRequest extends FormRequest
                     ->where(fn ($q) => $q->where('is_active', true)->where('jumlah', 10.00)),
             ],
             'tahun_bayar' => ['required', 'integer', 'in:'.$currentYear],
-            'tahun_mula' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'tahun_tamat' => ['nullable', 'integer', 'min:2000', 'max:2100', 'gte:tahun_mula'],
+            'bilangan_tahun' => ['required', 'integer', 'min:1', 'max:5'],
+            'tahun_mula' => ['required', 'integer', 'min:2000', 'max:2100'],
+            'tahun_tamat' => ['required', 'integer', 'min:2000', 'max:2100', 'gte:tahun_mula'],
             'no_resit_transfer' => ['required', 'string', 'max:50'],
             'bukti_bayaran' => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
             'catatan_admin' => ['nullable', 'string', 'max:2000'],
@@ -40,17 +41,28 @@ final class CollectPaymentRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $hasMula = $this->filled('tahun_mula');
-            $hasTamat = $this->filled('tahun_tamat');
+            $tahunBayar = $this->input('tahun_bayar');
+            $bilanganTahun = $this->input('bilangan_tahun');
+            $tahunMula = $this->input('tahun_mula');
+            $tahunTamat = $this->input('tahun_tamat');
 
-            if ($hasMula !== $hasTamat) {
-                if (! $hasMula) {
-                    $validator->errors()->add('tahun_mula', 'Tahun mula dan tahun tamat perlu diisi bersama.');
-                }
+            if ($tahunBayar === null || $bilanganTahun === null || $tahunMula === null || $tahunTamat === null) {
+                return;
+            }
 
-                if (! $hasTamat) {
-                    $validator->errors()->add('tahun_tamat', 'Tahun mula dan tahun tamat perlu diisi bersama.');
-                }
+            $tahunBayarInt = (int) $tahunBayar;
+            $bilanganTahunInt = (int) $bilanganTahun;
+            $tahunMulaInt = (int) $tahunMula;
+            $tahunTamatInt = (int) $tahunTamat;
+
+            $expectedTamat = $tahunBayarInt + ($bilanganTahunInt - 1);
+
+            if ($tahunTamatInt !== $expectedTamat) {
+                $validator->errors()->add('tahun_tamat', 'Tahun tamat tidak sepadan dengan bilangan tahun yang dipilih.');
+            }
+
+            if ($tahunMulaInt !== $tahunBayarInt) {
+                $validator->errors()->add('tahun_mula', 'Tahun mula mesti sama dengan tahun bayar.');
             }
         });
     }

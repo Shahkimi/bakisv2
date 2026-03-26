@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
@@ -11,6 +13,7 @@ use App\Http\Controllers\Admin\YuranController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PostcodeController;
 use App\Http\Controllers\SemakController;
+use App\Models\Yuran;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,7 +21,13 @@ Route::get('/', function () {
         return redirect('/dashboard');
     }
 
-    return view('welcome');
+    $yurans = Yuran::query()
+        ->where('is_active', true)
+        ->where('is_show', true)
+        ->orderBy('jenis_yuran', 'desc')
+        ->get(['jenis_yuran', 'jumlah', 'tempoh_tahun', 'is_active', 'is_show']);
+
+    return view('welcome', compact('yurans'));
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -49,6 +58,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/autocomplete', [KutipanController::class, 'autocomplete'])->name('autocomplete');
         Route::get('/member/{encryptedNoKp}', [KutipanController::class, 'member'])->name('member');
         Route::post('/collect', [KutipanController::class, 'collect'])->name('collect');
+        Route::post('/collect-multi-year', [KutipanController::class, 'collectMultiYear'])->name('collect-multi-year');
     });
 
     Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');

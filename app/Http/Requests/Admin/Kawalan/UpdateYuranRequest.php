@@ -30,6 +30,7 @@ final class UpdateYuranRequest extends FormRequest
             ],
             'jumlah' => ['required', 'numeric', 'min:0'],
             'is_active' => ['required', 'boolean'],
+            'is_show' => ['required', 'boolean'],
         ];
     }
 
@@ -42,6 +43,7 @@ final class UpdateYuranRequest extends FormRequest
             'jumlah.required' => 'Jumlah wajib diisi.',
             'jumlah.numeric' => 'Jumlah mesti nombor.',
             'jumlah.min' => 'Jumlah mesti sekurang-kurangnya 0.',
+            'is_show.required' => 'Pilihan Show Main Page wajib dibuat.',
         ];
     }
 }
