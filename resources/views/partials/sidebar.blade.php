@@ -23,6 +23,10 @@
     </div>
 
     <!-- Navigation Menu -->
+    @php
+        $isAdmin = auth()->user()->isAdmin();
+        $px = $isAdmin ? 'admin.' : 'user.';
+    @endphp
     <nav class="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 sm:space-y-2 overflow-y-auto">
         <a href="{{ route('dashboard') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,28 +36,29 @@
         </a>
 
         <!-- New Member -->
-        <a href="{{ route('admin.members.create') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.members.create') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+        <a href="{{ route($px.'members.create') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs($px.'members.create') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
             <span class="font-medium truncate">Ahli Baru</span>
         </a>
         <!-- Carian Member -->
-        <a href="{{ route('admin.members.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.members.index') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+        <a href="{{ route($px.'members.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs($px.'members.index') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <span class="font-medium truncate">Carian Ahli</span>
         </a>
         <!-- Payment Verification -->
-        <a href="{{ route('admin.pembayaran.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.pembayaran.*') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+        <a href="{{ route($px.'pembayaran.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs($px.'pembayaran.*') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span class="font-medium truncate">Pembayaran</span>
         </a>
 
-        <!-- Kutipan Yuran -->
+        @if($isAdmin)
+        <!-- Kutipan Yuran (admin only) -->
         <a href="{{ route('admin.kutipan.index') }}" class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kutipan.*') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}">
             <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2z" />
@@ -62,9 +67,11 @@
             </svg>
             <span class="font-medium truncate">Kutipan Yuran</span>
         </a>
-        <!-- Kawalan (dropdown) -->
+        @endif
+        @if($isAdmin)
+        <!-- Kawalan (admin only) -->
         <div class="kawalan-nav-group">
-            <details class="group/details" {{ request()->routeIs('admin.kawalan.jabatan.*') || request()->routeIs('admin.kawalan.jawatan.*') || request()->routeIs('admin.kawalan.yuran.*') || request()->routeIs('admin.kawalan.account.*') ? 'open' : '' }}>
+            <details class="group/details" {{ request()->routeIs('admin.kawalan.jabatan.*') || request()->routeIs('admin.kawalan.jawatan.*') || request()->routeIs('admin.kawalan.yuran.*') || request()->routeIs('admin.kawalan.account.*') || request()->routeIs('admin.kawalan.pengguna.*') ? 'open' : '' }}>
                 <summary class="nav-item flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 cursor-pointer list-none hover:bg-gray-100 dark:hover:bg-gray-700 [&::-webkit-details-marker]:hidden">
                     <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -100,27 +107,57 @@
                         </svg>
                         <span class="truncate">Akaun Bayaran</span>
                     </a>
+                    <a href="{{ route('admin.kawalan.pengguna.index') }}" class="nav-item flex items-center px-3 py-2 text-sm text-gray-600 dark:text-gray-400 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.pengguna.*') ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200' }}">
+                        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span class="truncate">Pengguna</span>
+                    </a>
                 </div>
             </details>
         </div>
+        @endif
     </nav>
 
     <!-- Sidebar Footer -->
     <div class="px-3 sm:px-4 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div class="flex items-center px-2 sm:px-4 py-2">
-            <div class="flex-shrink-0">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full gradient-bg flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+        <div class="relative">
+            <div id="sidebarFooterDropdown"
+                 class="hidden absolute bottom-full left-0 right-0 mb-2 z-[60] rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl py-1.5 overflow-hidden"
+                 role="menu"
+                 aria-labelledby="sidebarFooterBtn">
+                <a href="{{ route('profile.edit') }}"
+                   class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg mx-1">
+                    <svg class="w-5 h-5 flex-shrink-0 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="font-medium truncate">Tetapan Profil</span>
+                </a>
+                <div class="my-1.5 border-t border-gray-200 dark:border-gray-600"></div>
+                <div class="px-1 pb-0.5">
+                    @include('partials.logout-form')
                 </div>
             </div>
-            <div class="ml-2 sm:ml-3 flex-1 min-w-0">
-                <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {{ auth()->user()->name }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {{ auth()->user()->email }}
-                </p>
-            </div>
+
+            <button type="button"
+                    id="sidebarFooterBtn"
+                    class="w-full flex items-center space-x-2 sm:space-x-3 p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left"
+                    aria-expanded="false"
+                    aria-controls="sidebarFooterDropdown"
+                    aria-haspopup="menu"
+                    aria-label="Menu akaun">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full gradient-bg flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ auth()->user()->email }}</p>
+                </div>
+                <svg id="sidebarFooterChevron" class="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+            </button>
         </div>
     </div>
 </aside>

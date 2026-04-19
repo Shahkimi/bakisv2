@@ -64,7 +64,7 @@ final class AdminKutipanTest extends TestCase
 
     private function makeUser(): User
     {
-        return User::factory()->create();
+        return User::factory()->admin()->create();
     }
 
     private function makeRenewalMember(array $refs, string $nama, string $noKp, ?string $noAhli = null): Member

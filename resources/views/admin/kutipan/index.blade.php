@@ -51,7 +51,7 @@
                                     <span class="font-mono">Ctrl</span><span class="text-gray-400 dark:text-gray-500">+</span><span class="font-mono">K</span>
                                 </span>
                             </div>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Taip sekurang-kurangnya <span class="font-semibold text-gray-700 dark:text-gray-200">3 aksara</span> menggunakan No. KP, No. Ahli atau Nama.</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Taip sekurang-kurangnya <span class="font-semibold text-gray-700 dark:text-gray-200">2 aksara</span> menggunakan No. KP, No. Ahli atau Nama.</p>
                         </div>
                     </div>
                 </div>
@@ -129,6 +129,9 @@
     /* Choices.js Tailwind-ish skin (no jQuery needed) */
     .choices { margin-bottom: 0 !important; }
     .choices__inner {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
         min-height: 52px !important;
         border-radius: 0.75rem !important;
         border: 1px solid rgba(229, 231, 235, 1) !important;
@@ -148,7 +151,12 @@
         border-color: rgba(16, 185, 129, 1) !important;
         box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
     }
+    /* Fix: prevent Choices.js from shrinking the input too narrow */
     .choices__input {
+        min-width: 100% !important;
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        box-sizing: border-box !important;
         background: transparent !important;
         color: inherit !important;
         margin-bottom: 0 !important;
@@ -555,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastController = null;
     async function fetchMembers(query) {
         const q = String(query || '').trim();
-        if (q.length < 3) return [];
+        if (q.length < 2) return [];
 
         if (lastController) lastController.abort();
         lastController = new AbortController();
@@ -604,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const updateChoices = debounce(async (query) => {
         const q = String(query || '').trim();
-        if (q.length < 3) {
+        if (q.length < 2) {
             memberByEncryptedId.clear();
             choices.clearChoices();
             setResultCountVisible(false, 0);
@@ -648,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     selectEl.addEventListener('search', (e) => {
         const value = e?.detail?.value ?? '';
-        if (!value || String(value).trim().length < 3) {
+        if (!value || String(value).trim().length < 2) {
             setResultCountVisible(false, 0);
         }
         updateChoices(value);

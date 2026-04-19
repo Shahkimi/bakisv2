@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -76,15 +77,18 @@ final readonly class CarianService
 
     private function formatRow(Member $member): array
     {
+        $user = auth()->user();
+        $panel = $user instanceof User && $user->isAdmin() ? 'admin' : 'user';
+
         return [
             'no_ahli' => $member->no_ahli ?? '—',
             'nama' => e($member->nama),
             'no_kp' => e($member->no_kp),
-            'status' => view('admin.carian.partials.status-indicator', [
+            'status' => view($panel.'.carian.partials.status-indicator', [
                 'name' => $member->memberStatus?->name ?? '—',
                 'code' => $member->memberStatus?->code ?? null,
             ])->render(),
-            'actions' => view('admin.carian.partials.actions', ['member' => $member])->render(),
+            'actions' => view($panel.'.carian.partials.actions', ['member' => $member])->render(),
         ];
     }
 }

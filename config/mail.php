@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Optional admin notification CC (e.g. shared inbox)
+    |--------------------------------------------------------------------------
+    |
+    | Merged with admin users from the users table (role = admin). Leave null
+    | to rely only on User accounts with role admin.
+    |
+    */
+
+    'admin_notification_email' => env('ADMIN_NOTIFICATION_EMAIL'),
+
 ];

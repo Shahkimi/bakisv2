@@ -67,7 +67,6 @@ final readonly class FileUploadService
             }
 
             @imagepng($image, $storedPath);
-            @imagedestroy($image);
 
             return;
         }
@@ -79,6 +78,5 @@ final readonly class FileUploadService
         }
 
         @imagejpeg($image, $storedPath, 85);
-        @imagedestroy($image);
     }
 }

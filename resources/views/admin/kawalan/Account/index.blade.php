@@ -305,6 +305,8 @@ $(document).ready(function() {
     }
 
     function renderActionsButton(row) {
+        const iconEdit = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
+        const iconTrash = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
         const a = row.actions || {};
         const id = a.id;
         const accountName = escapeAttr(a.account_name);
@@ -312,9 +314,9 @@ $(document).ready(function() {
         const active = a.is_active ? '1' : '0';
         const hasQr = !!row.has_qr;
         const qrUrl = hasQr ? accountQrUrl(row.id) : '';
-        return '<div class="flex items-center gap-2">' +
-            '<button type="button" class="btn-edit-account inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '" data-has-qr="' + (hasQr ? '1' : '0') + '" data-qr-url="' + escapeAttr(qrUrl) + '">Edit</button>' +
-            '<button type="button" class="btn-delete-account inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition" data-id="' + id + '" data-account-name="' + accountName + '">Padam</button></div>';
+        return '<div class="flex flex-wrap items-center gap-1.5">' +
+            '<button type="button" class="btn-edit-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Edit akaun" aria-label="Edit akaun" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '" data-has-qr="' + (hasQr ? '1' : '0') + '" data-qr-url="' + escapeAttr(qrUrl) + '">' + iconEdit + '</button>' +
+            '<button type="button" class="btn-delete-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" title="Padam akaun" aria-label="Padam akaun" data-id="' + id + '" data-account-name="' + accountName + '">' + iconTrash + '</button></div>';
     }
 
     const table = $('#account-table').DataTable({

@@ -7,9 +7,12 @@ namespace App\Services;
 use App\Models\Member;
 use App\Models\MemberStatus;
 use App\Models\Payment;
+use App\Models\User;
 use App\Models\Yuran;
+use App\Notifications\PaymentProofUploadedNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 final readonly class MemberService
 {
@@ -289,6 +292,33 @@ final readonly class MemberService
         if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
             $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
             $payment->update(['bukti_bayaran' => $path]);
+        }
+
+        if (filled($member->email)) {
+            $payment->load(['member', 'yuran']);
+            $memberEmail = strtolower(trim((string) $member->email));
+
+            $adminEmails = User::query()
+                ->where('role', User::ROLE_ADMIN)
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->map(fn ($e) => strtolower(trim((string) $e)))
+                ->filter()
+                ->unique()
+                ->reject(fn (string $e) => $e === $memberEmail)
+                ->values()
+                ->all();
+
+            $optional = config('mail.admin_notification_email');
+            if (filled($optional)) {
+                $opt = strtolower(trim((string) $optional));
+                if ($opt !== '' && $opt !== $memberEmail) {
+                    $adminEmails = array_values(array_unique([...$adminEmails, $opt]));
+                }
+            }
+
+            Notification::route('mail', [$member->email => $member->nama])
+                ->notify(new PaymentProofUploadedNotification($payment, $adminEmails));
         }
 
         return $member->fresh(['payments.yuran']);

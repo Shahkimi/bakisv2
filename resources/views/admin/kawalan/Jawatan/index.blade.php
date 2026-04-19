@@ -136,15 +136,17 @@ $(document).ready(function() {
     }
 
     function renderActionsButton(actions) {
+        const iconEdit = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
+        const iconTrash = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
         const id = actions.id;
         const kod = escapeAttr(actions.kod_jawatan);
         const nama = escapeAttr(actions.nama_jawatan);
         const active = actions.is_active ? '1' : '0';
-        return '<div class="flex items-center gap-2">' +
-            '<button type="button" class="btn-edit-jawatan inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" ' +
-            'data-id="' + id + '" data-kod-jawatan="' + kod + '" data-nama-jawatan="' + nama + '" data-active="' + active + '">Edit</button>' +
-            '<button type="button" class="btn-delete-jawatan inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition" ' +
-            'data-id="' + id + '" data-nama-jawatan="' + nama + '">Padam</button></div>';
+        return '<div class="flex flex-wrap items-center gap-1.5">' +
+            '<button type="button" class="btn-edit-jawatan inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Edit jawatan" aria-label="Edit jawatan" ' +
+            'data-id="' + id + '" data-kod-jawatan="' + kod + '" data-nama-jawatan="' + nama + '" data-active="' + active + '">' + iconEdit + '</button>' +
+            '<button type="button" class="btn-delete-jawatan inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" title="Padam jawatan" aria-label="Padam jawatan" ' +
+            'data-id="' + id + '" data-nama-jawatan="' + nama + '">' + iconTrash + '</button></div>';
     }
 
     const table = $('#jawatan-table').DataTable({

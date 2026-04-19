@@ -97,7 +97,7 @@
                     </div>
                     <span id="historyCountBadge" class="hidden inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-600"></span>
                 </div>
-                <div id="historyList" class="p-4 space-y-2 max-h-[520px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700"></div>
+                <div id="historyList" class="p-4 space-y-2 max-h-[520px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"></div>
                 <div id="historyEmpty" class="hidden flex flex-col items-center justify-center py-10 text-center">
                     <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,6 +428,70 @@
             if (yearCountDisplay) yearCountDisplay.textContent = String(count);
         }
 
+        function setupHistoryScrollReveal(rootEl) {
+            if (!rootEl) {
+                return;
+            }
+
+            const cards = Array.from(rootEl.querySelectorAll('.history-payment-card'));
+            if (!cards.length) {
+                return;
+            }
+
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reducedMotion) {
+                cards.forEach((card) => {
+                    card.classList.remove('opacity-0', 'translate-y-2');
+                    card.classList.add('opacity-100', 'translate-y-0');
+                    card.style.transitionDelay = '';
+                });
+                return;
+            }
+
+            const revealed = new WeakSet();
+
+            function isCardInScrollViewport(card) {
+                const rootRect = rootEl.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                const inset = 2;
+                return cardRect.bottom > rootRect.top + inset && cardRect.top < rootRect.bottom - inset;
+            }
+
+            function revealCard(card, index) {
+                const delayMs = Math.min(index * 40, 200);
+                card.style.transitionDelay = delayMs + 'ms';
+                card.classList.remove('opacity-0', 'translate-y-2');
+                card.classList.add('opacity-100', 'translate-y-0');
+            }
+
+            function updateVisibleCards() {
+                cards.forEach((card, index) => {
+                    if (revealed.has(card)) {
+                        return;
+                    }
+                    if (!isCardInScrollViewport(card)) {
+                        return;
+                    }
+                    revealed.add(card);
+                    revealCard(card, index);
+                });
+
+                if (cards.every((c) => revealed.has(c))) {
+                    rootEl.removeEventListener('scroll', onScrollOrResize);
+                    window.removeEventListener('resize', onScrollOrResize);
+                }
+            }
+
+            const onScrollOrResize = () => updateVisibleCards();
+
+            rootEl.addEventListener('scroll', onScrollOrResize, { passive: true });
+            window.addEventListener('resize', onScrollOrResize, { passive: true });
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(updateVisibleCards);
+            });
+        }
+
         function renderHistory(history) {
             if (!historyList || !historyEmpty) return;
             historyList.innerHTML = '';
@@ -448,7 +512,7 @@
                 badge.classList.remove('hidden');
             }
 
-            history.forEach(row => {
+            history.forEach((row) => {
                 const status = row.status;
                 const statusLabel = status === 'approved' ? 'Disahkan'
                     : status === 'pending' ? 'Menunggu' : 'Ditolak';
@@ -487,7 +551,7 @@
                     </div>` : '';
 
                 const el = document.createElement('div');
-                el.className = 'group relative rounded-xl border border-gray-100 dark:border-gray-700/80 bg-gray-50/60 dark:bg-gray-900/30 hover:bg-white dark:hover:bg-gray-800 hover:shadow-sm transition-all duration-200 overflow-hidden';
+                el.className = 'history-payment-card group relative rounded-xl border border-gray-100 dark:border-gray-700/80 bg-gray-50/60 dark:bg-gray-900/30 opacity-0 translate-y-2 hover:bg-white dark:hover:bg-gray-800 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden';
                 el.innerHTML = `
                     <div class="absolute left-0 top-0 bottom-0 w-1 ${stripColor}"></div>
                     <div class="p-3 pl-4">
@@ -533,6 +597,8 @@
                 `;
                 historyList.appendChild(el);
             });
+
+            setupHistoryScrollReveal(historyList);
         }
 
         async function doCollect(ev) {

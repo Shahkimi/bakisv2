@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesPanel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMemberRequest;
 use App\Models\Jabatan;
@@ -18,13 +19,15 @@ use Illuminate\View\View;
 
 final class MemberController extends Controller
 {
+    use ResolvesPanel;
+
     public function __construct(
         private readonly MemberService $memberService
     ) {}
 
     public function index(): View
     {
-        return view('admin.carian.index');
+        return view($this->panelView('carian.index'));
     }
 
     public function create(): View
@@ -34,7 +37,7 @@ final class MemberController extends Controller
         $statuses = MemberStatus::where('is_active', true)->orderBy('name')->get();
         $yurans = Yuran::where('is_active', true)->orderBy('jenis_yuran')->get();
 
-        return view('admin.members.create', compact('jabatans', 'jawatans', 'statuses', 'yurans'));
+        return view($this->panelView('members.create'), compact('jabatans', 'jawatans', 'statuses', 'yurans'));
     }
 
     public function store(StoreMemberRequest $request): RedirectResponse
@@ -45,13 +48,13 @@ final class MemberController extends Controller
         $data['bukti_bayaran'] = $request->file('bukti_bayaran');
         $member = $this->memberService->createMemberByAdmin($data);
 
-        return redirect()->route('admin.members.edit', $member)
+        return redirect()->to($this->panelRoute('members.edit', $member))
             ->with('success', 'Ahli berjaya ditambah.');
     }
 
     public function show(Member $member): RedirectResponse
     {
-        return redirect()->route('admin.members.edit', $member);
+        return redirect()->to($this->panelRoute('members.edit', $member));
     }
 
     public function edit(Member $member): View
@@ -62,7 +65,7 @@ final class MemberController extends Controller
         $statuses = MemberStatus::where('is_active', true)->orderBy('name')->get();
         $paymentHistoryByYear = $this->memberService->getPaymentHistoryByYear($member);
 
-        return view('admin.members.edit', compact('member', 'jabatans', 'jawatans', 'statuses', 'paymentHistoryByYear'));
+        return view($this->panelView('members.edit'), compact('member', 'jabatans', 'jawatans', 'statuses', 'paymentHistoryByYear'));
     }
 
     public function update(StoreMemberRequest $request, Member $member): RedirectResponse|JsonResponse
@@ -76,11 +79,11 @@ final class MemberController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'message' => 'Ahli berjaya dikemaskini.',
-                'redirect' => route('admin.members.edit', $member),
+                'redirect' => $this->panelRoute('members.edit', $member),
             ]);
         }
 
-        return redirect()->route('admin.members.edit', $member)
+        return redirect()->to($this->panelRoute('members.edit', $member))
             ->with('success', 'Ahli berjaya dikemaskini.');
     }
 
@@ -88,7 +91,7 @@ final class MemberController extends Controller
     {
         $member->delete();
 
-        return redirect()->route('admin.members.index')
+        return redirect()->to($this->panelRoute('members.index'))
             ->with('success', 'Ahli berjaya dipadam.');
     }
 }

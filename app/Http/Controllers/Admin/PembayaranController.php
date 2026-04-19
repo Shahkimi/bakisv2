@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesPanel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Pembayaran\RejectPaymentRequest;
 use App\Models\Jabatan;
@@ -20,6 +21,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class PembayaranController extends Controller
 {
+    use ResolvesPanel;
+
     public function __construct(
         private readonly MemberService $memberService,
         private readonly PaymentService $paymentService,
@@ -61,7 +64,7 @@ final class PembayaranController extends Controller
             ->orderBy('nama_jabatan')
             ->get();
 
-        return view('admin.pembayaran.index', [
+        return view($this->panelView('pembayaran.index'), [
             'payments' => $payments,
             'statusFilter' => $statusFilter,
             'jabatans' => $jabatans,
@@ -96,20 +99,20 @@ final class PembayaranController extends Controller
     public function approve(Payment $payment): RedirectResponse
     {
         if ($payment->status !== Payment::STATUS_PENDING) {
-            return redirect()->route('admin.pembayaran.index')
+            return redirect()->to($this->panelRoute('pembayaran.index'))
                 ->with('error', 'Pembayaran ini telah diproses.');
         }
 
         $this->memberService->approvePayment($payment);
 
-        return redirect()->route('admin.pembayaran.index')
+        return redirect()->to($this->panelRoute('pembayaran.index'))
             ->with('success', 'Pembayaran telah disahkan. Status ahli telah dikemas kini kepada Aktif.');
     }
 
     public function reject(RejectPaymentRequest $request, Payment $payment): RedirectResponse
     {
         if ($payment->status !== Payment::STATUS_PENDING) {
-            return redirect()->route('admin.pembayaran.index')
+            return redirect()->to($this->panelRoute('pembayaran.index'))
                 ->with('error', 'Pembayaran ini telah diproses.');
         }
 
@@ -119,7 +122,7 @@ final class PembayaranController extends Controller
             approvedById: auth()->id(),
         );
 
-        return redirect()->route('admin.pembayaran.index')
+        return redirect()->to($this->panelRoute('pembayaran.index'))
             ->with('success', 'Pembayaran telah ditolak.');
     }
 }

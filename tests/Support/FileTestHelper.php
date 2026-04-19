@@ -148,7 +148,6 @@ final class FileTestHelper
         \imagefilledrectangle($img, 0, 0, $width, $height, $bg);
 
         \imagejpeg($img, $tmpPath, 85);
-        \imagedestroy($img);
 
         return $tmpPath;
     }
@@ -169,7 +168,6 @@ final class FileTestHelper
         \imagefilledrectangle($img, 0, 0, $width, $height, $bg);
 
         \imagepng($img, $tmpPath);
-        \imagedestroy($img);
 
         return $tmpPath;
     }
