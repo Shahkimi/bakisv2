@@ -149,7 +149,7 @@ final readonly class MemberService
     public function createMemberByAdmin(array $data): Member
     {
         return DB::transaction(function () use ($data) {
-            $statusId = $data['member_status_id'] ?? MemberStatus::where('code', 'tidak_aktif')->first()?->id;
+            $statusId = $data['member_status_id'] ?? MemberStatus::where('code', 'aktif')->first()?->id;
             $memberData = [
                 'no_ahli' => $data['no_ahli'] ?? null,
                 'jabatan_id' => $data['jabatan_id'],
@@ -176,8 +176,17 @@ final readonly class MemberService
 
             $member = Member::create($memberData);
 
+            if (empty($member->no_ahli)) {
+                $member->update([
+                    'no_ahli' => 'AHL-'.str_pad((string) $member->id, 5, '0', STR_PAD_LEFT),
+                ]);
+            }
+
             $approveImmediately = ! empty($data['approve_immediately']);
-            $hasPayment = ! empty($data['no_resit_transfer']) || (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile);
+            $hasPayment = ! empty($data['tahun_bayar'])
+                || ! empty($data['yuran_id'])
+                || ! empty($data['no_resit_transfer'])
+                || (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile);
 
             if ($hasPayment) {
                 $tahunBayar = (int) ($data['tahun_bayar'] ?? date('Y'));

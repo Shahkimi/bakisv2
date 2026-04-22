@@ -30,8 +30,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nama Akaun</th>
-                    <th>No. Akaun</th>
+                    <th>Akaun</th>
                     <th>Imej QR</th>
                     <th>Status</th>
                     <th>Tindakan</th>
@@ -319,14 +318,31 @@ $(document).ready(function() {
             '<button type="button" class="btn-delete-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" title="Padam akaun" aria-label="Padam akaun" data-id="' + id + '" data-account-name="' + accountName + '">' + iconTrash + '</button></div>';
     }
 
+    function renderAccountIdentity(row) {
+        const accountName = escapeAttr(row.account_name || '-');
+        const accountNumber = escapeAttr(row.account_number || '-');
+        return '<div class="min-w-[180px]">' +
+            '<p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-5 tracking-tight break-words">' + accountName + '</p>' +
+            '<p class="mt-1 text-xs font-mono text-gray-500 dark:text-gray-400 tracking-wide select-all">' + accountNumber + '</p>' +
+        '</div>';
+    }
+
     const table = $('#account-table').DataTable({
         processing: true,
         serverSide: true,
         ajax: { url: '{{ route("admin.kawalan.account.data") }}', type: 'GET' },
         columns: [
             { data: 'id', name: 'id', width: '80px' },
-            { data: 'account_name', name: 'account_name' },
-            { data: 'account_number', name: 'account_number' },
+            {
+                data: null,
+                name: 'account_name',
+                render: function(d, type, row) {
+                    if (type !== 'display') {
+                        return (row.account_name || '') + ' ' + (row.account_number || '');
+                    }
+                    return renderAccountIdentity(row);
+                }
+            },
             { data: 'qr_image_path', name: 'qr_image_path', orderable: false, searchable: false, render: function(d, type, row) { return renderQrThumb(row); } },
             { data: 'is_active', name: 'is_active', orderable: false, render: function(d, type, row) { return renderStatusBadge(row); } },
             { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, type, row) { return renderActionsButton(row); } }

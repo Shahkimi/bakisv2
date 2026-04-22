@@ -10,6 +10,14 @@ use Illuminate\Validation\Validator;
 
 class StoreMemberRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'no_kp' => preg_replace('/\D/', '', (string) $this->input('no_kp', '')),
+            'poskod' => preg_replace('/\D/', '', (string) $this->input('poskod', '')),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return true;

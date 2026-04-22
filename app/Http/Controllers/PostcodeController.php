@@ -21,11 +21,15 @@ final class PostcodeController extends Controller
         foreach ($data['states'] as $state) {
             foreach ($state['cities'] as $city) {
                 if (in_array($code, $city['postcodes'])) {
+                    $mappedState = $this->mapStateName($state['name']);
+
                     return response()->json([
                         'success' => true,
                         'postcode' => $code,
                         'city' => $city['name'],
-                        'state' => $this->mapStateName($state['name']),
+                        'state' => $mappedState,
+                        'bandar' => $city['name'],
+                        'negeri' => $mappedState,
                         'state_code' => $state['code'],
                     ]);
                 }
