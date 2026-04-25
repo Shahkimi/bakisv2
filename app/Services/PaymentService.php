@@ -55,7 +55,7 @@ final readonly class PaymentService
                 'member_id',
                 'yuran_id',
                 'tahun_bayar',
-                'no_resit_transfer',
+                'no_resit_sistem',
                 'bukti_bayaran',
                 'status',
             ]);
@@ -95,7 +95,7 @@ final readonly class PaymentService
         $term = '%'.addcslashes((string) $searchValue, '%_\\').'%';
 
         $query->where(function (Builder $q) use ($term): void {
-            $q->where('no_resit_transfer', 'like', $term)
+            $q->where('no_resit_sistem', 'like', $term)
                 ->orWhere('tahun_bayar', 'like', $term)
                 ->orWhereHas('member', function (Builder $memberQ) use ($term): void {
                     $memberQ->where('nama', 'like', $term)
@@ -118,7 +118,7 @@ final readonly class PaymentService
 
         $columns = [
             0 => 'member',      // Maklumat Ahli – order by member nama
-            1 => 'no_resit_transfer',
+            1 => 'no_resit_sistem',
             2 => 'status',
             3 => 'id',          // Tindakan – non-orderable, fallback to id
         ];
@@ -158,7 +158,7 @@ final readonly class PaymentService
                 'nama' => $payment->member?->nama ?? '–',
                 'no_kp' => $payment->member?->no_kp ?? '–',
             ],
-            'no_resit_transfer' => $payment->no_resit_transfer ?? '–',
+            'no_resit_sistem' => $payment->no_resit_sistem ?? '–',
             'tahun_bayar' => $payment->tahun_bayar,
             'jumlah' => (float) $payment->jumlah,
             'jumlah_formatted' => 'RM '.number_format((float) $payment->jumlah, 2),

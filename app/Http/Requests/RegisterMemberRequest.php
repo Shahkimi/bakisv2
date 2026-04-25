@@ -32,7 +32,6 @@ class RegisterMemberRequest extends FormRequest
             'no_hp' => ['nullable', 'string', 'max:20'],
             'gambar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'catatan' => ['nullable', 'string'],
-            'no_resit_transfer' => ['required', 'string', 'max:50'],
             'bukti_bayaran' => ['required', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
         ];
     }

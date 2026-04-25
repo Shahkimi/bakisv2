@@ -284,9 +284,13 @@
                         @foreach($paymentAccounts as $account)
                         <div class="group relative flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/40 hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all duration-200">
                             @if(!empty($account->qr_image_url))
-                            <div class="flex-shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-slate-600 shadow-sm">
-                                <img src="{{ $account->qr_image_url }}" alt="QR Code" class="w-full h-full object-contain rounded"/>
-                            </div>
+                            <button type="button"
+                                class="js-qr-preview flex-shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-slate-600 shadow-sm hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                                data-qr-url="{{ $account->qr_image_url }}"
+                                data-qr-account="{{ $account->account_name }}"
+                                aria-label="Lihat imej QR {{ $account->account_name }}">
+                                <img src="{{ $account->qr_image_url }}" alt="QR Code {{ $account->account_name }}" class="w-full h-full object-contain rounded"/>
+                            </button>
                             @else
                             <div class="flex-shrink-0 w-14 h-14 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center">
                                 <svg class="w-7 h-7 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -332,34 +336,6 @@
                     <form method="POST" action="{{ route('semak.bayar') }}" enctype="multipart/form-data" class="space-y-5" id="paymentForm">
                         @csrf
                         <input type="hidden" name="no_kp" value="{{ $checkedNoKp }}">
-
-                        {{-- Receipt Number --}}
-                        <div class="space-y-1.5">
-                            <label for="no_resit_transfer" class="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                No. Resit / Rujukan Bank
-                                <span class="text-red-500 ml-0.5">*</span>
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"/>
-                                    </svg>
-                                </div>
-                                <input type="text"
-                                    id="no_resit_transfer"
-                                    name="no_resit_transfer"
-                                    required
-                                    placeholder="cth: TT20250317XXXXXXXX"
-                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all @error('no_resit_transfer') border-red-400 focus:ring-red-400 @enderror"
-                                    value="{{ old('no_resit_transfer') }}">
-                            </div>
-                            @error('no_resit_transfer')
-                                <p class="text-xs text-red-500 flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
 
                         {{-- File Upload --}}
                         <div class="space-y-1.5">
@@ -420,6 +396,25 @@
     </div>{{-- /max-w-2xl --}}
 </div>{{-- /page-wrapper --}}
 
+<div id="qrPreviewModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+    <div id="qrPreviewBackdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="qrPreviewTitle">
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <h3 id="qrPreviewTitle" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Preview Kod QR</h3>
+                <button type="button" id="qrPreviewClose" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-label="Tutup preview kod QR">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4 sm:p-5 flex items-center justify-center bg-slate-50 dark:bg-slate-900/40">
+                <img id="qrPreviewImage" src="" alt="Preview Kod QR" class="max-h-[70vh] w-full object-contain rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800"/>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     // ── Copy to clipboard ───────────────────────────────────────────────
@@ -430,6 +425,51 @@
             setTimeout(() => { btn.innerHTML = original; }, 2000);
         });
     }
+
+    // ── QR image preview modal ──────────────────────────────────────────
+    const qrPreviewModal = document.getElementById('qrPreviewModal');
+    const qrPreviewImage = document.getElementById('qrPreviewImage');
+    const qrPreviewClose = document.getElementById('qrPreviewClose');
+    const qrPreviewBackdrop = document.getElementById('qrPreviewBackdrop');
+    const qrPreviewButtons = document.querySelectorAll('.js-qr-preview');
+
+    function openQrPreview(url, accountName) {
+        if (!qrPreviewModal || !qrPreviewImage || !url) return;
+        qrPreviewImage.src = url;
+        qrPreviewImage.alt = accountName ? `Kod QR ${accountName}` : 'Preview Kod QR';
+        qrPreviewModal.classList.remove('hidden');
+        qrPreviewModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeQrPreview() {
+        if (!qrPreviewModal || !qrPreviewImage) return;
+        qrPreviewModal.classList.add('hidden');
+        qrPreviewModal.setAttribute('aria-hidden', 'true');
+        qrPreviewImage.removeAttribute('src');
+        qrPreviewImage.alt = 'Preview Kod QR';
+        document.body.style.overflow = '';
+    }
+
+    qrPreviewButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            openQrPreview(btn.dataset.qrUrl, btn.dataset.qrAccount || '');
+        });
+    });
+
+    if (qrPreviewClose) {
+        qrPreviewClose.addEventListener('click', closeQrPreview);
+    }
+
+    if (qrPreviewBackdrop) {
+        qrPreviewBackdrop.addEventListener('click', closeQrPreview);
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && qrPreviewModal && !qrPreviewModal.classList.contains('hidden')) {
+            closeQrPreview();
+        }
+    });
 
     // ── File upload preview ─────────────────────────────────────────────
     const fileInput   = document.getElementById('bukti_bayaran');

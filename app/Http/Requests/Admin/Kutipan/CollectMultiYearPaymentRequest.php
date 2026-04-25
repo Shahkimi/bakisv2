@@ -34,7 +34,6 @@ final class CollectMultiYearPaymentRequest extends FormRequest
             ],
             'years' => ['required', 'array', 'min:1', 'max:10'],
             'years.*' => ['required', 'integer', 'distinct:years', Rule::in($allowedYears)],
-            'no_resit_transfer' => ['required', 'string', 'max:50'],
             'bukti_bayaran' => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
             'catatan_admin' => ['nullable', 'string', 'max:2000'],
         ];

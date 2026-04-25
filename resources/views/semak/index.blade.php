@@ -5,7 +5,7 @@
 @section('content')
 @php
     $prefillNoKp = old('no_kp', $prefillNoKp ?? session('no_kp', ''));
-    $showRegisterForm = (bool) (($showRegisterForm ?? false) || old('nama') || old('no_resit_transfer'));
+    $showRegisterForm = (bool) (($showRegisterForm ?? false) || old('nama'));
     $lookupAlert = session('lookup_alert');
 @endphp
 <div class="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-10 px-4 sm:px-6 lg:px-8">
@@ -192,12 +192,7 @@
 
                         <div class="rounded-xl border border-orange-200 dark:border-orange-800/50 bg-orange-50/70 dark:bg-orange-900/10 p-4 space-y-4">
                             <h3 class="text-sm font-semibold text-orange-900 dark:text-orange-200">Pembayaran Pendaftaran (RM12.00)</h3>
-                            <p class="text-xs text-orange-800/90 dark:text-orange-300">Sila masukkan nombor rujukan pembayaran dan muat naik bukti bayaran sebelum hantar.</p>
-                            <div>
-                                <label for="no_resit_transfer" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">No. Rujukan / Resit Bank *</label>
-                                <input type="text" name="no_resit_transfer" id="no_resit_transfer" value="{{ old('no_resit_transfer') }}" required class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-3 text-gray-900 dark:text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 @error('no_resit_transfer') border-red-500 focus:border-red-500 focus:ring-red-500/20 @enderror">
-                                @error('no_resit_transfer')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
-                            </div>
+                            <p class="text-xs text-orange-800/90 dark:text-orange-300">Sila muat naik bukti bayaran sebelum hantar.</p>
                             <div>
                                 <label for="bukti_bayaran" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bukti Bayaran (JPG, PNG, PDF) *</label>
                                 <input type="file" name="bukti_bayaran" id="bukti_bayaran" accept=".jpg,.jpeg,.png,.pdf" required class="block w-full text-sm text-gray-500 dark:text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-orange-100 dark:file:bg-orange-900/30 file:px-4 file:py-2.5 file:font-medium file:text-orange-700 dark:file:text-orange-300">
@@ -270,13 +265,6 @@
         if (noKpInput) {
             noKpInput.addEventListener('input', function () {
                 this.value = this.value.replace(/\D/g, '').slice(0, 12);
-            });
-        }
-
-        const receiptInput = document.getElementById('no_resit_transfer');
-        if (receiptInput) {
-            receiptInput.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
             });
         }
 

@@ -21,7 +21,6 @@ class Payment extends Model
         'tahun_bayar',
         'tahun_mula',
         'tahun_tamat',
-        'no_resit_transfer',
         'no_resit_sistem',
         'bukti_bayaran',
         'status',

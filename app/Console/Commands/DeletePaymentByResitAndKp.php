@@ -10,10 +10,10 @@ use Illuminate\Console\Command;
 final class DeletePaymentByResitAndKp extends Command
 {
     protected $signature = 'payment:delete-by-resit-kp
-                            {no_resit : No resit/rujukan (e.g. 16494562)}
+                            {no_resit : No resit sistem (e.g. BAKIS/PM/2026/00042)}
                             {no_kp : No KP ahli (e.g. 851002025136)}';
 
-    protected $description = 'Delete payment(s) matching no_resit_transfer and member no_kp (one-off admin use)';
+    protected $description = 'Delete payment(s) matching no_resit_sistem and member no_kp (one-off admin use)';
 
     public function handle(): int
     {
@@ -21,7 +21,7 @@ final class DeletePaymentByResitAndKp extends Command
         $noKp = (string) $this->argument('no_kp');
 
         $query = Payment::query()
-            ->where('no_resit_transfer', $noResit)
+            ->where('no_resit_sistem', $noResit)
             ->whereHas('member', fn ($q) => $q->where('no_kp', $noKp));
 
         $count = $query->count();

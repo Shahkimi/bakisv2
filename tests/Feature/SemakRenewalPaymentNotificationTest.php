@@ -81,7 +81,6 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
 
         $this->post(route('semak.bayar'), [
             'no_kp' => '900101011234',
-            'no_resit_transfer' => 'REF-12345',
             'bukti_bayaran' => $file,
         ])->assertRedirect();
 
@@ -118,7 +117,6 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
 
         $this->post(route('semak.bayar'), [
             'no_kp' => '900101011239',
-            'no_resit_transfer' => 'REF-999',
             'bukti_bayaran' => $file,
         ])->assertRedirect();
 

@@ -117,7 +117,7 @@
                     <thead>
                         <tr class="border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
                             <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:30%;min-width:180px;">Maklumat Ahli</th>
-                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:30%;min-width:180px;">No Resit / Rujukan</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:30%;min-width:180px;">No Resit Sistem</th>
                             <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:15%;min-width:100px;">Status</th>
                             <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200" style="width:25%;min-width:160px;">Tindakan</th>
                         </tr>
@@ -375,7 +375,7 @@ $(document).ready(function () {
     }
 
     function renderResitDetailsCell(row) {
-        const noResit = escapeHtml(row.no_resit_transfer || '–');
+        const noResit = escapeHtml(row.no_resit_sistem || '–');
         const jenis = escapeHtml(row.jenis_label || '–');
         const jumlah = escapeHtml(row.jumlah_formatted || '–');
         const tahun = escapeHtml(String(row.tahun_bayar || '–'));
@@ -478,7 +478,7 @@ $(document).ready(function () {
         },
         columns: [
             { data:'member',             name:'member',             orderable:false, render:(_,__,row) => renderMemberCell(row) },
-            { data:'no_resit_transfer',  name:'no_resit_transfer',  render:(_,__,row) => renderResitDetailsCell(row) },
+            { data:'no_resit_sistem',    name:'no_resit_sistem',    render:(_,__,row) => renderResitDetailsCell(row) },
             { data:'status',             name:'status',             className:'text-center', render:(_,__,row) => renderStatusWithLihat(row) },
             { data:'id',                 name:'actions',            orderable:false, searchable:false, className:'text-center', render:(_,__,row) => renderActionsCell(row) },
         ],

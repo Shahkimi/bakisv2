@@ -48,7 +48,6 @@ final class PaymentProofUploadedNotification extends Notification implements Sho
             ->line('Sila semak sama ada bayaran telah diterima dan status pembayaran dikemas kini selepas pengesahan admin.')
             ->line('Tahun bayaran: '.$this->payment->tahun_bayar)
             ->line('Jumlah: RM '.$jumlah)
-            ->line('No. resit / rujukan bank: '.($this->payment->no_resit_transfer ?? '–'))
             ->action('Semak status keahlian', $semakUrl)
             ->line('Jika anda tidak menghantar permohonan ini, sila hubungi pentadbir sistem.');
 

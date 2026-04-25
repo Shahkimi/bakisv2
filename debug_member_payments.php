@@ -50,7 +50,7 @@ if ($payments->isEmpty()) {
 
 $columns = [
     'id', 'member_id', 'tahun_bayar', 'jumlah', 'jenis',
-    'no_resit_transfer', 'no_resit_sistem', 'bukti_bayaran',
+    'no_resit_sistem', 'bukti_bayaran',
     'status', 'approved_by', 'approved_at', 'catatan_admin',
     'created_at', 'updated_at',
 ];

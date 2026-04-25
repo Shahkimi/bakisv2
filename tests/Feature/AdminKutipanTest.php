@@ -195,7 +195,6 @@ final class AdminKutipanTest extends TestCase
             'bilangan_tahun' => 1,
             'tahun_mula' => $tahun,
             'tahun_tamat' => $tahun,
-            'no_resit_transfer' => 'RESIT-KUT-001',
             'catatan_admin' => 'Test kutipan',
             'bukti_bayaran' => $proof,
         ];
@@ -206,13 +205,13 @@ final class AdminKutipanTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonPath('receipt_no', 'RESIT-'.$tahun.'-00001');
+            ->assertJsonPath('receipt_no', 'BAKIS/PM/'.$tahun.'/00001');
 
         $this->assertDatabaseHas('payments', [
             'member_id' => $member->id,
             'yuran_id' => $refs['pembaharuanYuran10']->id,
             'status' => Payment::STATUS_APPROVED,
-            'no_resit_sistem' => 'RESIT-'.$tahun.'-00001',
+            'no_resit_sistem' => 'BAKIS/PM/'.$tahun.'/00001',
         ]);
 
         $member->refresh();
@@ -221,13 +220,12 @@ final class AdminKutipanTest extends TestCase
 
         $payment = Payment::query()
             ->where('member_id', $member->id)
-            ->where('no_resit_sistem', 'RESIT-'.$tahun.'-00001')
+            ->where('no_resit_sistem', 'BAKIS/PM/'.$tahun.'/00001')
             ->firstOrFail();
 
         $this->assertNotNull($payment->bukti_bayaran);
 
         // Second collect should be blocked because ahli is already active.
-        $payload['no_resit_transfer'] = 'RESIT-KUT-002';
         $payload['bukti_bayaran'] = UploadedFile::fake()->image('proof2.jpg');
 
         $response2 = $this->post(route('admin.kutipan.collect'), $payload, [
@@ -256,7 +254,6 @@ final class AdminKutipanTest extends TestCase
             'member_id' => $member->id,
             'yuran_id' => $refs['pembaharuanYuran10']->id,
             'years' => $years,
-            'no_resit_transfer' => 'RESIT-MULTI-001',
             'catatan_admin' => 'Bayaran pelbagai tahun',
         ];
 
@@ -322,7 +319,6 @@ final class AdminKutipanTest extends TestCase
             'member_id' => $member->id,
             'yuran_id' => $refs['pembaharuanYuran10']->id,
             'years' => [$paidYear, $nextYear],
-            'no_resit_transfer' => 'RESIT-FAIL',
         ];
 
         $response = $this->post(route('admin.kutipan.collect-multi-year'), $payload, [
@@ -403,7 +399,6 @@ final class AdminKutipanTest extends TestCase
             'member_id' => $member->id,
             'yuran_id' => $refs['pembaharuanYuran10']->id,
             'years' => [$registrationYear, $currentYear],
-            'no_resit_transfer' => 'RESIT-FLOOR',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(422)

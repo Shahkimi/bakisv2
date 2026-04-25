@@ -62,7 +62,6 @@ final readonly class KutipanService
                             'tahun_bayar',
                             'tahun_mula',
                             'tahun_tamat',
-                            'no_resit_transfer',
                             'no_resit_sistem',
                             'status',
                             'bukti_bayaran',
@@ -266,7 +265,6 @@ final readonly class KutipanService
                             'tahun_bayar',
                             'tahun_mula',
                             'tahun_tamat',
-                            'no_resit_transfer',
                             'no_resit_sistem',
                             'status',
                             'bukti_bayaran',
@@ -323,7 +321,6 @@ final readonly class KutipanService
      *   tahun_bayar:int,
      *   tahun_mula?:int|null,
      *   tahun_tamat?:int|null,
-     *   no_resit_transfer?:string|null,
      *   bukti_bayaran?:UploadedFile|null,
      *   catatan_admin?:string|null,
      * } $data
@@ -343,18 +340,13 @@ final readonly class KutipanService
             ], 422);
         }
 
-        $tahunBayar = (int) $data['tahun_bayar'];
-        $receiptNo = DB::transaction(function () use ($member, $data, $tahunBayar): string {
-            $receipt = $this->generateReceiptNumber($tahunBayar);
-
+        $receiptNo = DB::transaction(function () use ($member, $data): string {
             $payment = Payment::create([
                 'member_id' => $member->id,
                 'yuran_id' => (int) $data['yuran_id'],
-                'tahun_bayar' => $tahunBayar,
+                'tahun_bayar' => (int) $data['tahun_bayar'],
                 'tahun_mula' => $data['tahun_mula'] ?? null,
                 'tahun_tamat' => $data['tahun_tamat'] ?? null,
-                'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
-                'no_resit_sistem' => $receipt,
                 'bukti_bayaran' => null,
                 'status' => Payment::STATUS_APPROVED,
                 'approved_by' => auth()->id(),
@@ -377,7 +369,7 @@ final readonly class KutipanService
                 'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
             ]);
 
-            return $receipt;
+            return (string) $payment->refresh()->no_resit_sistem;
         });
 
         return response()->json([
@@ -392,7 +384,6 @@ final readonly class KutipanService
      *   member_id:int,
      *   yuran_id:int,
      *   years:array<int, int|string>,
-     *   no_resit_transfer?:string|null,
      *   bukti_bayaran?:UploadedFile|null,
      *   catatan_admin?:string|null,
      * } $data
@@ -412,11 +403,11 @@ final readonly class KutipanService
 
         $receiptBatch = DB::transaction(function () use ($member, $data, $years, $yuran): string {
             $currentYear = (int) now()->year;
-            $batchReceipt = $this->generateReceiptNumber($currentYear);
             $bukti = $data['bukti_bayaran'] ?? null;
             $buktiPath = null;
             /** @var list<int> $paymentIds */
             $paymentIds = [];
+            $firstReceipt = null;
 
             foreach ($years as $year) {
                 $payment = Payment::create([
@@ -425,8 +416,7 @@ final readonly class KutipanService
                     'tahun_bayar' => $currentYear,
                     'tahun_mula' => $year,
                     'tahun_tamat' => $year,
-                    'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
-                    'no_resit_sistem' => $batchReceipt,
+                    'no_resit_sistem' => $firstReceipt,
                     'bukti_bayaran' => null,
                     'status' => Payment::STATUS_APPROVED,
                     'approved_by' => auth()->id(),
@@ -435,6 +425,9 @@ final readonly class KutipanService
                 ]);
 
                 $paymentIds[] = $payment->id;
+                if ($firstReceipt === null) {
+                    $firstReceipt = $payment->no_resit_sistem;
+                }
 
                 if ($bukti instanceof UploadedFile && $buktiPath === null) {
                     $buktiPath = $this->fileUploadService->uploadPaymentProof($bukti, $payment->id);
@@ -454,7 +447,7 @@ final readonly class KutipanService
                 'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
             ]);
 
-            return $batchReceipt;
+            return (string) $firstReceipt;
         });
 
         $totalAmount = count($years) * $perYearAmount;
@@ -466,25 +459,6 @@ final readonly class KutipanService
             'years' => $years,
             'total_amount' => number_format($totalAmount, 2),
         ]);
-    }
-
-    private function generateReceiptNumber(int $tahunBayar): string
-    {
-        $last = Payment::query()
-            ->where('tahun_bayar', $tahunBayar)
-            ->whereNotNull('no_resit_sistem')
-            ->orderByDesc('id')
-            ->lockForUpdate()
-            ->first();
-
-        $nextSeq = 1;
-        if ($last && $last->no_resit_sistem) {
-            if (preg_match('/-(\d+)\s*$/', (string) $last->no_resit_sistem, $m) === 1) {
-                $nextSeq = ((int) $m[1]) + 1;
-            }
-        }
-
-        return sprintf('RESIT-%d-%05d', $tahunBayar, $nextSeq);
     }
 
     /**
@@ -507,7 +481,6 @@ final readonly class KutipanService
             'jenis_label' => $jenisLabel,
             'jumlah' => $jumlah,
             'jumlah_formatted' => 'RM '.number_format($jumlah, 2),
-            'no_resit_transfer' => $payment->no_resit_transfer ?? '–',
             'no_resit_sistem' => $payment->no_resit_sistem ?? null,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
@@ -520,7 +493,6 @@ final readonly class KutipanService
             'tahuntamat' => isset($payment->tahun_tamat) ? (int) $payment->tahun_tamat : null,
             'jenislabel' => $jenisLabel,
             'jumlahformatted' => 'RM '.number_format($jumlah, 2),
-            'noresittransfer' => $payment->no_resit_transfer ?? '–',
             'noresitsistem' => $payment->no_resit_sistem ?? null,
             'approvedat' => $payment->approved_at?->toDateTimeString(),
         ];

@@ -19,7 +19,6 @@ class RenewalPaymentRequest extends FormRequest
     {
         return [
             'no_kp' => ['required', 'digits:12', 'exists:members,no_kp'],
-            'no_resit_transfer' => ['required', 'string', 'max:50'],
             'bukti_bayaran' => [
                 'required',
                 'file',

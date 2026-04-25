@@ -93,8 +93,6 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
             'payment_combo' => 'registration_only',
             'tahun_mula' => $tahunBayar,
             'tahun_tamat' => $tahunBayar,
-
-            'no_resit_transfer' => 'RESIT-REG-001',
             'no_resit_sistem' => null,
         ]);
 
@@ -131,8 +129,6 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
             'payment_combo' => 'registration_advance_next_year',
             'tahun_mula' => $tahunBayar,
             'tahun_tamat' => $tahunBayar + 1,
-
-            'no_resit_transfer' => 'RESIT-REGADV-001',
             'no_resit_sistem' => null,
         ]);
 
@@ -180,8 +176,6 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
             'payment_combo' => 'registration_only',
             'tahun_mula' => $tahunCoverage,
             'tahun_tamat' => $tahunCoverage,
-
-            'no_resit_transfer' => 'RESIT-REG-BACK-001',
             'no_resit_sistem' => null,
         ]);
 

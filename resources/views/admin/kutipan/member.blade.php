@@ -227,23 +227,14 @@
                             </div>
                         </section>
 
-                        {{-- Section: Resit & bukti --}}
+                        {{-- Section: Resit --}}
                         <section class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-900/30 p-5" aria-labelledby="section-resit">
                             <h3 id="section-resit" class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
                                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold">2</span>
-                                Resit & bukti
+                                Resit
                             </h3>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label for="no_resit_transfer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        No. Resit / Rujukan <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="no_resit_transfer" id="no_resit_transfer"
-                                           placeholder="Rujukan bank atau no. resit"
-                                           class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                </div>
-
                                 <div class="space-y-2">
                                     <label for="catatan_admin" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Catatan (pilihan)
@@ -254,15 +245,6 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 space-y-2">
-                                <label for="bukti_bayaran" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Bukti bayaran (PDF/JPG/PNG)
-                                </label>
-                                <div class="relative rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/30 p-4 transition hover:border-indigo-400 dark:hover:border-indigo-500 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20">
-                                    <input type="file" name="bukti_bayaran" id="bukti_bayaran" accept=".jpg,.jpeg,.png,.pdf"
-                                           class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-300 file:font-medium file:cursor-pointer focus:outline-none">
-                                </div>
-                            </div>
                         </section>
 
                         {{-- CTA --}}
@@ -578,17 +560,11 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2.5 border-t border-gray-200/60 dark:border-gray-700/60 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                            <div class="mt-2.5 pt-2.5 border-t border-gray-200/60 dark:border-gray-700/60 grid grid-cols-1 gap-x-4 gap-y-1.5">
                             <div>
                                 <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">No. Resit</div>
                                 <div class="text-xs font-mono font-medium text-gray-700 dark:text-gray-200">
                                     ${escapeHtml(row.noresitsistem) || '—'}
-                                </div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Rujukan</div>
-                                <div class="text-xs font-mono font-medium text-gray-700 dark:text-gray-200">
-                                    ${escapeHtml(row.noresittransfer) || '—'}
                                 </div>
                             </div>
                             ${approvedRow}

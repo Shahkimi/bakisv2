@@ -61,10 +61,6 @@ class StoreMemberRequest extends FormRequest
             ],
             'tahun_mula' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'tahun_tamat' => ['nullable', 'integer', 'min:2000', 'max:2100', 'gte:tahun_mula'],
-            'no_resit_transfer' => [
-                $this->boolean('approve_immediately') ? 'required' : 'nullable',
-                'string', 'max:50',
-            ],
             'no_resit_sistem' => ['nullable', 'string', 'max:50'],
             'bukti_bayaran' => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
         ];

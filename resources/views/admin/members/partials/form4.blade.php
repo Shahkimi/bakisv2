@@ -35,7 +35,7 @@
 
     {{-- Payment Toggle Switch --}}
     <div x-data="{
-            hasPayment: {{ old('no_resit_transfer') ? 'true' : 'false' }},
+            hasPayment: {{ old('yuran_id') ? 'true' : 'false' }},
             approvePayment: {{ old('approve_immediately') ? 'true' : 'false' }},
             manualOverride: {{ (!empty(old('tahun_mula')) || !empty(old('tahun_tamat'))) ? 'true' : 'false' }},
             computeYears() {
@@ -157,19 +157,7 @@
                                   text-indigo-600 dark:text-indigo-400 text-xs font-bold">2</span>
                     Resit & Rujukan
                 </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div class="space-y-2">
-                        <label for="no_resit_transfer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            No. Resit / Rujukan <span class="text-red-500" x-show="approvePayment" x-cloak>*</span>
-                        </label>
-                        <input type="text" name="no_resit_transfer" id="no_resit_transfer"
-                               value="{{ old('no_resit_transfer') }}"
-                               placeholder="Rujukan bank atau no. resit"
-                               :required="approvePayment"
-                               class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-xl
-                                      bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400
-                                      shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                    </div>
+                <div class="grid grid-cols-1 gap-5">
                     <div class="space-y-2">
                         <label for="no_resit_sistem" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             No. Resit Sistem
@@ -185,57 +173,7 @@
                 </div>
             </section>
 
-            {{-- Section 3: Bukti Bayaran --}}
-            <section class="rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50/60 dark:bg-gray-800/40 p-5"
-                     x-data="{ preview: null, fileName: '', handleFile(e) {
-                         const f = e.target.files[0]; if(!f) return;
-                         this.fileName = f.name;
-                         if (f.type.startsWith('image/')) {
-                             const r = new FileReader();
-                             r.onload = ev => { this.preview = ev.target.result; };
-                             r.readAsDataURL(f);
-                         } else { this.preview = 'pdf'; }
-                     } }">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                    <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40
-                                  text-indigo-600 dark:text-indigo-400 text-xs font-bold">3</span>
-                    Bukti Bayaran
-                </h4>
-                <label for="bukti_bayaran"
-                       class="relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed
-                               border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 p-6 cursor-pointer
-                               hover:border-indigo-400 dark:hover:border-indigo-500 transition group overflow-hidden"
-                       :class="preview ? 'border-emerald-400 dark:border-emerald-600' : ''">
-                    <template x-if="!preview">
-                        <div class="flex flex-col items-center gap-2 text-gray-400 group-hover:text-indigo-500 transition">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                            <p class="text-sm font-medium">Seret & lepas atau <span class="text-indigo-500 underline">klik untuk pilih</span></p>
-                            <p class="text-xs text-gray-400">JPG, PNG atau PDF</p>
-                        </div>
-                    </template>
-                    <template x-if="preview === 'pdf'">
-                        <div class="flex items-center gap-3 text-emerald-600 dark:text-emerald-400">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            <span class="text-sm font-medium" x-text="fileName"></span>
-                        </div>
-                    </template>
-                    <template x-if="preview && preview !== 'pdf'">
-                        <img :src="preview" class="max-h-40 rounded-lg object-contain shadow" alt="Preview bukti">
-                    </template>
-                    <input type="file" name="bukti_bayaran" id="bukti_bayaran"
-                           accept=".jpg,.jpeg,.png,.pdf"
-                           class="sr-only"
-                           @change="handleFile($event)">
-                </label>
-            </section>
-
-            {{-- Section 4: Aktifkan Serta-merta --}}
+            {{-- Section 3: Aktifkan Serta-merta --}}
             <section class="rounded-xl border-2 border-indigo-200 dark:border-indigo-500/50
                              bg-indigo-50/70 dark:bg-indigo-900/25 p-5">
                 <label class="flex cursor-pointer items-start gap-4 rounded-lg transition

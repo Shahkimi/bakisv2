@@ -78,29 +78,10 @@
                 <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold">2</span>
                 Resit & rujukan
             </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label for="no_resit_transfer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. Resit / Rujukan <span class="text-red-500" x-show="approvePayment" x-cloak>*</span></label>
-                    <input type="text" name="no_resit_transfer" id="no_resit_transfer" value="{{ old('no_resit_transfer') }}" placeholder="Rujukan bank atau no. resit" :required="approvePayment" class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                </div>
+            <div class="grid grid-cols-1 gap-6">
                 <div class="space-y-2">
                     <label for="no_resit_sistem" class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. Resit Sistem</label>
                     <input type="text" name="no_resit_sistem" id="no_resit_sistem" value="{{ old('no_resit_sistem') }}" placeholder="Dijana oleh sistem jika kosong" class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                </div>
-            </div>
-        </section>
-
-        {{-- Section: Bukti bayaran --}}
-        <section class="rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50/60 dark:bg-gray-800/40 p-6" aria-labelledby="section-bukti">
-            <h4 id="section-bukti" class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-xs font-bold">3</span>
-                Bukti bayaran
-            </h4>
-            <div class="space-y-2">
-                <label for="bukti_bayaran" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Muat naik fail</label>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">JPG, PNG atau PDF. Pilihan.</p>
-                <div class="relative rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 p-4 transition hover:border-indigo-400 dark:hover:border-indigo-500 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20">
-                    <input type="file" name="bukti_bayaran" id="bukti_bayaran" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-300 file:font-medium file:cursor-pointer focus:outline-none">
                 </div>
             </div>
         </section>

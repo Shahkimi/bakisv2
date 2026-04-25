@@ -32,7 +32,6 @@ final class CollectPaymentRequest extends FormRequest
             'bilangan_tahun' => ['required', 'integer', 'min:1', 'max:5'],
             'tahun_mula' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tahun_tamat' => ['required', 'integer', 'min:2000', 'max:2100', 'gte:tahun_mula'],
-            'no_resit_transfer' => ['required', 'string', 'max:50'],
             'bukti_bayaran' => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
             'catatan_admin' => ['nullable', 'string', 'max:2000'],
         ];

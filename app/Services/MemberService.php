@@ -131,7 +131,6 @@ final readonly class MemberService
                 'member_id' => $member->id,
                 'tahun_bayar' => (int) date('Y'),
                 'yuran_id' => $pendaftaranYuran?->id ?? 1,
-                'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
                 'status' => Payment::STATUS_PENDING,
             ];
 
@@ -185,7 +184,6 @@ final readonly class MemberService
             $approveImmediately = ! empty($data['approve_immediately']);
             $hasPayment = ! empty($data['tahun_bayar'])
                 || ! empty($data['yuran_id'])
-                || ! empty($data['no_resit_transfer'])
                 || (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile);
 
             if ($hasPayment) {
@@ -198,7 +196,6 @@ final readonly class MemberService
                     'member_id' => $member->id,
                     'tahun_bayar' => $tahunBayar,
                     'yuran_id' => $yuranId,
-                    'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
                     'no_resit_sistem' => $data['no_resit_sistem'] ?? null,
                     'status' => $approveImmediately ? Payment::STATUS_APPROVED : Payment::STATUS_PENDING,
                     'approved_by' => $approveImmediately ? auth()->id() : null,
@@ -294,7 +291,6 @@ final readonly class MemberService
             'member_id' => $member->id,
             'yuran_id' => $yuran?->id ?? 2,
             'tahun_bayar' => (int) date('Y'),
-            'no_resit_transfer' => $data['no_resit_transfer'] ?? null,
             'status' => Payment::STATUS_PENDING,
         ]);
 
