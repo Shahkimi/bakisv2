@@ -362,38 +362,10 @@
 
                     <div x-show="openSection === 'payment'" x-collapse.duration.300ms>
                         <div class="p-5 border-t border-gray-100 dark:border-gray-700 space-y-6">
-                            {{-- Sejarah Yuran Mengikut Tahun --}}
-                            <div>
-                                <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Sejarah Yuran Mengikut Tahun</h4>
-                                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                        <thead class="bg-gray-50 dark:bg-gray-800">
-                                            <tr>
-                                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tahun</th>
-                                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Butiran</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-                                            @foreach($paymentHistoryByYear as $row)
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                    <td class="px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white">{{ $row['year'] }}</td>
-                                                    <td class="px-4 py-2.5">
-                                                        @if($row['status'] === 'paid')
-                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Bayar</span>
-                                                        @else
-                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">Tidak bayar</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300">{{ $row['coverage_label'] ?: '–' }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            @if($member->payments->isEmpty())
+                            @php
+                                $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED);
+                            @endphp
+                            @if($approvedPayments->isEmpty())
                                 {{-- Empty State --}}
                                 <div class="flex flex-col items-center justify-center py-8 text-center">
                                     <div class="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
@@ -401,11 +373,17 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
                                     </div>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Tiada Rekod Pembayaran</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ahli ini belum mempunyai sebarang rekod pembayaran.</p>
+                                    @if($member->payments->isEmpty())
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Tiada Rekod Pembayaran</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ahli ini belum mempunyai sebarang rekod pembayaran.</p>
+                                    @else
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Tiada Pembayaran Disahkan</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tiada rekod dengan status disahkan. Semua pembayaran masih menunggu atau telah ditolak.</p>
+                                    @endif
                                 </div>
                             @else
-                                {{-- Payment History Table --}}
+                                {{-- Payment History Table (disahkan sahaja) --}}
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Sejarah Yuran Mengikut Tahun</h4>
                                 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                         <thead class="bg-purple-50 dark:bg-purple-900/20">
@@ -417,7 +395,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-                                            @foreach($member->payments as $payment)
+                                            @foreach($approvedPayments as $payment)
                                                 @php
                                                     $start = $payment->tahun_mula ?? $payment->tahun_bayar;
                                                     $end = $payment->tahun_tamat ?? $payment->tahun_bayar;
@@ -440,22 +418,10 @@
                                                         </span>
                                                     </td>
                                                     <td class="px-4 py-3.5">
-                                                        @if($payment->status === 'approved')
-                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                                                Disahkan
-                                                            </span>
-                                                        @elseif($payment->status === 'pending')
-                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                                Menunggu
-                                                            </span>
-                                                        @else
-                                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                                Ditolak
-                                                            </span>
-                                                        @endif
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                                            Disahkan
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -466,10 +432,10 @@
                                 {{-- Summary Footer --}}
                                 <div class="mt-4 flex items-center justify-between px-1">
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        Jumlah rekod: <span class="font-semibold text-gray-700 dark:text-gray-300">{{ $member->payments->count() }}</span>
+                                        Jumlah rekod: <span class="font-semibold text-gray-700 dark:text-gray-300">{{ $approvedPayments->count() }}</span>
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        Jumlah keseluruhan: <span class="font-semibold text-purple-600 dark:text-purple-400">RM {{ number_format($member->payments->sum('jumlah'), 2) }}</span>
+                                        Jumlah disahkan: <span class="font-semibold text-purple-600 dark:text-purple-400">RM {{ number_format($approvedPayments->sum('jumlah'), 2) }}</span>
                                     </p>
                                 </div>
                             @endif

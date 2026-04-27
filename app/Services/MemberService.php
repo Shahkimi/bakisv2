@@ -56,45 +56,6 @@ final readonly class MemberService
         return ['status' => 'expired', 'member' => $member, 'payment' => null];
     }
 
-    /**
-     * @return array<int, array{year: int, status: string, payment: Payment|null, coverage_label: string}>
-     */
-    public function getPaymentHistoryByYear(Member $member, ?int $fromYear = null, ?int $toYear = null): array
-    {
-        $currentYear = (int) date('Y');
-        $fromYear = $fromYear ?? $member->tarikh_daftar?->year ?? $currentYear;
-        $toYear = $toYear ?? $currentYear;
-
-        $approvedPayments = $member->payments()
-            ->where('status', Payment::STATUS_APPROVED)
-            ->with('yuran')
-            ->get();
-
-        $result = [];
-        for ($year = $fromYear; $year <= $toYear; $year++) {
-            $payment = $approvedPayments->first(fn (Payment $p) => $p->coversYear($year));
-
-            $coverageLabel = '';
-            if ($payment) {
-                $amount = $payment->yuran ? number_format((float) $payment->yuran->jumlah, 2) : '0.00';
-                $start = $payment->tahun_mula ?? $payment->tahun_bayar;
-                $end = $payment->tahun_tamat ?? $payment->tahun_bayar;
-                $coverageLabel = $start === $end
-                    ? sprintf('Bayar %d, RM %s', $payment->tahun_bayar, $amount)
-                    : sprintf('Bayar %d, RM %s, liputan %d–%d', $payment->tahun_bayar, $amount, $start, $end);
-            }
-
-            $result[] = [
-                'year' => $year,
-                'status' => $payment ? 'paid' : 'unpaid',
-                'payment' => $payment,
-                'coverage_label' => $coverageLabel,
-            ];
-        }
-
-        return $result;
-    }
-
     public function registerNewMember(array $data): Member
     {
         return DB::transaction(function () use ($data) {

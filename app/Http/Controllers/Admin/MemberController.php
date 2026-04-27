@@ -63,9 +63,8 @@ final class MemberController extends Controller
         $jabatans = Jabatan::where('is_active', true)->orderBy('nama_jabatan')->get();
         $jawatans = Jawatan::where('is_active', true)->orderBy('nama_jawatan')->get();
         $statuses = MemberStatus::where('is_active', true)->orderBy('name')->get();
-        $paymentHistoryByYear = $this->memberService->getPaymentHistoryByYear($member);
 
-        return view($this->panelView('members.edit'), compact('member', 'jabatans', 'jawatans', 'statuses', 'paymentHistoryByYear'));
+        return view($this->panelView('members.edit'), compact('member', 'jabatans', 'jawatans', 'statuses'));
     }
 
     public function update(StoreMemberRequest $request, Member $member): RedirectResponse|JsonResponse
