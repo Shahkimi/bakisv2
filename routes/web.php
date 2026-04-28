@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
+use App\Http\Controllers\Admin\Kawalan\FaviconController;
 use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\PaymentAccountController;
@@ -125,6 +126,11 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/', [PaymentAccountController::class, 'store'])->name('store');
         Route::put('{paymentAccount}', [PaymentAccountController::class, 'update'])->name('update');
         Route::delete('{paymentAccount}', [PaymentAccountController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('kawalan/favicon')->name('kawalan.favicon.')->group(function () {
+        Route::get('/', [FaviconController::class, 'index'])->name('index');
+        Route::post('/', [FaviconController::class, 'store'])->name('store');
+        Route::delete('/', [FaviconController::class, 'destroy'])->name('destroy');
     });
 });
 

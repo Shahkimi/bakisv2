@@ -522,9 +522,23 @@
                         ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
                         : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
 
-                const yearRange = row.tahunmula !== row.tahuntamat
-                    ? `<span class="font-normal text-gray-400 dark:text-gray-500">(${escapeHtml(row.tahunmula)} – ${escapeHtml(row.tahuntamat)})</span>`
-                    : '';
+                const tahunBayar = Number(row.tahunbayar);
+                const coverageStart = row.tahunmula != null && row.tahunmula !== ''
+                    ? Number(row.tahunmula)
+                    : tahunBayar;
+                const coverageEnd = row.tahuntamat != null && row.tahuntamat !== ''
+                    ? Number(row.tahuntamat)
+                    : tahunBayar;
+
+                const titleLine = `Tahun ${tahunBayar}`;
+
+                const jenisLower = String(row.jenislabel || '').toLowerCase();
+                const isPembaharuan = jenisLower.includes('pembaharuan');
+                const subtitleLine = isPembaharuan
+                    ? (coverageStart === coverageEnd
+                        ? `Pembaharuan ${coverageStart}`
+                        : `Pembaharuan ${coverageStart}–${coverageEnd}`)
+                    : String(row.jenislabel || '');
 
                 const approvedRow = row.approvedat ? `
                     <div class="col-span-2 pt-1">
@@ -533,7 +547,7 @@
                     </div>` : '';
 
                 const el = document.createElement('div');
-                el.className = 'history-payment-card group relative rounded-xl border border-gray-100 dark:border-gray-700/80 bg-gray-50/60 dark:bg-gray-900/30 opacity-0 translate-y-2 hover:bg-white dark:hover:bg-gray-800 hover:shadow-sm transition-all duration-300 ease-out overflow-hidden';
+                el.className = 'history-payment-card group relative rounded-xl border border-gray-100 dark:border-gray-700/80 bg-white dark:bg-gray-800 opacity-0 translate-y-2 shadow-sm hover:shadow-md dark:hover:border-gray-600 transition-all duration-300 ease-out overflow-hidden';
                 el.innerHTML = `
                     <div class="absolute left-0 top-0 bottom-0 w-1 ${stripColor}"></div>
                     <div class="p-3 pl-4">
@@ -543,11 +557,11 @@
                                     ${statusIcon}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="text-sm font-semibold text-gray-900 dark:text-white leading-snug">
-                                        Tahun ${escapeHtml(row.tahunbayar)} ${yearRange}
+                                    <div class="text-base font-bold text-gray-900 dark:text-white leading-snug">
+                                        ${escapeHtml(titleLine)}
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                                        ${escapeHtml(row.jenislabel)}
+                                        ${escapeHtml(subtitleLine)}
                                     </div>
                                 </div>
                             </div>
@@ -555,7 +569,7 @@
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${statusBadge}">
                                     ${escapeHtml(statusLabel)}
                                 </span>
-                                <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                <span class="text-base font-bold text-indigo-600 dark:text-indigo-400">
                                     ${escapeHtml(row.jumlahformatted)}
                                 </span>
                             </div>

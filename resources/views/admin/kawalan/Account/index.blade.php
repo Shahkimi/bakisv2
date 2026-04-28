@@ -4,7 +4,9 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div class="mb-6 flex flex-col gap-3">
+        @include('admin.kawalan.partials.breadcrumb', ['current' => 'Akaun Bayaran'])
+        <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-4 group">
             <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,6 +25,7 @@
             </svg>
             <span class="relative">Tambah Akaun</span>
         </button>
+        </div>
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-gray-100 dark:border-gray-700 overflow-hidden p-6 transform transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
