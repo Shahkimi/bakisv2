@@ -1,0 +1,68 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Kutipan\AutocompleteMemberRequest;
+use App\Http\Requests\Admin\Kutipan\CollectMultiYearPaymentRequest;
+use App\Http\Requests\Admin\Kutipan\CollectPaymentRequest;
+use App\Http\Requests\Admin\Kutipan\SearchMemberRequest;
+use App\Services\KutipanService;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+
+final class KutipanController extends Controller
+{
+    public function __construct(
+        private readonly KutipanService $kutipanService,
+    ) {}
+
+    public function index(): View
+    {
+        return view('user.kutipan.index');
+    }
+
+    public function autocomplete(AutocompleteMemberRequest $request): JsonResponse
+    {
+        return $this->kutipanService->autocompleteMembers($request->validated()['search']);
+    }
+
+    public function member(string $encryptedNoKp): View|RedirectResponse
+    {
+        try {
+            $data = $this->kutipanService->getMemberPageDataByEncryptedNoKp($encryptedNoKp);
+        } catch (DecryptException) {
+            return redirect()
+                ->route('user.kutipan.index')
+                ->with('error', 'Pautan tidak sah.');
+        }
+
+        return view('user.kutipan.member', [
+            'yurans' => $this->kutipanService->getRenewalYurans(),
+            'member' => $data['member'],
+            'renewal' => $data['renewal'],
+            'history' => $data['history'],
+            'unpaid_years' => $data['unpaid_years'],
+            'renewal_min_year' => $data['renewal_min_year'],
+        ]);
+    }
+
+    public function search(SearchMemberRequest $request): JsonResponse
+    {
+        return $this->kutipanService->searchMembers($request->validated()['search']);
+    }
+
+    public function collect(CollectPaymentRequest $request): JsonResponse
+    {
+        return $this->kutipanService->collectPayment($request->validated());
+    }
+
+    public function collectMultiYear(CollectMultiYearPaymentRequest $request): JsonResponse
+    {
+        return $this->kutipanService->collectPaymentsForYears($request->validated());
+    }
+}

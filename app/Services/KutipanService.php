@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\Yuran;
+use App\Notifications\KutipanPaymentConfirmedNotification;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -15,11 +16,17 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 final readonly class KutipanService
 {
     /** Years after the current calendar year that may be selected for pembaharuan (prabayar). */
     public const int RENEWAL_SELECTABLE_YEARS_AHEAD = 2;
+
+    public const string EMAIL_NOTICE_SENT = 'E-mel pengesahan telah berjaya dihantar kepada pegawai.';
+
+    public const string EMAIL_NOTICE_MISSING = 'Pegawai tidak mempunyai e-mel. Pengesahan pembayaran tidak dapat dihantar.';
 
     public function __construct(
         private MemberService $memberService,
@@ -372,10 +379,24 @@ final readonly class KutipanService
             return (string) $payment->refresh()->no_resit_sistem;
         });
 
+        $yuranRow = Yuran::query()->find((int) $data['yuran_id']);
+        $detailLines = [
+            'Tahun bayaran: '.(int) $data['tahun_bayar'],
+            'Jumlah: RM '.number_format((float) ($yuranRow?->jumlah ?? 0), 2),
+        ];
+        $mula = $data['tahun_mula'] ?? null;
+        $tamat = $data['tahun_tamat'] ?? null;
+        if ($mula !== null && $tamat !== null) {
+            $detailLines[] = 'Tahun liputan: '.$mula.' hingga '.$tamat;
+        }
+
+        $emailNotice = $this->dispatchKutipanConfirmationMail($member, $receiptNo, $detailLines);
+
         return response()->json([
             'success' => true,
             'message' => 'Bayaran berjaya direkodkan.',
             'receipt_no' => $receiptNo,
+            'email_notice' => $emailNotice,
         ]);
     }
 
@@ -452,13 +473,48 @@ final readonly class KutipanService
 
         $totalAmount = count($years) * $perYearAmount;
 
+        $detailLines = [
+            'Tahun dikutip: '.implode(', ', array_map(static fn (int $y): string => (string) $y, $years)),
+            'Jumlah keseluruhan: RM '.number_format($totalAmount, 2),
+        ];
+
+        $emailNotice = $this->dispatchKutipanConfirmationMail($member, $receiptBatch, $detailLines);
+
         return response()->json([
             'success' => true,
             'message' => 'Bayaran berjaya direkodkan untuk '.count($years).' tahun.',
             'receipt_no' => $receiptBatch,
             'years' => $years,
             'total_amount' => number_format($totalAmount, 2),
+            'email_notice' => $emailNotice,
         ]);
+    }
+
+    /**
+     * @param  list<string>  $detailLines
+     */
+    private function dispatchKutipanConfirmationMail(Member $member, string $receiptNo, array $detailLines): string
+    {
+        $member->refresh();
+
+        if (! filled($member->email)) {
+            return self::EMAIL_NOTICE_MISSING;
+        }
+
+        try {
+            $email = strtolower(trim((string) $member->email));
+            Notification::route('mail', [$email => $member->nama])
+                ->notify(new KutipanPaymentConfirmedNotification($member, $receiptNo, $detailLines));
+
+            return self::EMAIL_NOTICE_SENT;
+        } catch (\Throwable $e) {
+            Log::warning('Kutipan confirmation email failed', [
+                'member_id' => $member->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return 'E-mel pengesahan tidak dapat dihantar pada masa ini. Sila hubungi pentadbir.';
+        }
     }
 
     /**

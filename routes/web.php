@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
-use App\Http\Controllers\Admin\KutipanController;
+use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PembayaranController;
@@ -16,6 +16,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PostcodeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SemakController;
+use App\Http\Controllers\User\KutipanController as UserKutipanController;
 use App\Models\Yuran;
 use Illuminate\Support\Facades\Route;
 
@@ -72,11 +73,11 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('members', AdminMemberController::class);
 
     Route::prefix('kutipan')->name('kutipan.')->group(function () {
-        Route::get('/', [KutipanController::class, 'index'])->name('index');
-        Route::get('/autocomplete', [KutipanController::class, 'autocomplete'])->name('autocomplete');
-        Route::get('/member/{encryptedNoKp}', [KutipanController::class, 'member'])->name('member');
-        Route::post('/collect', [KutipanController::class, 'collect'])->name('collect');
-        Route::post('/collect-multi-year', [KutipanController::class, 'collectMultiYear'])->name('collect-multi-year');
+        Route::get('/', [AdminKutipanController::class, 'index'])->name('index');
+        Route::get('/autocomplete', [AdminKutipanController::class, 'autocomplete'])->name('autocomplete');
+        Route::get('/member/{encryptedNoKp}', [AdminKutipanController::class, 'member'])->name('member');
+        Route::post('/collect', [AdminKutipanController::class, 'collect'])->name('collect');
+        Route::post('/collect-multi-year', [AdminKutipanController::class, 'collectMultiYear'])->name('collect-multi-year');
     });
 
     Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
@@ -131,6 +132,14 @@ Route::middleware(['auth', 'role.user'])->prefix('user')->name('user.')->group(f
     Route::get('carian', fn () => redirect()->route('user.members.index'))->name('carian.index');
     Route::get('carian/data', [CarianController::class, 'getData'])->name('carian.data');
     Route::resource('members', AdminMemberController::class);
+
+    Route::prefix('kutipan')->name('kutipan.')->group(function () {
+        Route::get('/', [UserKutipanController::class, 'index'])->name('index');
+        Route::get('/autocomplete', [UserKutipanController::class, 'autocomplete'])->name('autocomplete');
+        Route::get('/member/{encryptedNoKp}', [UserKutipanController::class, 'member'])->name('member');
+        Route::post('/collect', [UserKutipanController::class, 'collect'])->name('collect');
+        Route::post('/collect-multi-year', [UserKutipanController::class, 'collectMultiYear'])->name('collect-multi-year');
+    });
 
     Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
     Route::get('pembayaran/data', [PembayaranController::class, 'getData'])->name('pembayaran.data');

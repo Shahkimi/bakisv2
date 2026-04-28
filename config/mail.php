@@ -1,5 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
+$normalizeSmtpScheme = static function (mixed $raw): ?string {
+    if ($raw === null || $raw === '') {
+        return null;
+    }
+    $s = strtolower(trim((string) $raw));
+    // Symfony Mailer DSN only supports "smtp" and "smtps". Older .env examples set MAIL_SCHEME=tls
+    // (meaning STARTTLS); that value must be omitted so Laravel picks smtp (587) or smtps (465).
+    if (in_array($s, ['tls', 'starttls', 'ssl'], true)) {
+        return null;
+    }
+
+    return (string) $raw;
+};
+
+$normalizeMailPassword = static function (): ?string {
+    $p = env('MAIL_PASSWORD');
+    if ($p === null) {
+        return null;
+    }
+    if ($p === '') {
+        return '';
+    }
+
+    // Google app passwords are often copied with spaces; SMTP expects the compact secret.
+    return str_replace(' ', '', (string) $p);
+};
+
 return [
 
     /*
@@ -39,12 +68,12 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => $normalizeSmtpScheme(env('MAIL_SCHEME')),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'password' => $normalizeMailPassword(),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],

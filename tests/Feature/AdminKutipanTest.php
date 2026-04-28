@@ -11,10 +11,12 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Yuran;
+use App\Notifications\KutipanPaymentConfirmedNotification;
 use App\Services\KutipanService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class AdminKutipanTest extends TestCase
@@ -239,6 +241,8 @@ final class AdminKutipanTest extends TestCase
 
     public function test_collect_multi_year_payments_creates_separate_records(): void
     {
+        Notification::fake();
+
         $refs = $this->seedBasicReferenceData();
         $member = $this->makeRenewalMember($refs, 'AHLI MULTI', '900101011241');
 
@@ -263,7 +267,10 @@ final class AdminKutipanTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonPath('years', $years);
+            ->assertJsonPath('years', $years)
+            ->assertJsonPath('email_notice', KutipanService::EMAIL_NOTICE_MISSING);
+
+        Notification::assertSentOnDemandTimes(KutipanPaymentConfirmedNotification::class, 0);
 
         $this->assertDatabaseCount('payments', 3);
 
@@ -403,5 +410,37 @@ final class AdminKutipanTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['years']);
+    }
+
+    public function test_collect_multi_year_dispatches_confirmation_email_when_member_has_email(): void
+    {
+        Notification::fake();
+
+        $refs = $this->seedBasicReferenceData();
+        $member = $this->makeRenewalMember($refs, 'AHLI EMAIL', '900101011299');
+        $member->update(['email' => 'pegawai@example.com']);
+
+        $user = $this->makeUser();
+        $this->actingAs($user);
+
+        $currentYear = (int) now()->year;
+        $year1 = max(2020, $currentYear - 2);
+        $years = [$year1];
+
+        $payload = [
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'years' => $years,
+        ];
+
+        $response = $this->post(route('admin.kutipan.collect-multi-year'), $payload, [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('email_notice', KutipanService::EMAIL_NOTICE_SENT);
+
+        Notification::assertSentOnDemand(KutipanPaymentConfirmedNotification::class);
     }
 }

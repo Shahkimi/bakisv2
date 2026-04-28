@@ -9,9 +9,10 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Seeds development login accounts. Do not rely on these credentials in production.
+ * Seeds application users (admin and regular accounts for development).
+ * Do not rely on these credentials in production.
  */
-final class UserRoleSeeder extends Seeder
+final class UserSeeder extends Seeder
 {
     public function run(): void
     {
