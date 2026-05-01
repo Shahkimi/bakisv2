@@ -22,21 +22,21 @@
                         </span>
                     </div>
 
-                    {{-- Status & No. Ahli Badges --}}
+                    {{-- Status & No. Ahli Badges (payment-based Aktif for current year, same as carian list) --}}
                     <div class="flex flex-wrap justify-center gap-2 mt-3">
-                        @if($member->memberStatus)
-                            @php
-                                $statusColors = [
-                                    'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-                                    'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
-                                    'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-                                ];
-                                $statusClass = $statusColors[$member->memberStatus->code] ?? $statusColors['tidak_aktif'];
-                            @endphp
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
-                                {{ $member->memberStatus->name }}
-                            </span>
-                        @endif
+                        @php
+                            [$displayStatusName, $displayStatusCode] = $member->listStatusDisplayForCurrentYear();
+                            $statusColors = [
+                                'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+                                'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
+                                'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+                                'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+                            ];
+                            $statusClass = $statusColors[$displayStatusCode ?? ''] ?? $statusColors['tidak_aktif'];
+                        @endphp
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
+                            {{ $displayStatusName }}
+                        </span>
                         @if($member->no_ahli)
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-800 text-white dark:bg-gray-600">
                                 {{ $member->no_ahli }}

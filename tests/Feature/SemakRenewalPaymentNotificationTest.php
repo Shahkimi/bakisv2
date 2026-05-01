@@ -8,8 +8,10 @@ use App\Models\Jabatan;
 use App\Models\Jawatan;
 use App\Models\Member;
 use App\Models\MemberStatus;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\Yuran;
+use App\Notifications\PaymentProofPendingReviewNotification;
 use App\Notifications\PaymentProofUploadedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -56,14 +58,19 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
         ];
     }
 
-    public function test_renewal_payment_sends_email_to_member_and_cc_admins(): void
+    public function test_renewal_payment_sends_email_to_member_and_staff_reviewers(): void
     {
         Notification::fake();
 
         $refs = $this->seedRefs();
 
-        $admin = User::factory()->admin()->create([
+        User::factory()->admin()->create([
             'email' => 'admin-notify@example.test',
+        ]);
+
+        User::factory()->create([
+            'email' => 'user-panel-notify@example.test',
+            'role' => User::ROLE_USER,
         ]);
 
         Member::create([
@@ -81,18 +88,15 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
 
         $this->post(route('semak.bayar'), [
             'no_kp' => '900101011234',
+            'years' => [(int) date('Y')],
             'bukti_bayaran' => $file,
         ])->assertRedirect();
 
-        Notification::assertSentOnDemand(
-            PaymentProofUploadedNotification::class,
-            function (PaymentProofUploadedNotification $notification) use ($admin): bool {
-                return in_array(strtolower((string) $admin->email), $notification->ccAdminEmails, true);
-            }
-        );
+        Notification::assertSentTimes(PaymentProofUploadedNotification::class, 1);
+        Notification::assertSentTimes(PaymentProofPendingReviewNotification::class, 2);
     }
 
-    public function test_renewal_payment_skips_notification_when_member_has_no_email(): void
+    public function test_renewal_payment_notifies_staff_when_member_has_no_email(): void
     {
         Notification::fake();
 
@@ -117,9 +121,60 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
 
         $this->post(route('semak.bayar'), [
             'no_kp' => '900101011239',
+            'years' => [(int) date('Y')],
             'bukti_bayaran' => $file,
         ])->assertRedirect();
 
-        Notification::assertNothingSent();
+        Notification::assertSentTimes(PaymentProofUploadedNotification::class, 0);
+        Notification::assertSentTimes(PaymentProofPendingReviewNotification::class, 1);
+    }
+
+    public function test_renewal_payment_creates_one_pending_row_per_year_with_shared_proof(): void
+    {
+        Notification::fake();
+
+        $refs = $this->seedRefs();
+
+        User::factory()->admin()->create([
+            'email' => 'admin-kutipan@example.test',
+        ]);
+
+        Member::create([
+            'jabatan_id' => $refs['jabatan']->id,
+            'jawatan_id' => $refs['jawatan']->id,
+            'member_status_id' => $refs['status']->id,
+            'nama' => 'PEMBAHARIAN PELBAGAI TAHUN',
+            'no_kp' => '900101011240',
+            'email' => null,
+            'jantina' => 'L',
+            'tarikh_daftar' => now()->toDateString(),
+        ]);
+
+        $y = (int) now()->year;
+        $file = FileTestHelper::createValidPdf(1, 'bukti-multi.pdf');
+
+        $this->post(route('semak.bayar'), [
+            'no_kp' => '900101011240',
+            'years' => [$y, $y + 1, $y + 2],
+            'bukti_bayaran' => $file,
+        ])->assertRedirect();
+
+        $member = Member::query()->where('no_kp', '900101011240')->first();
+        $this->assertNotNull($member);
+
+        $pending = Payment::query()
+            ->where('member_id', $member->id)
+            ->where('status', Payment::STATUS_PENDING)
+            ->orderBy('tahun_mula')
+            ->get();
+
+        $this->assertCount(3, $pending);
+        $this->assertSame([$y, $y + 1, $y + 2], $pending->pluck('tahun_mula')->all());
+
+        $proofPaths = $pending->pluck('bukti_bayaran')->filter()->unique()->values();
+        $this->assertCount(1, $proofPaths);
+        foreach ($pending as $payment) {
+            $this->assertSame($proofPaths[0], $payment->bukti_bayaran);
+        }
     }
 }

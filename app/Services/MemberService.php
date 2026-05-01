@@ -9,9 +9,11 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Yuran;
+use App\Notifications\PaymentProofPendingReviewNotification;
 use App\Notifications\PaymentProofUploadedNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 final readonly class MemberService
@@ -247,46 +249,95 @@ final readonly class MemberService
             throw new \InvalidArgumentException('Ahli tidak ditemui.');
         }
 
+        /** @var list<int> $years */
+        $years = array_map(static fn (int|string $y): int => (int) $y, $data['years']);
+        $years = array_values(array_unique($years));
+        sort($years);
+
         $yuran = Yuran::where('jumlah', 10)->first();
-        $payment = Payment::create([
-            'member_id' => $member->id,
-            'yuran_id' => $yuran?->id ?? 2,
-            'tahun_bayar' => (int) date('Y'),
-            'status' => Payment::STATUS_PENDING,
-        ]);
+        $bukti = $data['bukti_bayaran'] ?? null;
 
-        if (! empty($data['bukti_bayaran']) && $data['bukti_bayaran'] instanceof UploadedFile) {
-            $path = $this->fileUploadService->uploadPaymentProof($data['bukti_bayaran'], $payment->id);
-            $payment->update(['bukti_bayaran' => $path]);
-        }
+        /** @var list<int> $paymentIds */
+        $paymentIds = [];
+        $firstPayment = null;
 
-        if (filled($member->email)) {
-            $payment->load(['member', 'yuran']);
-            $memberEmail = strtolower(trim((string) $member->email));
+        DB::transaction(function () use ($member, $years, $yuran, $bukti, &$paymentIds, &$firstPayment): void {
+            $tahunBayar = (int) date('Y');
 
-            $adminEmails = User::query()
-                ->where('role', User::ROLE_ADMIN)
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->map(fn ($e) => strtolower(trim((string) $e)))
-                ->filter()
-                ->unique()
-                ->reject(fn (string $e) => $e === $memberEmail)
-                ->values()
-                ->all();
+            foreach ($years as $year) {
+                $payment = Payment::create([
+                    'member_id' => $member->id,
+                    'yuran_id' => $yuran?->id ?? 2,
+                    'tahun_bayar' => $tahunBayar,
+                    'tahun_mula' => $year,
+                    'tahun_tamat' => $year,
+                    'status' => Payment::STATUS_PENDING,
+                ]);
 
-            $optional = config('mail.admin_notification_email');
-            if (filled($optional)) {
-                $opt = strtolower(trim((string) $optional));
-                if ($opt !== '' && $opt !== $memberEmail) {
-                    $adminEmails = array_values(array_unique([...$adminEmails, $opt]));
+                $paymentIds[] = $payment->id;
+                if ($firstPayment === null) {
+                    $firstPayment = $payment;
                 }
             }
 
-            Notification::route('mail', [$member->email => $member->nama])
-                ->notify(new PaymentProofUploadedNotification($payment, $adminEmails));
+            if ($bukti instanceof UploadedFile && $firstPayment !== null) {
+                $path = $this->fileUploadService->uploadPaymentProof($bukti, $firstPayment->id);
+                Payment::query()->whereIn('id', $paymentIds)->update(['bukti_bayaran' => $path]);
+            }
+        });
+
+        if ($firstPayment !== null) {
+            $firstPayment->refresh()->load(['member', 'yuran']);
+
+            $staffEmails = $this->collectSemakStaffReviewerEmails($member);
+            if ($staffEmails === []) {
+                Log::warning('Semak renewal: tiada e-mel staff untuk notifikasi bukti pembayaran.', [
+                    'member_id' => $member->id,
+                ]);
+            } else {
+                foreach ($staffEmails as $email) {
+                    Notification::route('mail', $email)
+                        ->notify(new PaymentProofPendingReviewNotification($firstPayment, $years));
+                }
+            }
+
+            if (filled($member->email)) {
+                Notification::route('mail', [$member->email => $member->nama])
+                    ->notify(new PaymentProofUploadedNotification($firstPayment, $years));
+            }
         }
 
         return $member->fresh(['payments.yuran']);
+    }
+
+    /**
+     * Pentadbir dan akaun peranan pengguna (panel pembayaran), plus ADMIN_NOTIFICATION_EMAIL.
+     *
+     * @return list<string>
+     */
+    private function collectSemakStaffReviewerEmails(Member $member): array
+    {
+        $memberEmail = filled($member->email) ? strtolower(trim((string) $member->email)) : null;
+
+        $emails = User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_USER])
+            ->whereNotNull('email')
+            ->pluck('email')
+            ->map(fn ($e) => strtolower(trim((string) $e)))
+            ->filter()
+            ->unique()
+            ->when($memberEmail !== null, fn ($c) => $c->reject(fn (string $e) => $e === $memberEmail))
+            ->values()
+            ->all();
+
+        $optional = config('mail.admin_notification_email');
+        if (filled($optional)) {
+            $opt = strtolower(trim((string) $optional));
+            if ($opt !== '' && ($memberEmail === null || $opt !== $memberEmail)) {
+                $emails = array_values(array_unique([...$emails, $opt]));
+            }
+        }
+
+        return $emails;
     }
 }

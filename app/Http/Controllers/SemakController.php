@@ -107,8 +107,15 @@ class SemakController extends Controller
                 ->with('error', 'Pembayaran tidak berjaya dihantar. Sila cuba lagi.');
         }
 
+        $yearCount = count($request->validated('years'));
+
         return redirect()->route('semak.result', ['no_kp' => $noKp])
-            ->with('success', 'Pembayaran pembaharuan telah dihantar. Sila tunggu pengesahan admin.');
+            ->with(
+                'success',
+                $yearCount === 1
+                    ? 'Pembayaran pembaharuan telah dihantar. Sila tunggu pengesahan admin.'
+                    : "Pembayaran pembaharuan untuk {$yearCount} tahun telah dihantar. Sila tunggu pengesahan admin."
+            );
     }
 
     public function register(RegisterMemberRequest $request): RedirectResponse

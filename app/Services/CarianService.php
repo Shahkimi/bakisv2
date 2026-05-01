@@ -18,6 +18,8 @@ final readonly class CarianService
             ->with(['memberStatus:id,name,code'])
             ->select(['id', 'no_ahli', 'nama', 'no_kp', 'member_status_id']);
 
+        $this->applyAktifThisYearExists($query);
+
         $this->applySearch($query, $request);
         $totalRecords = Member::count();
         $filteredRecords = (clone $query)->count();
@@ -29,6 +31,21 @@ final readonly class CarianService
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
             'data' => $data->map(fn (Member $member) => $this->formatRow($member)),
+        ]);
+    }
+
+    private function applyAktifThisYearExists(Builder $query): void
+    {
+        $year = (int) date('Y');
+        $query->withExists([
+            'payments as aktif_this_year' => function (Builder $q) use ($year): void {
+                $q->where('status', 'approved')
+                    ->where('tahun_mula', '<=', $year)
+                    ->where(function (Builder $q2) use ($year): void {
+                        $q2->whereNull('tahun_tamat')
+                            ->orWhere('tahun_tamat', '>=', $year);
+                    });
+            },
         ]);
     }
 
@@ -80,15 +97,30 @@ final readonly class CarianService
         $user = auth()->user();
         $panel = $user instanceof User && $user->isAdmin() ? 'admin' : 'user';
 
+        [$statusName, $statusCode] = $this->resolveListStatusDisplay($member);
+
         return [
             'no_ahli' => $member->no_ahli ?? '—',
             'nama' => e($member->nama),
             'no_kp' => e($member->no_kp),
             'status' => view($panel.'.carian.partials.status-indicator', [
-                'name' => $member->memberStatus?->name ?? '—',
-                'code' => $member->memberStatus?->code ?? null,
+                'name' => $statusName,
+                'code' => $statusCode,
             ])->render(),
             'actions' => view($panel.'.carian.partials.actions', ['member' => $member])->render(),
         ];
+    }
+
+    /**
+     * @return array{0: string, 1: string|null}
+     */
+    private function resolveListStatusDisplay(Member $member): array
+    {
+        $attrs = $member->getAttributes();
+        $hasVerifiedPaymentThisYear = array_key_exists('aktif_this_year', $attrs)
+            ? (bool) $attrs['aktif_this_year']
+            : null;
+
+        return $member->listStatusDisplayForCurrentYear($hasVerifiedPaymentThisYear);
     }
 }

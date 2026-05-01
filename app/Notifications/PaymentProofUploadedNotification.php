@@ -16,11 +16,11 @@ final class PaymentProofUploadedNotification extends Notification implements Sho
     use Queueable;
 
     /**
-     * @param  array<int, string>  $ccAdminEmails
+     * @param  list<int>|null  $semakRenewalYears  Tahun pembaharuan dipilih (semak awam); jika null, guna satu rekod pembayaran sahaja.
      */
     public function __construct(
         public Payment $payment,
-        public array $ccAdminEmails = []
+        public ?array $semakRenewalYears = null,
     ) {}
 
     /**
@@ -37,7 +37,6 @@ final class PaymentProofUploadedNotification extends Notification implements Sho
 
         $member = $this->payment->member;
         $nama = $member?->nama ?? 'Ahli';
-        $jumlah = number_format($this->payment->jumlah, 2);
 
         $semakUrl = URL::route('semak.result', ['no_kp' => $member?->no_kp ?? '']);
 
@@ -45,31 +44,25 @@ final class PaymentProofUploadedNotification extends Notification implements Sho
             ->subject('Bukti pembayaran telah dihantar — '.config('app.name'))
             ->greeting('Helo '.$nama.',')
             ->line('Bukti pembayaran pembaharuan anda telah berjaya dimuat naik ke sistem.')
-            ->line('Sila semak sama ada bayaran telah diterima dan status pembayaran dikemas kini selepas pengesahan admin.')
-            ->line('Tahun bayaran: '.$this->payment->tahun_bayar)
-            ->line('Jumlah: RM '.$jumlah)
-            ->action('Semak status keahlian', $semakUrl)
-            ->line('Jika anda tidak menghantar permohonan ini, sila hubungi pentadbir sistem.');
+            ->line('Sila semak sama ada bayaran telah diterima dan status pembayaran dikemas kini selepas pengesahan admin.');
 
-        $cc = $this->uniqueNonEmptyEmails($this->ccAdminEmails);
-        if ($cc !== []) {
-            $mail->cc($cc);
+        $renewalYears = $this->semakRenewalYears;
+        if ($renewalYears !== null && $renewalYears !== []) {
+            $years = array_map(static fn (int $y): int => $y, $renewalYears);
+            sort($years);
+            $yearLabel = implode(', ', array_map(static fn (int $y): string => (string) $y, $years));
+            $perYear = (float) $this->payment->jumlah;
+            $total = number_format(count($years) * $perYear, 2);
+            $mail->line('Tahun pembaharuan dipilih: '.$yearLabel);
+            $mail->line('Jumlah: RM '.$total.' (RM '.number_format($perYear, 2).' × '.count($years).' tahun)');
+        } else {
+            $jumlah = number_format($this->payment->jumlah, 2);
+            $mail->line('Tahun bayaran: '.$this->payment->tahun_bayar);
+            $mail->line('Jumlah: RM '.$jumlah);
         }
 
-        return $mail;
-    }
-
-    /**
-     * @param  array<int, string>  $emails
-     * @return array<int, string>
-     */
-    private function uniqueNonEmptyEmails(array $emails): array
-    {
-        $normalized = array_map(
-            static fn (string $e): string => strtolower(trim($e)),
-            $emails
-        );
-
-        return array_values(array_unique(array_filter($normalized, static fn (string $e): bool => $e !== '')));
+        return $mail
+            ->action('Semak status keahlian', $semakUrl)
+            ->line('Jika anda tidak menghantar permohonan ini, sila hubungi pentadbir sistem.');
     }
 }

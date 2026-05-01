@@ -87,6 +87,31 @@ class Member extends Model
             ->exists();
     }
 
+    /**
+     * Status label/code for member lists and summary badges: Aktif only when there is an
+     * approved payment covering the current calendar year (unless DB status is meninggal or pending).
+     *
+     * @param  bool|null  $hasVerifiedPaymentThisYear  From eager `withExists` when set; otherwise uses {@see isAktifThisYear()}.
+     * @return array{0: string, 1: string|null}
+     */
+    public function listStatusDisplayForCurrentYear(?bool $hasVerifiedPaymentThisYear = null): array
+    {
+        $code = $this->memberStatus?->code;
+        $name = $this->memberStatus?->name;
+
+        if (in_array($code, ['meninggal', 'pending'], true)) {
+            return [$name ?? '—', $code];
+        }
+
+        $aktif = $hasVerifiedPaymentThisYear ?? $this->isAktifThisYear();
+
+        if ($aktif) {
+            return ['Aktif', 'aktif'];
+        }
+
+        return ['Tidak Aktif', 'tidak_aktif'];
+    }
+
     protected static function booted(): void
     {
         static::saving(function (Member $member): void {
