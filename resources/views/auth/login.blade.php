@@ -13,6 +13,8 @@
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     @endif
 
     <style>
@@ -24,9 +26,14 @@
             --brand: #b75817;
             --brand-deep: #7d3506;
             --shadow: 0 20px 45px rgba(125, 53, 6, 0.15);
+            --success-bg: #ecfdf5;
+            --success-border: #a7f3d0;
+            --success-text: #065f46;
         }
 
         * { box-sizing: border-box; }
+
+        [x-cloak] { display: none !important; }
 
         body {
             margin: 0;
@@ -82,6 +89,16 @@
             font-size: 0.9rem;
         }
 
+        .notice-success {
+            margin-top: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--success-border);
+            background: var(--success-bg);
+            color: var(--success-text);
+            padding: 0.8rem 0.9rem;
+            font-size: 0.9rem;
+        }
+
         .error-box {
             margin-top: 1rem;
             border-radius: 12px;
@@ -90,6 +107,39 @@
             color: #7f1d1d;
             padding: 0.8rem 0.9rem;
             font-size: 0.9rem;
+        }
+
+        .tabs {
+            margin-top: 1rem;
+            display: flex;
+            padding: 4px;
+            border-radius: 12px;
+            background: rgba(125, 53, 6, 0.08);
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            border: none;
+            border-radius: 10px;
+            padding: 0.55rem 0.65rem;
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: #6b5d54;
+            background: transparent;
+            transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--brand-deep);
+        }
+
+        .tab-btn.is-active {
+            background: #fff;
+            color: var(--brand-deep);
+            box-shadow: 0 2px 8px rgba(125, 53, 6, 0.12);
         }
 
         .field { margin-top: 0.85rem; }
@@ -102,7 +152,14 @@
             color: #3e3530;
         }
 
-        input[type="email"], input[type="password"] {
+        .hint {
+            margin: 0.25rem 0 0;
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        input[type="email"], input[type="password"], input[type="text"] {
             width: 100%;
             border: 1px solid #d8ccc2;
             border-radius: 12px;
@@ -174,58 +231,114 @@
 
         .submit.is-loading .spinner { display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .panel-enter { animation: fadeUp .35s ease; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <section class="card">
+    <section class="card" x-data="{ tab: '{{ old('no_kp') ? 'forgot' : 'login' }}' }">
         <div class="card-inner">
             <div class="badge">BK</div>
             <h1>Admin Login</h1>
             <p class="subtitle">Halaman ini untuk pentadbir BAKIS sahaja.</p>
 
-            @if($errors->any())
+            @if (session('status'))
+                <div class="notice-success" role="status">{{ session('status') }}</div>
+            @endif
+
+            @if (session('reset_link_notice'))
+                <div class="notice-success" role="status">{{ session('reset_link_notice') }}</div>
+            @endif
+
+            @if ($errors->any() && ! $errors->has('no_kp') && ! $errors->has('email') && ! $errors->has('password'))
                 <div class="error-box">{{ $errors->first() }}</div>
             @endif
 
-            <form action="{{ route('login') }}" method="POST" id="loginForm">
-                @csrf
+            <div class="tabs" role="tablist" aria-label="Pilih mod">
+                <button type="button" role="tab" :aria-selected="tab === 'login'"
+                    class="tab-btn"
+                    :class="{ 'is-active': tab === 'login' }"
+                    @click="tab = 'login'">Log masuk</button>
+                <button type="button" role="tab" :aria-selected="tab === 'forgot'"
+                    class="tab-btn"
+                    :class="{ 'is-active': tab === 'forgot' }"
+                    @click="tab = 'forgot'">Lupa kata laluan</button>
+            </div>
 
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}">
-                    @error('email')
-                        <p class="field-error">{{ $message }}</p>
-                    @enderror
-                </div>
+            <div x-show="tab === 'login'" x-transition.opacity.duration.200ms class="panel-enter" x-cloak>
+                <form action="{{ route('login') }}" method="POST" id="loginForm">
+                    @csrf
 
-                <div class="field">
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required>
-                    @error('password')
-                        <p class="field-error">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}">
+                        @error('email')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <label class="remember" for="remember">
-                    <input id="remember" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }}>
-                    Ingat saya
-                </label>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required>
+                        @error('password')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <button type="submit" class="submit" id="submitBtn">
-                    <span id="buttonText">Log Masuk</span>
-                    <span class="spinner" id="loadingSpinner"></span>
-                </button>
-            </form>
+                    <label class="remember" for="remember">
+                        <input id="remember" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }}>
+                        Ingat saya
+                    </label>
+
+                    <button type="submit" class="submit" id="submitBtn">
+                        <span id="buttonText">Log Masuk</span>
+                        <span class="spinner" id="loadingSpinner"></span>
+                    </button>
+                </form>
+            </div>
+
+            <div x-show="tab === 'forgot'" x-transition.opacity.duration.200ms class="panel-enter" x-cloak>
+                <form action="{{ route('password.forgot-by-kp') }}" method="POST" id="forgotForm">
+                    @csrf
+                    <div class="field">
+                        <label for="no_kp">No. Kad Pengenalan (12 digit)</label>
+                        <input id="no_kp" name="no_kp" type="text" inputmode="numeric" pattern="\d{12}" maxlength="12" autocomplete="off"
+                            placeholder="Contoh: 900101011234"
+                            value="{{ old('no_kp') }}">
+                        <p class="hint">Masukkan 12 digit tanpa sempang. Kami akan hantar pautan tetapan semula ke e-mel berdaftar.</p>
+                        @error('no_kp')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <button type="submit" class="submit" id="forgotSubmitBtn">
+                        <span id="forgotButtonText">Hantar pautan reset</span>
+                        <span class="spinner" id="forgotSpinner"></span>
+                    </button>
+                </form>
+            </div>
         </div>
     </section>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function () {
+        document.getElementById('loginForm')?.addEventListener('submit', function () {
             const button = document.getElementById('submitBtn');
             const text = document.getElementById('buttonText');
             button.disabled = true;
             button.classList.add('is-loading');
             text.textContent = 'Sedang Log Masuk...';
+        });
+
+        document.getElementById('forgotForm')?.addEventListener('submit', function () {
+            const button = document.getElementById('forgotSubmitBtn');
+            const text = document.getElementById('forgotButtonText');
+            button.disabled = true;
+            button.classList.add('is-loading');
+            text.textContent = 'Menghantar...';
         });
     </script>
 </body>

@@ -623,8 +623,9 @@ document.addEventListener('DOMContentLoaded', function () {
         members.forEach((m) => memberByEncryptedId.set(m.id, m));
 
         const choicesData = members.map((m) => {
-            const initials = getInitials(m.text);
-            const bgColor = getColorFromName(m.text);
+            const displayName = officerNameFromLabel(m.text);
+            const initials = getInitials(displayName);
+            const bgColor = getColorFromName(displayName);
             const metaLine = [m.no_ahli, m.no_kp].filter(Boolean).join(' • ');
 
             return {
@@ -635,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span>${escapeHtml(initials)}</span>
                         </div>
                         <div class="ks-info">
-                            <div class="ks-name">${escapeHtml(m.text)}</div>
+                            <div class="ks-name">${escapeHtml(displayName)}</div>
                             <div class="ks-meta">${escapeHtml(metaLine)}</div>
                         </div>
                         <svg class="ks-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

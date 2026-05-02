@@ -4,27 +4,28 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="mb-6 flex flex-col gap-3">
-        @include('admin.kawalan.partials.breadcrumb', ['current' => 'Akaun Bayaran'])
-        <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-4 group">
-            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    {{-- Page Header --}}
+    <div class="mb-8 flex flex-col gap-3">
+        @include('admin.kawalan.partials.breadcrumb', ['current' => 'Kawalan Akaun Bayaran'])
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex items-center gap-4 group">
+                <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Kawalan Akaun Bayaran</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus akaun bayaran dan imej QR</p>
+                </div>
+            </div>
+            <button type="button" class="btn-create-account group relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105 hover:shadow-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                <span class="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                <svg class="relative mr-2 h-5 w-5 transition-transform duration-300 group-hover:-rotate-90 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Kawalan Akaun Bayaran</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus akaun bayaran dan imej QR</p>
-            </div>
-        </div>
-        <button type="button" class="btn-create-account group relative inline-flex items-center justify-center py-3 px-6 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-300 shadow-lg hover:shadow-teal-500/30 transform hover:-translate-y-0.5 overflow-hidden">
-            <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-            <svg class="relative w-5 h-5 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span class="relative">Tambah Akaun</span>
-        </button>
+                <span class="relative">Tambah Akaun</span>
+            </button>
         </div>
     </div>
 
@@ -351,7 +352,8 @@ $(document).ready(function() {
             { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, type, row) { return renderActionsButton(row); } }
         ],
         order: [[1, 'asc']],
-        pageLength: 10,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function() { $('.dataTables_filter input').attr('placeholder', 'Cari nama atau no. akaun…'); },
         language: {
             processing: 'Memuatkan...',

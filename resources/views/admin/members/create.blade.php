@@ -4,10 +4,37 @@
 
 @section('content')
 <div class="h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] flex flex-col max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-50 dark:bg-gray-900" x-data="{ currentStep: 1, totalSteps: 4, approvePayment: {{ old('approve_immediately') ? 'true' : 'false' }} }">
-    <!-- Page Header (dynamic title per step) -->
-    <div class="flex-shrink-0 pt-4 pb-2">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="currentStep === 1 ? 'Maklumat Keanggotaan' : (currentStep === 2 ? 'Maklumat Peribadi' : (currentStep === 3 ? 'Maklumat Alamat' : 'Maklumat Pembayaran'))"></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-text="currentStep === 1 ? 'Status ahli, no. ahli, tarikh daftar' : (currentStep === 2 ? 'Nama, no. KP, jabatan, jawatan' : (currentStep === 3 ? 'Alamat surat-menyurat' : 'Bayaran yuran keahlian'))"></p>
+    {{-- Page Header --}}
+    <div class="flex-shrink-0 mb-6 flex flex-col gap-3 pt-4">
+        <nav aria-label="Breadcrumb" class="text-sm text-gray-500 dark:text-gray-400">
+            <ol class="flex flex-wrap items-center gap-2">
+                <li>
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-300 transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V10.5z" />
+                        </svg>
+                        Utama
+                    </a>
+                </li>
+                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
+                <li>
+                    <a href="{{ route('admin.members.index') }}" class="hover:text-emerald-600 dark:hover:text-emerald-300 transition">Senarai Ahli</a>
+                </li>
+                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
+                <li class="text-gray-700 dark:text-gray-200 font-medium">Tambah Ahli Baru</li>
+            </ol>
+        </nav>
+        <div class="flex items-center gap-4 group">
+            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Tambah Ahli Baru</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" x-text="currentStep === 1 ? 'Maklumat keanggotaan — status ahli, no. ahli, tarikh daftar' : (currentStep === 2 ? 'Maklumat peribadi — nama, no. KP, jabatan, jawatan' : (currentStep === 3 ? 'Maklumat alamat surat-menyurat' : 'Maklumat pembayaran yuran keahlian'))"></p>
+            </div>
+        </div>
     </div>
 
     @include('admin.members.partials.step-indicator')

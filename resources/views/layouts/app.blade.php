@@ -29,11 +29,21 @@
 
         <!-- Main Layout -->
         <div class="lg:pl-64">
-            <!-- Header -->
-            @include('partials.header')
+            {{-- Mobile: sidebar open control (no top header bar) --}}
+            <button type="button"
+                    id="toggleSidebar"
+                    class="lg:hidden fixed top-4 left-4 z-40 p-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                    aria-label="Toggle sidebar">
+                <svg id="hamburgerIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
 
             <!-- Main Content -->
-            <main class="min-h-[calc(100vh-4rem)]">
+            <main class="min-h-screen pt-14 lg:pt-0">
                 @yield('content')
             </main>
         </div>

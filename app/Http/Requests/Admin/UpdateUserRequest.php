@@ -15,6 +15,19 @@ final class UpdateUserRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('no_kp')) {
+            return;
+        }
+
+        $digits = preg_replace('/\D/', '', (string) $this->input('no_kp', ''));
+
+        $this->merge([
+            'no_kp' => $digits === '' ? null : $digits,
+        ]);
+    }
+
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
@@ -31,6 +44,12 @@ final class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'role' => ['required', 'integer', Rule::in([User::ROLE_USER, User::ROLE_ADMIN])],
+            'no_kp' => [
+                'nullable',
+                'string',
+                'size:12',
+                Rule::unique('users', 'no_kp')->ignore($user->id),
+            ],
         ];
     }
 
@@ -44,6 +63,8 @@ final class UpdateUserRequest extends FormRequest
             'email.unique' => 'E-mel ini sudah digunakan.',
             'role.required' => 'Peranan wajib dipilih.',
             'role.in' => 'Peranan tidak sah.',
+            'no_kp.size' => 'No. KP mestilah tepat 12 digit.',
+            'no_kp.unique' => 'No. KP ini sudah digunakan oleh pengguna lain.',
         ];
     }
 }

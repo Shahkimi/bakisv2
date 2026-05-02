@@ -22,6 +22,7 @@ final class UserSeeder extends Seeder
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
+                'no_kp' => '800101145022',
                 'password' => $password,
                 'role' => User::ROLE_ADMIN,
                 'email_verified_at' => now(),
@@ -32,6 +33,7 @@ final class UserSeeder extends Seeder
             ['email' => 'user@example.com'],
             [
                 'name' => 'Regular User',
+                'no_kp' => '900215065088',
                 'password' => $password,
                 'role' => User::ROLE_USER,
                 'email_verified_at' => now(),

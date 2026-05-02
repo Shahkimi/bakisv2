@@ -46,13 +46,14 @@ final readonly class UserManagementService
      */
     private function queryUsers(?string $search): Collection
     {
-        $query = User::query()->select(['id', 'name', 'email', 'role', 'email_verified_at', 'created_at']);
+        $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'created_at']);
 
         if ($search !== null && $search !== '') {
             $term = '%'.addcslashes($search, '%_\\').'%';
             $query->where(function ($q) use ($term): void {
                 $q->where('name', 'like', $term)
-                    ->orWhere('email', 'like', $term);
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('no_kp', 'like', $term);
             });
         }
 
@@ -83,7 +84,7 @@ final readonly class UserManagementService
      */
     private function applyOrdering(Collection $rows, int $orderColumn, string $orderDir): Collection
     {
-        $columns = ['id', 'name', 'email', 'role', 'status', 'actions'];
+        $columns = ['id', 'name', 'email', 'no_kp', 'role', 'status', 'actions'];
         $key = $columns[$orderColumn] ?? 'name';
         $desc = $orderDir === 'desc';
 
@@ -91,7 +92,7 @@ final readonly class UserManagementService
             return $rows->sortBy('sort_ts', SORT_REGULAR, $desc)->values();
         }
 
-        if (in_array($key, ['name', 'email', 'role', 'status'], true)) {
+        if (in_array($key, ['name', 'email', 'no_kp', 'role', 'status'], true)) {
             return $rows->sortBy($key, SORT_NATURAL | SORT_FLAG_CASE, $desc)->values();
         }
 
@@ -114,12 +115,15 @@ final readonly class UserManagementService
             ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300'
             : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
 
+        $noKpRaw = $user->no_kp;
+
         return [
             'row_type' => 'user',
             'id' => $user->id,
             'id_display' => 'U-'.$user->id,
             'name' => e($user->name),
             'email' => e($user->email),
+            'no_kp' => $noKpRaw ?? '',
             'role' => $user->role,
             'role_label' => $roleLabel,
             'role_badge' => '<span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full '.$roleClass.'">'.$roleLabel.'</span>',
@@ -131,6 +135,7 @@ final readonly class UserManagementService
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'no_kp' => $noKpRaw ?? '',
                 'role' => $user->role,
             ],
         ];
@@ -158,6 +163,7 @@ final readonly class UserManagementService
             'id_display' => 'J-'.$invitation->id,
             'name' => e($invitation->name),
             'email' => e($invitation->email),
+            'no_kp' => '',
             'role' => $invitation->role,
             'role_label' => $roleLabel,
             'role_badge' => '<span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full '.$roleClass.'">'.$roleLabel.'</span>',

@@ -27,7 +27,7 @@ final class MemberController extends Controller
 
     public function index(): View
     {
-        return view($this->panelView('carian.index'));
+        return view($this->panelView('members.index'));
     }
 
     public function create(): View

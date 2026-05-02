@@ -12,7 +12,9 @@ use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YuranController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PostcodeController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +39,15 @@ Route::get('/', function () {
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+Route::post('/password/forgot-by-kp', [ForgotPasswordController::class, 'sendResetLink'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('password.forgot-by-kp');
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])
+    ->middleware('guest')
+    ->name('password.reset');
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('password.update');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::get('/dashboard', function () {

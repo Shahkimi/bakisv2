@@ -4,27 +4,28 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="mb-6 flex flex-col gap-3">
-        @include('admin.kawalan.partials.breadcrumb', ['current' => 'Pengguna'])
-        <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-4 group">
-            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    {{-- Page Header --}}
+    <div class="mb-8 flex flex-col gap-3">
+        @include('admin.kawalan.partials.breadcrumb', ['current' => 'Kawalan Pengguna'])
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex items-center gap-4 group">
+                <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Kawalan Pengguna</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus pengguna dan jemputan pendaftaran</p>
+                </div>
+            </div>
+            <button type="button" class="btn-create-user group relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105 hover:shadow-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                <span class="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                <svg class="relative mr-2 h-5 w-5 transition-transform duration-300 group-hover:-rotate-90 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Kawalan Pengguna</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus pengguna dan jemputan pendaftaran</p>
-            </div>
-        </div>
-        <button type="button" class="btn-create-user group relative inline-flex items-center justify-center py-3 px-6 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-300 shadow-lg hover:shadow-violet-500/30 transform hover:-translate-y-0.5 overflow-hidden">
-            <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-            <svg class="relative w-5 h-5 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span class="relative">Tambah / Jemput</span>
-        </button>
+                <span class="relative">Tambah / Jemput</span>
+            </button>
         </div>
     </div>
 
@@ -35,6 +36,7 @@
                     <th>ID</th>
                     <th>Nama</th>
                     <th>E-mel</th>
+                    <th>No. KP</th>
                     <th>Peranan</th>
                     <th>Status</th>
                     <th>Tindakan</th>
@@ -110,6 +112,20 @@ $(document).ready(function() {
             .replace(/>/g, '&gt;');
     }
 
+    function escapeHtmlText(s) {
+        if (s == null || s === '') return '';
+        const d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    function renderNoKpCell(data) {
+        if (data == null || data === '') {
+            return '<span class="text-gray-400 dark:text-gray-500">—</span>';
+        }
+        return escapeHtmlText(data);
+    }
+
     function renderActions(row) {
         const a = row.actions || {};
         const iconEdit = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
@@ -120,10 +136,11 @@ $(document).ready(function() {
             const isSelf = id === window.penggunaCurrentUserId;
             const name = escapeAttr(a.name);
             const email = escapeAttr(a.email);
+            const noKp = escapeAttr(a.no_kp || '');
             const role = a.role === 1 ? '1' : '0';
             let btns = '<div class="flex flex-wrap items-center gap-1.5">' +
                 '<button type="button" class="btn-edit-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" ' +
-                'title="Edit pengguna" aria-label="Edit pengguna" data-id="' + id + '" data-name="' + name + '" data-email="' + email + '" data-role="' + role + '">' + iconEdit + '</button>';
+                'title="Edit pengguna" aria-label="Edit pengguna" data-id="' + id + '" data-name="' + name + '" data-email="' + email + '" data-no-kp="' + noKp + '" data-role="' + role + '">' + iconEdit + '</button>';
             if (!isSelf) {
                 btns += '<button type="button" class="btn-delete-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Padam pengguna" aria-label="Padam pengguna" data-id="' + id + '" data-name="' + name + '">' + iconTrash + '</button>';
@@ -152,14 +169,16 @@ $(document).ready(function() {
             { data: 'id_display', name: 'id', width: '90px' },
             { data: 'name', name: 'name' },
             { data: 'email', name: 'email' },
+            { data: 'no_kp', name: 'no_kp', width: '120px', render: function(d) { return renderNoKpCell(d); } },
             { data: 'role_badge', name: 'role', orderable: true, searchable: false },
             { data: 'status_badge', name: 'status', orderable: true, searchable: false },
             { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, t, row) { return renderActions(row); } }
         ],
         order: [[1, 'asc']],
-        pageLength: 10,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function() {
-            $('.dataTables_filter input').attr('placeholder', 'Cari nama atau e-mel…');
+            $('.dataTables_filter input').attr('placeholder', 'Cari nama, e-mel atau No. KP…');
         },
         language: {
             processing: 'Memuatkan...',
@@ -260,12 +279,15 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.btn-edit-user', function() {
-        const id = $(this).data('id');
-        const name = $(this).data('name');
-        const email = $(this).data('email');
-        const role = $(this).data('role') === 1 || $(this).data('role') === '1';
+        const $btn = $(this);
+        const id = $btn.data('id');
+        const name = $btn.data('name');
+        const email = $btn.data('email');
+        const noKpRaw = $btn.attr('data-no-kp') || '';
+        const role = $btn.data('role') === 1 || $btn.data('role') === '1';
         const safeName = escapeAttr(name);
         const safeEmail = escapeAttr(email);
+        const safeNoKp = escapeAttr(noKpRaw);
 
         Swal.fire({
             title: 'Edit pengguna',
@@ -278,6 +300,11 @@ $(document).ready(function() {
                     <div class="field">
                         <label for="edit-email">E-mel</label>
                         <input type="email" id="edit-email" class="input-text" value="${safeEmail}" />
+                    </div>
+                    <div class="field">
+                        <label for="edit-no-kp">No. KP</label>
+                        <input type="text" id="edit-no-kp" class="input-text" value="${safeNoKp}" inputmode="numeric" maxlength="12" pattern="\\d{12}" autocomplete="off" placeholder="12 digit" />
+                        <p class="text-xs text-gray-500 mt-1">Digunakan untuk tetapan semula kata laluan (lupa kata laluan). Kosongkan jika tiada.</p>
                     </div>
                     <div class="field">
                         <div class="toggle-wrap">
@@ -309,9 +336,10 @@ $(document).ready(function() {
             preConfirm: function() {
                 const n = (document.getElementById('edit-name').value || '').trim();
                 const e = (document.getElementById('edit-email').value || '').trim();
+                const nk = (document.getElementById('edit-no-kp').value || '').trim();
                 const r = document.getElementById('edit-role').value === '1';
                 if (!n || !e) { Swal.showValidationMessage('Nama dan e-mel wajib diisi.'); return false; }
-                return { name: n, email: e, role: r };
+                return { name: n, email: e, no_kp: nk, role: r };
             }
         }).then(function(result) {
             if (!result.isConfirmed || !result.value) return;
@@ -320,6 +348,7 @@ $(document).ready(function() {
             fd.append('_method', 'PUT');
             fd.append('name', result.value.name);
             fd.append('email', result.value.email);
+            fd.append('no_kp', result.value.no_kp || '');
             fd.append('role', result.value.role ? '1' : '0');
             fetch(@json(url('admin/kawalan/pengguna/user')).replace(/\/$/, '') + '/' + id, {
                 method: 'POST',
@@ -337,7 +366,12 @@ $(document).ready(function() {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Dikemas kini.', timer: 2000, showConfirmButton: false });
                     table.ajax.reload(null, false);
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menyimpan.' });
+                    let msg = data.message || 'Gagal menyimpan.';
+                    if (data.errors) {
+                        const flat = Object.values(data.errors).flat();
+                        if (flat.length) msg = flat[0];
+                    }
+                    Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
                 }
             })
             .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });

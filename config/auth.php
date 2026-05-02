@@ -96,8 +96,9 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
-            'throttle' => 60,
+            'expire' => (int) env('AUTH_PASSWORD_RESET_EXPIRE', 60),
+            // Seconds between reset emails per account; 0 disables broker throttling (route throttle still applies).
+            'throttle' => max(0, (int) env('AUTH_PASSWORD_RESET_THROTTLE', 30)),
         ],
     ],
 

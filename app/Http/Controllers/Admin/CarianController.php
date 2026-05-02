@@ -21,7 +21,7 @@ final class CarianController extends Controller
 
     public function index(): View
     {
-        return view($this->panelView('carian.index'));
+        return view($this->panelView('members.index'));
     }
 
     public function getData(Request $request): JsonResponse

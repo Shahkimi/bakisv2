@@ -6,15 +6,29 @@
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 
     {{-- Page Header --}}
-    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div class="mb-8 flex flex-col gap-3">
+        <nav aria-label="Breadcrumb" class="text-sm text-gray-500 dark:text-gray-400">
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-300 transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V10.5z" />
+                        </svg>
+                        Utama
+                    </a>
+                </li>
+                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
+                <li class="text-gray-700 dark:text-gray-200 font-medium">Pembayaran</li>
+            </ol>
+        </nav>
         <div class="flex items-center gap-4 group">
-            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pembayaran</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Pembayaran</h1>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus dan sahkan transaksi pembayaran ahli</p>
             </div>
         </div>
@@ -483,7 +497,8 @@ $(document).ready(function () {
             { data:'id',                 name:'actions',            orderable:false, searchable:false, className:'text-center', render:(_,__,row) => renderActionsCell(row) },
         ],
         order: [[1,'desc']],
-        pageLength: 10,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function () {
             $('.dataTables_filter input').attr('placeholder', 'Cari nama, kad pengenalan…');
         },
