@@ -29,6 +29,22 @@
             --success-bg: #ecfdf5;
             --success-border: #a7f3d0;
             --success-text: #065f46;
+            --auth-panel-dur-enter: 360ms;
+            --auth-panel-dur-leave: 300ms;
+            --auth-panel-enter-delay: 75ms;
+            --auth-panel-ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --auth-card-shell-dur: 400ms;
+            --auth-tab-dur: 220ms;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            :root {
+                --auth-panel-dur-enter: 1ms;
+                --auth-panel-dur-leave: 1ms;
+                --auth-panel-enter-delay: 0ms;
+                --auth-card-shell-dur: 1ms;
+                --auth-tab-dur: 1ms;
+            }
         }
 
         * { box-sizing: border-box; }
@@ -232,15 +248,100 @@
         .submit.is-loading .spinner { display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .panel-enter { animation: fadeUp .35s ease; }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
+        .auth-panels-shell {
+            margin-top: 1rem;
+            overflow: hidden;
+            min-height: 17.5rem;
+            transition: height var(--auth-card-shell-dur) var(--auth-panel-ease);
+        }
+
+        .auth-panels-shell.is-shell-measured {
+            min-height: 0;
+        }
+
+        .auth-panels {
+            position: relative;
+            margin-top: 0;
+            min-height: 0;
+        }
+
+        .auth-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            width: 100%;
+            min-width: 0;
+            z-index: 1;
+        }
+
+        .auth-panel.auth-panel--stack {
+            z-index: 2;
+        }
+
+        .auth-t-enter {
+            transition-property: opacity, transform;
+            transition-duration: var(--auth-panel-dur-enter);
+            transition-timing-function: var(--auth-panel-ease);
+            transition-delay: var(--auth-panel-enter-delay);
+        }
+
+        .auth-t-enter-start {
+            opacity: 0;
+            transform: translateY(4px) scale(0.995);
+        }
+
+        .auth-t-enter-end {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .auth-t-leave {
+            transition-property: opacity, transform;
+            transition-duration: var(--auth-panel-dur-leave);
+            transition-timing-function: var(--auth-panel-ease);
+            transition-delay: 0ms;
+        }
+
+        .auth-t-leave-start {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .auth-t-leave-end {
+            opacity: 0;
+            transform: translateY(-4px) scale(0.995);
         }
     </style>
 </head>
 <body>
-    <section class="card" x-data="{ tab: '{{ old('no_kp') ? 'forgot' : 'login' }}' }">
+    <section class="card" x-data="{
+        tab: '{{ old('no_kp') ? 'forgot' : 'login' }}',
+        authPanelShellHeight: 0,
+        shellReflowTimer: null,
+        init() {
+            this.$watch('tab', () => this.queueAuthShellReflow());
+            this.$nextTick(() => {
+                this.syncAuthShellHeight();
+                if (this.tab === 'forgot') {
+                    this.$refs.noKpInput?.focus();
+                }
+            });
+        },
+        queueAuthShellReflow() {
+            this.syncAuthShellHeight();
+            clearTimeout(this.shellReflowTimer);
+            this.shellReflowTimer = setTimeout(() => this.syncAuthShellHeight(), 420);
+        },
+        syncAuthShellHeight() {
+            this.$nextTick(() => {
+                const login = this.$refs.panelLogin;
+                const forgot = this.$refs.panelForgot;
+                const h = Math.max(login?.offsetHeight ?? 0, forgot?.offsetHeight ?? 0);
+                this.authPanelShellHeight = h > 0 ? Math.ceil(h) : 0;
+            });
+        }
+    }">
         <div class="card-inner">
             <div class="badge">BK</div>
             <h1>Admin Login</h1>
@@ -259,23 +360,38 @@
             @endif
 
             <div class="tabs" role="tablist" aria-label="Pilih mod">
-                <button type="button" role="tab" :aria-selected="tab === 'login'"
+                <button type="button" id="tab-login" role="tab" :aria-selected="tab === 'login'" aria-controls="panel-login"
                     class="tab-btn"
                     :class="{ 'is-active': tab === 'login' }"
-                    @click="tab = 'login'">Log masuk</button>
-                <button type="button" role="tab" :aria-selected="tab === 'forgot'"
+                    @click="tab = 'login'; $nextTick(() => $refs.emailInput?.focus())">Log masuk</button>
+                <button type="button" id="tab-forgot" role="tab" :aria-selected="tab === 'forgot'" aria-controls="panel-forgot"
                     class="tab-btn"
                     :class="{ 'is-active': tab === 'forgot' }"
-                    @click="tab = 'forgot'">Lupa kata laluan</button>
+                    @click="tab = 'forgot'; $nextTick(() => $refs.noKpInput?.focus())">Lupa kata laluan</button>
             </div>
 
-            <div x-show="tab === 'login'" x-transition.opacity.duration.200ms class="panel-enter" x-cloak>
+            <div
+                class="auth-panels-shell"
+                :class="{ 'is-shell-measured': authPanelShellHeight > 0 }"
+                :style="authPanelShellHeight > 0 ? { height: authPanelShellHeight + 'px' } : {}">
+            <div class="auth-panels">
+            <div id="panel-login" role="tabpanel" aria-labelledby="tab-login" class="auth-panel"
+                x-ref="panelLogin"
+                :class="{ 'auth-panel--stack': tab === 'login' }"
+                x-show="tab === 'login'"
+                x-transition:enter="auth-t-enter"
+                x-transition:enter-start="auth-t-enter-start"
+                x-transition:enter-end="auth-t-enter-end"
+                x-transition:leave="auth-t-leave"
+                x-transition:leave-start="auth-t-leave-start"
+                x-transition:leave-end="auth-t-leave-end"
+                x-cloak>
                 <form action="{{ route('login') }}" method="POST" id="loginForm">
                     @csrf
 
                     <div class="field">
                         <label for="email">Email</label>
-                        <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}">
+                        <input x-ref="emailInput" id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}">
                         @error('email')
                             <p class="field-error">{{ $message }}</p>
                         @enderror
@@ -301,12 +417,22 @@
                 </form>
             </div>
 
-            <div x-show="tab === 'forgot'" x-transition.opacity.duration.200ms class="panel-enter" x-cloak>
+            <div id="panel-forgot" role="tabpanel" aria-labelledby="tab-forgot" class="auth-panel"
+                x-ref="panelForgot"
+                :class="{ 'auth-panel--stack': tab === 'forgot' }"
+                x-show="tab === 'forgot'"
+                x-transition:enter="auth-t-enter"
+                x-transition:enter-start="auth-t-enter-start"
+                x-transition:enter-end="auth-t-enter-end"
+                x-transition:leave="auth-t-leave"
+                x-transition:leave-start="auth-t-leave-start"
+                x-transition:leave-end="auth-t-leave-end"
+                x-cloak>
                 <form action="{{ route('password.forgot-by-kp') }}" method="POST" id="forgotForm">
                     @csrf
                     <div class="field">
                         <label for="no_kp">No. Kad Pengenalan (12 digit)</label>
-                        <input id="no_kp" name="no_kp" type="text" inputmode="numeric" pattern="\d{12}" maxlength="12" autocomplete="off"
+                        <input x-ref="noKpInput" id="no_kp" name="no_kp" type="text" inputmode="numeric" pattern="\d{12}" maxlength="12" autocomplete="off"
                             placeholder="Contoh: 900101011234"
                             value="{{ old('no_kp') }}">
                         <p class="hint">Masukkan 12 digit tanpa sempang. Kami akan hantar pautan tetapan semula ke e-mel berdaftar.</p>
@@ -320,6 +446,8 @@
                         <span class="spinner" id="forgotSpinner"></span>
                     </button>
                 </form>
+            </div>
+            </div>
             </div>
         </div>
     </section>

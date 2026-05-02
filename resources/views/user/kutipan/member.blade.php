@@ -4,29 +4,14 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="mb-6 flex flex-col gap-3">
-        <nav class="text-sm text-gray-500 dark:text-gray-400">
-            <a href="{{ route('user.kutipan.index') }}" class="hover:text-gray-700 dark:hover:text-gray-200 hover:underline">Kutipan Yuran</a>
-            <span class="px-2">/</span>
-            <span class="text-gray-700 dark:text-gray-200 font-semibold">{{ $member['nama'] ?? 'Ahli' }}</span>
-        </nav>
-
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-4 group">
-                <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 13c0 1.657-1.79 3-4 3s-4-1.343-4-3" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{{ $member['nama'] ?? 'Kutipan' }}</h1>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Rekod pembayaran & kutipan yuran pembaharuan.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-user.page-header
+        current="{{ $member['nama'] ?? 'Ahli' }}"
+        title="{{ $member['nama'] ?? 'Kutipan' }}"
+        subtitle="Rekod pembayaran & kutipan yuran pembaharuan."
+        icon="member-detail"
+        variant="emerald"
+        :parents="[['label' => 'Kutipan Yuran', 'url' => route('user.kutipan.index')]]"
+    />
 
     {{-- Flash Messages --}}
     @if(session('error'))

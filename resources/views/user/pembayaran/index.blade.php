@@ -5,20 +5,12 @@
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 
-    {{-- Page Header --}}
-    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-4 group">
-            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pembayaran</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Urus dan sahkan transaksi pembayaran ahli</p>
-            </div>
-        </div>
-    </div>
+    <x-user.page-header
+        current="Pembayaran"
+        title="Pembayaran"
+        subtitle="Urus dan sahkan transaksi pembayaran ahli"
+        icon="payment"
+    />
 
     {{-- Flash Messages --}}
     @if(session('success'))
@@ -483,7 +475,8 @@ $(document).ready(function () {
             { data:'id',                 name:'actions',            orderable:false, searchable:false, className:'text-center', render:(_,__,row) => renderActionsCell(row) },
         ],
         order: [[1,'desc']],
-        pageLength: 10,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function () {
             $('.dataTables_filter input').attr('placeholder', 'Cari nama, kad pengenalan…');
         },

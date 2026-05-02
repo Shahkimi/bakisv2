@@ -3,6 +3,15 @@
 @section('title', 'Edit Ahli')
 
 @section('content')
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <x-user.page-header
+        current="Edit Ahli"
+        title="Edit Ahli"
+        subtitle="Kemas kini: {{ $member->nama }}"
+        icon="users"
+        :parents="[['label' => 'Senarai Ahli', 'url' => route('user.members.index')]]"
+    />
+</div>
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8" x-data="{ openSection: 'membership' }">
     <div class="w-full max-w-6xl flex flex-col md:flex-row gap-6 my-auto">
         {{-- Left Sidebar: Member Summary (Read-Only Display) --}}

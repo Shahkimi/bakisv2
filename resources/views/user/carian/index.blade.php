@@ -4,26 +4,22 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-4 group">
-            <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <x-user.page-header
+        current="Carian Ahli"
+        title="Carian Ahli"
+        subtitle="Cari dan semak rekod ahli"
+        icon="search"
+    >
+        <x-slot:action>
+            <a href="{{ route('user.members.create') }}" class="group relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105 hover:shadow-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                <span class="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                <svg class="relative mr-2 h-5 w-5 transition-transform duration-300 group-hover:-rotate-90 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Carian Ahli</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Cari dan semak rekod ahli</p>
-            </div>
-        </div>
-        <a href="{{ route('user.members.create') }}" class="group relative inline-flex items-center justify-center py-3 px-6 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-lg hover:shadow-indigo-500/30 transform hover:-translate-y-0.5 overflow-hidden">
-            <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-            <svg class="relative w-5 h-5 mr-2 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span class="relative">Tambah Ahli</span>
-        </a>
-    </div>
+                <span class="relative">Tambah Ahli</span>
+            </a>
+        </x-slot:action>
+    </x-user.page-header>
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50 border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div class="p-6">
@@ -178,7 +174,8 @@ $(document).ready(function() {
             { data: 'actions', name: 'actions', orderable: false, searchable: false }
         ],
         order: [[1, 'asc']],
-        pageLength: 10,
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function() {
             $('.dataTables_filter input').attr('placeholder', 'Nama, Kad Pengenalan…');
         },

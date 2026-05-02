@@ -3,12 +3,14 @@
 @section('title', 'Tambah Ahli Baru')
 
 @section('content')
-<div class="h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] flex flex-col max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-50 dark:bg-gray-900" x-data="{ currentStep: 1, totalSteps: 4, approvePayment: {{ old('approve_immediately') ? 'true' : 'false' }} }">
-    <!-- Page Header (dynamic title per step) -->
-    <div class="flex-shrink-0 pt-4 pb-2">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="currentStep === 1 ? 'Maklumat Keanggotaan' : (currentStep === 2 ? 'Maklumat Peribadi' : (currentStep === 3 ? 'Maklumat Alamat' : 'Maklumat Pembayaran'))"></h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-text="currentStep === 1 ? 'Status ahli, no. ahli, tarikh daftar' : (currentStep === 2 ? 'Nama, no. KP, jabatan, jawatan' : (currentStep === 3 ? 'Alamat surat-menyurat' : 'Bayaran yuran keahlian'))"></p>
-    </div>
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+<div class="h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] flex flex-col max-w-5xl mx-auto overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8" x-data="{ currentStep: 1, totalSteps: 4, approvePayment: {{ old('approve_immediately') ? 'true' : 'false' }} }">
+    <x-user.page-header class="flex-shrink-0 pt-2" current="Tambah Ahli">
+        <x-slot:heading>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight" x-text="currentStep === 1 ? 'Maklumat Keanggotaan' : (currentStep === 2 ? 'Maklumat Peribadi' : (currentStep === 3 ? 'Maklumat Alamat' : 'Maklumat Pembayaran'))"></h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" x-text="currentStep === 1 ? 'Status ahli, no. ahli, tarikh daftar' : (currentStep === 2 ? 'Nama, no. KP, jabatan, jawatan' : (currentStep === 3 ? 'Alamat surat-menyurat' : 'Bayaran yuran keahlian'))"></p>
+        </x-slot:heading>
+    </x-user.page-header>
 
     @include('user.members.partials.step-indicator')
 
@@ -75,6 +77,7 @@
         </div>
         </div>
     </form>
+</div>
 </div>
 
 @push('styles')

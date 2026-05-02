@@ -4,34 +4,13 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    {{-- Page Header --}}
-    <div class="mb-8 flex flex-col gap-3">
-        <nav aria-label="Breadcrumb" class="text-sm text-gray-500 dark:text-gray-400">
-            <ol class="flex items-center gap-2">
-                <li>
-                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-300 transition">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V10.5z" />
-                        </svg>
-                        Utama
-                    </a>
-                </li>
-                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
-                <li class="text-gray-700 dark:text-gray-200 font-medium">Kutipan Yuran</li>
-            </ol>
-        </nav>
-        <div class="flex items-center gap-4 group">
-            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10V6m0 12v-2m-6-4a6 6 0 1112 0 6 6 0 01-12 0z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Kutipan Yuran</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Cari ahli dan proses kutipan yuran pembaharuan</p>
-            </div>
-        </div>
-    </div>
+    <x-user.page-header
+        current="Kutipan Yuran"
+        title="Kutipan Yuran"
+        subtitle="Cari ahli dan proses kutipan yuran pembaharuan"
+        icon="kutipan"
+        variant="emerald"
+    />
 
     <div class="flex justify-center">
         <section class="w-full max-w-2xl">
