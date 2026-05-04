@@ -54,12 +54,12 @@ table { border-collapse:collapse; }
     $isActive        = str_contains(strtolower($statusName), 'aktif');
 @endphp
 
-{{-- ▌TOP ACCENT --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:0;">
+{{-- TOP ACCENT --}}
+<table width="100%" cellpadding="0" cellspacing="0">
   <tr><td height="5" style="background-color:#1a3c5e; font-size:1px; line-height:1px;">&nbsp;</td></tr>
 </table>
 
-{{-- ▌HEADER --}}
+{{-- HEADER --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="padding-top:10px; padding-bottom:9px; border-bottom:2px solid #1a3c5e; margin-bottom:10px;">
   <tr>
     <td width="62%" style="vertical-align:top;">
@@ -84,7 +84,7 @@ table { border-collapse:collapse; }
   </tr>
 </table>
 
-{{-- ▌STATUS BANNER --}}
+{{-- STATUS BANNER --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#dcfce7; border-left:4px solid #16a34a; border-radius:5px; margin-bottom:12px;">
   <tr>
     <td style="padding:9px 14px;">
@@ -108,8 +108,7 @@ table { border-collapse:collapse; }
   </tr>
 </table>
 
-{{-- ▌▌▌ MAKLUMAT AHLI — REDESIGNED SECTION ▌▌▌ --}}
-{{-- Outer card with dark header bar --}}
+{{-- MAKLUMAT AHLI --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
 
   {{-- Card header bar --}}
@@ -118,18 +117,18 @@ table { border-collapse:collapse; }
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="vertical-align:middle;">
-            <span style="font-size:11px; font-weight:700; color:#ffffff; letter-spacing:0.5px;">&#128100;&nbsp; MAKLUMAT AHLI &amp; PENGEBILAN</span>
+            {{-- &#9632; = solid square (■), safe in DejaVu Sans --}}
+            <span style="font-size:11px; font-weight:700; color:#ffffff; letter-spacing:0.5px;">&#9632;&nbsp; MAKLUMAT AHLI &amp; PENGEBILAN</span>
           </td>
           <td style="text-align:right; vertical-align:middle;">
-            {{-- Active badge --}}
-            <span style="background-color:{{ $isActive ? '#16a34a' : '#dc2626' }}; color:#ffffff; font-size:8.5px; font-weight:700; padding:2px 9px; border-radius:20px;">{{ strtoupper($statusName) }}</span>
+            <span style="background-color:{{ $isActive ? '#16a34a' : '#dc2626' }}; color:#ffffff; font-size:8.5px; font-weight:700; padding:2px 9px; border-radius:20px;">&#9679;&nbsp;{{ strtoupper($statusName) }}</span>
           </td>
         </tr>
       </table>
     </td>
   </tr>
 
-  {{-- Row 1: Nama Ahli (full width with accent left border) --}}
+  {{-- Row 1: Nama | No. Ahli --}}
   <tr>
     <td colspan="3" style="padding:0; border-bottom:1px solid #f1f5f9;">
       <table width="100%" cellpadding="0" cellspacing="0">
@@ -167,7 +166,7 @@ table { border-collapse:collapse; }
     </td>
   </tr>
 
-  {{-- Row 3: No. KP | Member Since --}}
+  {{-- Row 3: No. KP | Tarikh Daftar --}}
   <tr>
     <td colspan="3" style="padding:0;">
       <table width="100%" cellpadding="0" cellspacing="0">
@@ -178,7 +177,7 @@ table { border-collapse:collapse; }
             <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->no_kp ?? '&mdash;' }}</div>
           </td>
           <td width="50%" style="padding:8px 14px; border-left:1px solid #f1f5f9;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">Tarikh Daftar / ID Dalaman</div>
+            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">Tarikh Daftar</div>
             <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->created_at ? $member->created_at->format('d M Y') : '&mdash;' }}</div>
           </td>
         </tr>
@@ -187,10 +186,8 @@ table { border-collapse:collapse; }
   </tr>
 
 </table>
-{{-- ▌▌▌ END MAKLUMAT AHLI ▌▌▌ --}}
 
-
-{{-- ▌BUTIRAN PEMBAYARAN --}}
+{{-- BUTIRAN PEMBAYARAN --}}
 <div class="slabel" style="margin-bottom:6px;">Butiran Pembayaran</div>
 
 @if($approvedPayments->isEmpty())
@@ -248,7 +245,7 @@ table { border-collapse:collapse; }
     </tr>
   </table>
 
-  {{-- PAYMENT METHOD --}}
+  {{-- KAEDAH PEMBAYARAN --}}
   @if($isSinglePayment)
     <div class="slabel" style="margin-bottom:6px;">Kaedah Pembayaran</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e2e8f0; border-radius:6px; margin-bottom:12px;">
@@ -274,16 +271,17 @@ table { border-collapse:collapse; }
   @endif
 @endif
 
-{{-- ▌NOTES --}}
+{{-- NOTES --}}
 <div class="notes" style="margin-bottom:10px;">
-  <strong style="display:block; margin-bottom:3px; font-size:10px;">&#128204; Nota Penting:</strong>
+  {{-- &#9654; = right-pointing triangle (►), safe in DejaVu Sans --}}
+  <strong style="display:block; margin-bottom:3px; font-size:10px;">&#9654; Nota Penting:</strong>
   1. Resit ini dijana komputer dan sah tanpa tandatangan fizikal.<br/>
   2. Faedah keahlian berkuat kuasa mengikut tarikh kelulusan pembayaran.<br/>
   3. Sila simpan resit ini untuk rujukan dan rekod anda.<br/>
   4. Untuk pertanyaan, hubungi pentadbir melalui saluran rasmi organisasi.
 </div>
 
-{{-- ▌FOOTER --}}
+{{-- FOOTER --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1.5px dashed #cbd5e1; padding-top:7px; margin-top:4px;">
   <tr>
     <td class="foot-l">
