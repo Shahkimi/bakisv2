@@ -24,16 +24,29 @@
                 <li class="text-gray-700 dark:text-gray-200 font-medium">Edit Ahli</li>
             </ol>
         </nav>
-        <div class="flex items-center gap-4 group">
-            <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4 group">
+                <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Edit Ahli</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kemas kini maklumat ahli dan keahlian</p>
+                </div>
+            </div>
+
+            {{-- PDF Download Button --}}
+            <a href="{{ route('admin.members.receipt', $member) }}"
+               target="_blank"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 13l2 2 4-4" />
                 </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Edit Ahli</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kemas kini maklumat ahli dan keahlian</p>
-            </div>
+                Muat Turun Resit PDF
+            </a>
         </div>
     </div>
 
@@ -432,7 +445,7 @@
                                                 @php
                                                     $start = $payment->tahun_mula ?? $payment->tahun_bayar;
                                                     $end = $payment->tahun_tamat ?? $payment->tahun_bayar;
-                                                    $yearLabel = $start === $end ? (string) $payment->tahun_bayar : $payment->tahun_bayar . ' (liputan ' . $start . '–' . $end . ')';
+                                                    $yearLabel = $start === $end ? (string) $payment->tahun_bayar : $payment->tahun_bayar . ' (liputan ' . $start . '\u2013' . $end . ')';
                                                 @endphp
                                                 <tr class="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors duration-150">
                                                     <td class="px-4 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $yearLabel }}</td>

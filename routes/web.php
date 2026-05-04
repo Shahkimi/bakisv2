@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\Kawalan\FaviconController;
 use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
+use App\Http\Controllers\Admin\MemberReceiptController;
 use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\UserController;
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
     Route::get('carian', fn () => redirect()->route('admin.members.index'))->name('carian.index');
     Route::get('carian/data', [CarianController::class, 'getData'])->name('carian.data');
     Route::resource('members', AdminMemberController::class);
+
+    // PDF Receipt Download
+    Route::get('members/{member}/receipt', [MemberReceiptController::class, 'download'])->name('members.receipt');
 
     Route::prefix('kutipan')->name('kutipan.')->group(function () {
         Route::get('/', [AdminKutipanController::class, 'index'])->name('index');
