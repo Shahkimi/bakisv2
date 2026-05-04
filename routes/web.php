@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\MemberReceiptController;
 use App\Http\Controllers\Admin\PaymentAccountController;
+use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YuranController;
@@ -87,6 +88,7 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
 
     // PDF Receipt Download
     Route::get('members/{member}/receipt', [MemberReceiptController::class, 'download'])->name('members.receipt');
+    Route::get('payments/{payment}/receipt', [PaymentReceiptController::class, 'download'])->name('payments.receipt');
 
     Route::prefix('kutipan')->name('kutipan.')->group(function () {
         Route::get('/', [AdminKutipanController::class, 'index'])->name('index');
@@ -152,6 +154,8 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role.user'])->prefix('user')->name('user.')->group(function () {
     Route::get('carian', fn () => redirect()->route('user.members.index'))->name('carian.index');
     Route::get('carian/data', [CarianController::class, 'getData'])->name('carian.data');
+    Route::get('members/{member}/receipt', [MemberReceiptController::class, 'download'])->name('members.receipt');
+    Route::get('payments/{payment}/receipt', [PaymentReceiptController::class, 'download'])->name('payments.receipt');
     Route::resource('members', AdminMemberController::class);
 
     Route::prefix('kutipan')->name('kutipan.')->group(function () {

@@ -2,617 +2,464 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resit Keahlian - {{ $member->no_ahli ?? 'N/A' }}</title>
+    <title>Resit Keahlian — {{ $member->no_ahli ?? 'N/A' }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 8mm 12mm;
         }
 
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'DejaVu Sans', 'Arial', sans-serif;
-            font-size: 12px;
-            color: #1f2937;
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11px;
+            color: #333333;
             background: #ffffff;
-            line-height: 1.5;
+            line-height: 1.45;
+            margin: 0;
+            padding: 0;
         }
 
         .page {
             width: 100%;
-            min-height: 297mm;
-            padding: 20mm 20mm;
             position: relative;
+            padding: 0;
         }
 
-        /* ── Header ── */
-        .header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            border-bottom: 3px solid #4f46e5;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
+        .header-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            border-bottom: 2.5px solid #1a3c5e;
         }
 
-        .header-left .org-name {
+        .header-table td { vertical-align: top; padding-bottom: 8px; }
+
+        .brand-logo-row td { padding-bottom: 4px; }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background-color: #1a3c5e;
+            color: #ffffff;
             font-size: 20px;
             font-weight: 700;
-            color: #1e1b4b;
-            letter-spacing: -0.3px;
+            text-align: center;
+            vertical-align: middle;
+            border-radius: 8px;
         }
 
-        .header-left .org-sub {
-            font-size: 10px;
-            color: #6b7280;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
+        .brand-name { font-size: 19px; font-weight: 700; color: #1a3c5e; padding-left: 8px; vertical-align: middle; }
+        .brand-tagline { font-size: 10px; color: #7a8fa6; margin-top: 3px; margin-left: 52px; }
+        .brand-address { font-size: 9px; color: #7a8fa6; margin-top: 2px; margin-left: 52px; line-height: 1.4; }
 
-        .header-right {
-            text-align: right;
-        }
+        .receipt-badge { text-align: right; padding-left: 8px; word-wrap: break-word; }
+        .receipt-title { font-size: 24px; font-weight: 800; color: #1a3c5e; letter-spacing: 1px; text-transform: uppercase; }
+        .receipt-no { font-size: 11px; color: #2e7dd1; font-weight: 600; margin-top: 4px; }
+        .receipt-date { font-size: 10px; color: #7a8fa6; margin-top: 2px; }
 
-        .receipt-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 14px;
-            border-radius: 20px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .receipt-number {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 6px;
-        }
-
-        .receipt-number span {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .receipt-date {
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 3px;
-        }
-
-        /* ── Status Banner ── */
         .status-banner {
-            border-radius: 10px;
-            padding: 10px 16px;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin: 8px 0 12px 0;
+            background-color: #e8f5e9;
+            border-left: 5px solid #27ae60;
+            border-radius: 6px;
+            padding: 8px 14px;
         }
 
-        .status-banner.aktif {
-            background: #ecfdf5;
-            border-left: 4px solid #10b981;
-        }
+        .status-text { font-size: 11px; color: #1e7e34; font-weight: 700; }
+        .status-sub { font-size: 10px; color: #555555; margin-top: 2px; }
 
-        .status-banner.tidak_aktif {
-            background: #f9fafb;
-            border-left: 4px solid #9ca3af;
-        }
-
-        .status-banner.meninggal {
-            background: #fef2f2;
-            border-left: 4px solid #ef4444;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .status-dot.aktif { background: #10b981; }
-        .status-dot.tidak_aktif { background: #9ca3af; }
-        .status-dot.meninggal { background: #ef4444; }
-
-        .status-text {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-text.aktif { color: #065f46; }
-        .status-text.tidak_aktif { color: #374151; }
-        .status-text.meninggal { color: #991b1b; }
-
-        .status-label {
-            font-size: 10px;
-            color: #6b7280;
-        }
-
-        /* ── Section Titles ── */
-        .section-title {
-            font-size: 10px;
+        .section-label {
+            font-size: 9px;
             font-weight: 700;
+            letter-spacing: 1.1px;
+            color: #2e7dd1;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6b7280;
-            margin-bottom: 10px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #e5e7eb;
+            margin: 12px 0 6px 0;
         }
 
-        /* ── Info Blocks ── */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px 20px;
-            margin-bottom: 22px;
+        /* Tight spacing when section follows totals (reduces DomPDF gap) */
+        .section-label.section-follow-totals {
+            margin-top: 6px;
+            margin-bottom: 5px;
         }
 
-        .info-grid-3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px 20px;
-            margin-bottom: 22px;
-        }
-
-        .info-item label {
-            display: block;
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #9ca3af;
-            margin-bottom: 2px;
-        }
-
-        .info-item .value {
-            font-size: 12px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .info-item .value.mono {
-            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
-            letter-spacing: 0.5px;
-        }
-
-        /* ── Highlight Card (Member ID) ── */
-        .member-card {
-            background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
-            border: 1px solid #c7d2fe;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .member-card-left .label {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #6366f1;
-            font-weight: 600;
-        }
-
-        .member-card-left .name {
-            font-size: 18px;
-            font-weight: 800;
-            color: #1e1b4b;
-            margin-top: 2px;
-            letter-spacing: -0.3px;
-        }
-
-        .member-card-left .ic {
-            font-size: 11px;
-            color: #4f46e5;
-            margin-top: 3px;
-            font-family: 'DejaVu Sans Mono', monospace;
-        }
-
-        .member-card-right {
-            text-align: right;
-        }
-
-        .member-card-right .no-ahli-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #6366f1;
-            font-weight: 600;
-        }
-
-        .member-card-right .no-ahli {
-            font-size: 22px;
-            font-weight: 800;
-            color: #4f46e5;
-            font-family: 'DejaVu Sans Mono', monospace;
-            letter-spacing: 1px;
-        }
-
-        /* ── Payment Table ── */
-        .payment-table {
+        .info-grid-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+        }
+
+        .info-grid-table td { width: 50%; vertical-align: top; padding: 4px; }
+
+        .info-box {
+            background-color: #f7f9fc;
+            border: 1px solid #e4eaf2;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-height: 40px;
+        }
+
+        .info-box .label { font-size: 9px; color: #8a9ab0; text-transform: uppercase; letter-spacing: 0.7px; }
+        .info-box .value { font-size: 12px; color: #1a3c5e; font-weight: 600; margin-top: 2px; }
+        .info-box .value.highlight { color: #2e7dd1; }
+        .info-box .value.green { color: #27ae60; }
+
+        .items-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 12px;
             font-size: 11px;
         }
 
-        .payment-table thead tr {
-            background: #4f46e5;
-            color: #ffffff;
-        }
+        .items-table thead tr { background-color: #1a3c5e; color: #ffffff; }
 
-        .payment-table thead th {
-            padding: 8px 12px;
+        .items-table thead th {
+            padding: 8px 10px;
             text-align: left;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .payment-table thead th:last-child {
-            text-align: right;
-        }
-
-        .payment-table tbody tr {
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .payment-table tbody tr:nth-child(even) {
-            background: #f9fafb;
-        }
-
-        .payment-table tbody td {
-            padding: 8px 12px;
-            color: #374151;
-        }
-
-        .payment-table tbody td:last-child {
-            text-align: right;
+            font-size: 10px;
             font-weight: 600;
-            color: #111827;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
             letter-spacing: 0.4px;
         }
 
-        .badge-green {
-            background: #d1fae5;
-            color: #065f46;
+        .items-table thead th:last-child { text-align: right; }
+        .items-table tbody tr { border-bottom: 1px solid #eef2f7; }
+        .items-table tbody td { padding: 9px 10px; vertical-align: top; }
+        .items-table tbody td:last-child { text-align: right; font-weight: 600; color: #1a3c5e; }
+        .items-table tbody tr:nth-child(even) { background-color: #f7f9fc; }
+
+        .item-name { font-weight: 700; color: #1a3c5e; }
+        .item-desc { font-size: 9px; color: #8a9ab0; margin-top: 2px; }
+
+        .totals-outer {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
         }
 
-        .badge-blue {
-            background: #dbeafe;
-            color: #1e40af;
+        .totals-outer td { vertical-align: middle; padding: 0; line-height: 1.2; }
+
+        .totals-outer .totals-spacer {
+            width: 1%;
+            padding: 0;
         }
 
-        /* ── Payment Summary ── */
-        .payment-summary {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 22px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 3px 0;
+        .totals-table {
+            width: 280px;
+            border-collapse: collapse;
             font-size: 11px;
-            color: #6b7280;
-        }
-
-        .summary-row.total {
-            padding-top: 8px;
-            margin-top: 4px;
-            border-top: 2px solid #e5e7eb;
-            font-size: 13px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .summary-row .amount {
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .summary-row.total .amount {
-            color: #4f46e5;
-            font-size: 15px;
-        }
-
-        /* ── No Payment State ── */
-        .no-payment {
-            background: #f9fafb;
-            border: 1px dashed #d1d5db;
-            border-radius: 8px;
-            padding: 24px;
-            text-align: center;
-            color: #9ca3af;
-            font-size: 11px;
-            margin-bottom: 22px;
-        }
-
-        /* ── Footer ── */
-        .footer {
-            margin-top: 30px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .footer-left .generated {
-            font-size: 9px;
-            color: #9ca3af;
-        }
-
-        .footer-left .note {
-            font-size: 8px;
-            color: #d1d5db;
-            margin-top: 2px;
-        }
-
-        .footer-right {
-            text-align: right;
-        }
-
-        .signature-line {
-            width: 140px;
-            border-top: 1px solid #374151;
             margin-left: auto;
-            margin-bottom: 4px;
         }
 
-        .footer-right .sig-label {
-            font-size: 9px;
-            color: #6b7280;
-            text-align: center;
+        .totals-table td {
+            padding: 6px 0 6px 10px;
+            color: #555555;
+            vertical-align: middle;
         }
 
-        .footer-right .sig-org {
-            font-size: 8px;
-            color: #9ca3af;
-            text-align: center;
-        }
-
-        /* ── Watermark ── */
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 72px;
-            font-weight: 900;
-            color: rgba(79, 70, 229, 0.04);
-            text-transform: uppercase;
-            letter-spacing: 8px;
-            pointer-events: none;
+        .totals-table td.totals-label {
             white-space: nowrap;
+            text-align: left;
+            font-weight: 800;
+            color: #1a3c5e;
         }
 
-        /* ── Divider ── */
-        .divider {
-            height: 1px;
-            background: #e5e7eb;
-            margin: 16px 0;
+        .totals-table td.totals-amount {
+            white-space: nowrap;
+            text-align: right;
+            font-weight: 800;
+            color: #2e7dd1;
+            font-size: 14px;
+            padding-right: 0;
+            padding-left: 16px;
         }
 
-        .highlight-box {
-            background: #eff6ff;
-            border-left: 3px solid #3b82f6;
-            border-radius: 0 6px 6px 0;
+        .totals-table .grand td {
+            border-top: 2px solid #1a3c5e;
+            padding-top: 8px;
+        }
+
+        .payment-info-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .payment-info-table td { width: 25%; vertical-align: top; padding: 4px; }
+
+        .pay-box {
+            background-color: #f7f9fc;
+            border: 1px solid #e4eaf2;
+            border-radius: 8px;
+            padding: 8px 10px;
+            min-height: 44px;
+        }
+
+        .pay-box .label { font-size: 8px; color: #8a9ab0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pay-box .value { font-size: 10px; color: #1a3c5e; font-weight: 600; margin-top: 3px; word-wrap: break-word; }
+        .pay-box.paid-box { background-color: #e8f5e9; border-color: #a5d6a7; }
+        .pay-box.paid-box .value { color: #27ae60; font-weight: 700; }
+
+        .notes-box {
+            background-color: #fffbf0;
+            border: 1px solid #ffe58f;
+            border-radius: 8px;
             padding: 8px 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             font-size: 10px;
-            color: #1d4ed8;
+            color: #7a5c00;
+            line-height: 1.55;
+        }
+
+        .notes-box strong { display: block; margin-bottom: 4px; }
+
+        .footer-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-top: 16px;
+            padding-top: 10px;
+            border-top: 1px dashed #c5d3e0;
+        }
+
+        .footer-table td { vertical-align: bottom; font-size: 9px; color: #8a9ab0; line-height: 1.65; }
+
+        .footer-right { text-align: right; }
+
+        .sig-wrap { width: 100%; text-align: right; }
+
+        .sig-line {
+            display: inline-block;
+            border-top: 1px solid #c5d3e0;
+            margin-top: 18px;
+            padding-top: 4px;
+            width: 120px;
+            text-align: center;
+            font-size: 9px;
+            color: #8a9ab0;
         }
     </style>
 </head>
 <body>
 
-<div class="watermark">RASMI</div>
+@php
+    $isSinglePayment = isset($payment);
+    if (! $member->relationLoaded('payments')) {
+        $member->load(['payments.yuran']);
+    }
+    $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED)->values();
+    if ($isSinglePayment) {
+        $approvedPayments = collect([$payment]);
+    }
+    $totalPaid = $approvedPayments->sum(fn ($p) => (float) ($p->jumlah ?? 0));
+    $receiptYear = $isSinglePayment ? (int) $payment->tahun_bayar : (int) now()->year;
+    $receiptNoSuffix = $isSinglePayment
+        ? str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT)
+        : str_pad((string) $member->id, 6, '0', STR_PAD_LEFT);
+    $receiptNo = 'RCP-' . $receiptYear . '-' . $receiptNoSuffix;
+    $issuedAt = ($isSinglePayment && $payment->approved_at) ? $payment->approved_at : now();
+    $statusName = $member->memberStatus?->name ?? 'Tidak Aktif';
+@endphp
 
 <div class="page">
 
-    {{-- ── HEADER ── --}}
-    <div class="header">
-        <div class="header-left">
-            <div class="org-name">BAKIS</div>
-            <div class="org-sub">Sistem Pengurusan Keahlian</div>
-        </div>
-        <div class="header-right">
-            <div class="receipt-badge">Resit Keahlian</div>
-            <div class="receipt-number">
-                No. Resit: <span>{{ str_pad($member->id ?? 0, 6, '0', STR_PAD_LEFT) }}-{{ date('Y') }}</span>
-            </div>
-            <div class="receipt-date">Dijana pada: {{ now()->format('d M Y, H:i A') }}</div>
-        </div>
+    <table class="header-table">
+        <tr class="brand-logo-row">
+            <td width="62%">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td class="brand-icon" width="44">B</td>
+                        <td class="brand-name">BAKIS</td>
+                    </tr>
+                </table>
+                <div class="brand-tagline">Sistem Pengurusan Keahlian</div>
+                <div class="brand-address">Dokumen resit dijana secara elektronik. Untuk pertanyaan, hubungi pentadbir sistem.</div>
+            </td>
+            <td width="38%" class="receipt-badge">
+                <div class="receipt-title">Resit</div>
+                <div class="receipt-no"># {{ $receiptNo }}</div>
+                <div class="receipt-date">Dikeluarkan: {{ $issuedAt->format('d M Y') }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="status-banner">
+        @if($isSinglePayment)
+            <div class="status-text">✔ Bayaran diterima &amp; disahkan</div>
+            <div class="status-sub">Resit rasmi bagi pembayaran yuran keahlian ({{ match ($payment->jenis ?? '') {
+                'pendaftaran_baru' => 'Pendaftaran Baru',
+                'pembaharuan' => 'Pembaharuan',
+                default => 'Keahlian',
+            } }}).</div>
+        @else
+            <div class="status-text">✔ Ringkasan pembayaran disahkan</div>
+            <div class="status-sub">Status keahlian semasa: {{ $statusName }}. Jumlah rekod disahkan: {{ $approvedPayments->count() }}.</div>
+        @endif
     </div>
 
-    {{-- ── STATUS BANNER ── --}}
-    @php
-        $statusCode = $member->memberStatus?->code ?? 'tidak_aktif';
-        $statusName = $member->memberStatus?->name ?? 'Tidak Aktif';
-        $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED);
-        $totalPaid = $approvedPayments->sum('jumlah');
-    @endphp
-    <div class="status-banner {{ $statusCode }}">
-        <div class="status-dot {{ $statusCode }}"></div>
-        <div>
-            <div class="status-text {{ $statusCode }}">STATUS: {{ strtoupper($statusName) }}</div>
-            <div class="status-label">Status semasa keanggotaan ahli</div>
-        </div>
-    </div>
+    <div class="section-label">Maklumat Ahli &amp; Pengebilan</div>
+    <table class="info-grid-table">
+        <tr>
+            <td>
+                <div class="info-box">
+                    <div class="label">Nama Ahli</div>
+                    <div class="value">{{ $member->nama }}</div>
+                </div>
+            </td>
+            <td>
+                <div class="info-box">
+                    <div class="label">No. Ahli</div>
+                    <div class="value highlight">{{ $member->no_ahli ?? '—' }}</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="info-box">
+                    <div class="label">E-mel</div>
+                    <div class="value">{{ $member->email ?? '—' }}</div>
+                </div>
+            </td>
+            <td>
+                <div class="info-box">
+                    <div class="label">No. Telefon / HP</div>
+                    <div class="value">{{ $member->no_hp ?? $member->no_tel ?? '—' }}</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="info-box">
+                    <div class="label">No. KP</div>
+                    <div class="value">{{ $member->no_kp ?? '—' }}</div>
+                </div>
+            </td>
+            <td>
+                <div class="info-box">
+                    <div class="label">Status Keahlian</div>
+                    <div class="value green">● {{ $statusName }}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
-    {{-- ── MEMBER IDENTITY CARD ── --}}
-    <div class="member-card">
-        <div class="member-card-left">
-            <div class="label">Nama Ahli</div>
-            <div class="name">{{ $member->nama }}</div>
-            <div class="ic">No. KP: {{ $member->no_kp }}</div>
-        </div>
-        <div class="member-card-right">
-            <div class="no-ahli-label">No. Ahli</div>
-            <div class="no-ahli">{{ $member->no_ahli ?? 'N/A' }}</div>
-        </div>
-    </div>
-
-    {{-- ── MAKLUMAT KEANGGOTAAN ── --}}
-    <div class="section-title">Maklumat Keanggotaan</div>
-    <div class="info-grid-3">
-        <div class="info-item">
-            <label>Jabatan</label>
-            <div class="value">{{ $member->jabatan?->nama_jabatan ?? '—' }}</div>
-        </div>
-        <div class="info-item">
-            <label>Jawatan / Unit</label>
-            <div class="value">{{ $member->jawatan?->nama_jawatan ?? '—' }}</div>
-        </div>
-        <div class="info-item">
-            <label>Tarikh Daftar</label>
-            <div class="value">{{ $member->tarikh_daftar?->format('d M Y') ?? '—' }}</div>
-        </div>
-    </div>
-
-    {{-- ── MAKLUMAT PERIBADI ── --}}
-    <div class="section-title">Maklumat Peribadi</div>
-    <div class="info-grid">
-        <div class="info-item">
-            <label>Jantina</label>
-            <div class="value">{{ $member->jantina === 'L' ? 'Lelaki' : ($member->jantina === 'P' ? 'Perempuan' : '—') }}</div>
-        </div>
-        <div class="info-item">
-            <label>No. H/P</label>
-            <div class="value mono">{{ $member->no_hp ?? '—' }}</div>
-        </div>
-        <div class="info-item">
-            <label>Email</label>
-            <div class="value">{{ $member->email ?? '—' }}</div>
-        </div>
-        <div class="info-item">
-            <label>No. Telefon</label>
-            <div class="value mono">{{ $member->no_tel ?? '—' }}</div>
-        </div>
-    </div>
-
-    {{-- ── MAKLUMAT ALAMAT ── --}}
-    <div class="section-title">Maklumat Alamat</div>
-    <div class="info-grid">
-        <div class="info-item">
-            <label>Alamat</label>
-            <div class="value">{{ $member->alamat1 ?? '—' }}{{ $member->alamat2 ? ', ' . $member->alamat2 : '' }}</div>
-        </div>
-        <div class="info-item">
-            <label>Poskod / Bandar</label>
-            <div class="value">{{ $member->poskod ?? '—' }} {{ $member->bandar ?? '' }}</div>
-        </div>
-        <div class="info-item">
-            <label>Negeri</label>
-            <div class="value">{{ $member->negeri ?? '—' }}</div>
-        </div>
-    </div>
-
-    @if($member->catatan)
-    <div class="highlight-box">
-        <strong>Catatan:</strong> {{ $member->catatan }}
-    </div>
-    @endif
-
-    <div class="divider"></div>
-
-    {{-- ── SEJARAH PEMBAYARAN ── --}}
-    <div class="section-title">Sejarah Pembayaran (Disahkan)</div>
-
+    <div class="section-label">Butiran Pembayaran</div>
     @if($approvedPayments->isEmpty())
-        <div class="no-payment">
-            Tiada rekod pembayaran yang telah disahkan.
+        <div class="notes-box">
+            <strong>Nota:</strong> Tiada rekod pembayaran yang telah disahkan.
         </div>
     @else
-        <table class="payment-table">
+        <table class="items-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Tahun Bayar</th>
-                    <th>Liputan Tahun</th>
-                    <th>Jenis</th>
-                    <th>Status</th>
-                    <th>Jumlah (RM)</th>
+                    <th style="width:6%">#</th>
+                    <th style="width:46%">Perihal</th>
+                    <th style="width:8%">Ktt</th>
+                    <th style="width:20%">Harga (RM)</th>
+                    <th style="width:20%">Amaun (RM)</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($approvedPayments as $i => $payment)
-                @php
-                    $start = $payment->tahun_mula ?? $payment->tahun_bayar;
-                    $end   = $payment->tahun_tamat ?? $payment->tahun_bayar;
-                    $coverage = ($start == $end) ? (string)$start : $start . ' – ' . $end;
-                @endphp
-                <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>{{ $payment->tahun_bayar }}</td>
-                    <td>{{ $coverage }}</td>
-                    <td>
-                        <span class="badge badge-blue">
-                            {{ match($payment->jenis ?? '') {
-                                'pendaftaran_baru' => 'Pendaftaran Baru',
-                                'pembaharuan'      => 'Pembaharuan',
-                                default            => 'N/A'
-                            } }}
-                        </span>
-                    </td>
-                    <td><span class="badge badge-green">Disahkan</span></td>
-                    <td>{{ number_format((float)($payment->jumlah ?? 0), 2) }}</td>
-                </tr>
+                @foreach($approvedPayments as $i => $p)
+                    @php
+                        $start = $p->tahun_mula ?? $p->tahun_bayar;
+                        $end = $p->tahun_tamat ?? $p->tahun_bayar;
+                        $coverage = ($start == $end) ? (string) $start : $start . ' – ' . $end;
+                        $lineTotal = (float) ($p->jumlah ?? 0);
+                        $typeLabel = match ($p->jenis ?? '') {
+                            'pendaftaran_baru' => 'Yuran Pendaftaran Baru',
+                            'pembaharuan' => 'Yuran Pembaharuan',
+                            default => 'Yuran Keahlian',
+                        };
+                    @endphp
+                    <tr>
+                        <td>{{ $i + 1 }}</td>
+                        <td>
+                            <div class="item-name">{{ $typeLabel }}</div>
+                            <div class="item-desc">Liputan tahun: {{ $coverage }} @if($p->yuran?->jenis_yuran) · {{ $p->yuran->jenis_yuran }} @endif</div>
+                        </td>
+                        <td>1</td>
+                        <td>{{ number_format($lineTotal, 2) }}</td>
+                        <td>{{ number_format($lineTotal, 2) }}</td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
 
-        {{-- Summary --}}
-        <div class="payment-summary">
-            <div class="summary-row">
-                <span>Jumlah Rekod</span>
-                <span class="amount">{{ $approvedPayments->count() }} rekod</span>
-            </div>
-            <div class="summary-row total">
-                <span>JUMLAH KESELURUHAN</span>
-                <span class="amount">RM {{ number_format($totalPaid, 2) }}</span>
-            </div>
-        </div>
+        <table class="totals-outer">
+            <tr>
+                <td class="totals-spacer"></td>
+                <td align="right">
+                    <table class="totals-table">
+                        <tr class="grand">
+                            <td class="totals-label">JUMLAH DIBAYAR</td>
+                            <td class="totals-amount">RM {{ number_format($totalPaid, 2) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        @if($isSinglePayment)
+            <div class="section-label section-follow-totals">Kaedah Pembayaran</div>
+            <table class="payment-info-table">
+                <tr>
+                    <td>
+                        <div class="pay-box">
+                            <div class="label">Kaedah</div>
+                            <div class="value">Pembayaran melalui sistem BAKIS</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pay-box">
+                            <div class="label">Rujukan / No. Resit</div>
+                            <div class="value">{{ $payment->no_resit_sistem ?? '—' }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pay-box">
+                            <div class="label">Tarikh Kelulusan</div>
+                            <div class="value">{{ ($payment->approved_at ?? $payment->updated_at)?->format('d M Y, H:i') ?? '—' }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pay-box paid-box">
+                            <div class="label">Status</div>
+                            <div class="value">✔ DIBAYAR</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        @endif
     @endif
 
-    {{-- ── FOOTER ── --}}
-    <div class="footer">
-        <div class="footer-left">
-            <div class="generated">Dijana secara automatik oleh Sistem BAKIS</div>
-            <div class="note">Dokumen ini adalah cetakan rasmi. Sah tanpa tandatangan sekiranya dicetak dari sistem.</div>
-        </div>
-        <div class="footer-right">
-            <div class="signature-line"></div>
-            <div class="sig-label">Pegawai Yang Bertanggungjawab</div>
-            <div class="sig-org">BAKIS — Sistem Pengurusan Keahlian</div>
-        </div>
+    <div class="notes-box">
+        <strong>Nota penting:</strong>
+        1. Resit ini dijana komputer dan sah tanpa tandatangan fizikal.<br/>
+        2. Faedah keahlian berkuat kuasa mengikut tarikh kelulusan pembayaran.<br/>
+        3. Sila simpan resit ini untuk rujukan dan rekod anda.<br/>
+        4. Untuk pertanyaan, hubungi pentadbir melalui saluran rasmi organisasi.
     </div>
+
+    <table class="footer-table">
+        <tr>
+            <td width="55%">
+                <strong style="color:#1a3c5e;">BAKIS</strong> — Sistem Pengurusan Keahlian<br/>
+                Dijana: {{ now()->format('d M Y, H:i') }} ({{ config('app.timezone', 'UTC') }})
+            </td>
+            <td width="45%" class="footer-right">
+                <div>Disahkan oleh:</div>
+                <div class="sig-wrap">
+                    <div class="sig-line">Pentadbir Keahlian</div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
 </div>
 </body>

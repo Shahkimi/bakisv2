@@ -3,17 +3,83 @@
 @section('title', 'Edit Ahli')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <x-user.page-header
-        current="Edit Ahli"
-        title="Edit Ahli"
-        subtitle="Kemas kini: {{ $member->nama }}"
-        icon="users"
-        :parents="[['label' => 'Senarai Ahli', 'url' => route('user.members.index')]]"
-    />
-</div>
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8" x-data="{ openSection: 'membership' }">
-    <div class="w-full max-w-6xl flex flex-col md:flex-row gap-6 my-auto">
+@php
+    $hasAktifThisYear = array_key_exists('aktif_this_year', $member->getAttributes())
+        ? (bool) $member->aktif_this_year
+        : null;
+    [$listStatusName, $listStatusCode] = $member->listStatusDisplayForCurrentYear($hasAktifThisYear);
+    $statusColors = [
+        'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+        'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
+        'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    ];
+    $statusClass = $statusColors[$listStatusCode ?? 'tidak_aktif'] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+    $memberListStatusId = $listStatusCode !== null ? $statuses->firstWhere('code', $listStatusCode)?->id : null;
+    $memberStatusSelectId = old('member_status_id');
+    if ($memberStatusSelectId === null || $memberStatusSelectId === '') {
+        $memberStatusSelectId = $memberListStatusId ?? $member->member_status_id;
+    }
+    if (! $statuses->contains(fn ($s) => (string) $s->id === (string) $memberStatusSelectId)) {
+        $memberStatusSelectId = $member->member_status_id;
+    }
+    $statusesForMemberSelect = $statuses->sort(function ($a, $b) use ($listStatusCode) {
+        $aMatch = $listStatusCode !== null && $a->code === $listStatusCode ? 0 : 1;
+        $bMatch = $listStatusCode !== null && $b->code === $listStatusCode ? 0 : 1;
+        if ($aMatch !== $bMatch) {
+            return $aMatch <=> $bMatch;
+        }
+
+        return strcmp((string) $a->name, (string) $b->name);
+    })->values();
+@endphp
+<div class="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full" x-data="{ openSection: 'membership' }">
+    {{-- Page Header (same layout as admin edit) --}}
+    <div class="mb-8 flex flex-col gap-3">
+        <nav aria-label="Breadcrumb" class="text-sm text-gray-500 dark:text-gray-400">
+            <ol class="flex flex-wrap items-center gap-2">
+                <li>
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-300 transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V10.5z" />
+                        </svg>
+                        Utama
+                    </a>
+                </li>
+                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
+                <li>
+                    <a href="{{ route('user.members.index') }}" class="hover:text-emerald-600 dark:hover:text-emerald-300 transition">Senarai Ahli</a>
+                </li>
+                <li aria-hidden="true" class="text-gray-300 dark:text-gray-600">/</li>
+                <li class="text-gray-700 dark:text-gray-200 font-medium">Edit Ahli</li>
+            </ol>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4 group">
+                <div class="shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Edit Ahli</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Kemas kini maklumat ahli dan keahlian</p>
+                </div>
+            </div>
+
+            <a href="{{ route('user.members.receipt', $member) }}"
+               target="_blank"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 13l2 2 4-4" />
+                </svg>
+                Muat Turun Resit PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="w-full max-w-6xl mx-auto flex flex-col md:flex-row md:items-start gap-6">
         {{-- Left Sidebar: Member Summary (Read-Only Display) --}}
         <div class="w-full md:w-80 lg:w-96 flex-shrink-0">
             <div class="md:sticky md:top-6 space-y-4">
@@ -31,20 +97,10 @@
                         </span>
                     </div>
 
-                    {{-- Status & No. Ahli Badges (payment-based Aktif for current year, same as carian list) --}}
+                    {{-- Status & No. Ahli Badges (same rules as Senarai Ahli / admin edit) --}}
                     <div class="flex flex-wrap justify-center gap-2 mt-3">
-                        @php
-                            [$displayStatusName, $displayStatusCode] = $member->listStatusDisplayForCurrentYear();
-                            $statusColors = [
-                                'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-                                'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
-                                'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-                                'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-                            ];
-                            $statusClass = $statusColors[$displayStatusCode ?? ''] ?? $statusColors['tidak_aktif'];
-                        @endphp
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
-                            {{ $displayStatusName }}
+                            {{ $listStatusName }}
                         </span>
                         @if($member->no_ahli)
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-800 text-white dark:bg-gray-600">
@@ -146,8 +202,8 @@
                                 <div>
                                     <label for="member_status_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status Ahli <span class="text-red-500">*</span></label>
                                     <select name="member_status_id" id="member_status_id" required class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                                        @foreach($statuses as $s)
-                                            <option value="{{ $s->id }}" {{ old('member_status_id', $member->member_status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                                        @foreach($statusesForMemberSelect as $s)
+                                            <option value="{{ $s->id }}" {{ (string) $memberStatusSelectId === (string) $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -392,6 +448,7 @@
                                 </div>
                             @else
                                 {{-- Payment History Table (disahkan sahaja) --}}
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Sejarah Yuran Mengikut Tahun</h4>
                                 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                         <thead class="bg-purple-50 dark:bg-purple-900/20">
@@ -400,6 +457,7 @@
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Jumlah</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Jenis Pembayaran</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Status</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Tindakan</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
@@ -430,6 +488,17 @@
                                                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                                                             Disahkan
                                                         </span>
+                                                    </td>
+                                                    <td class="px-4 py-3.5 whitespace-nowrap">
+                                                        <a href="{{ route('user.payments.receipt', $payment) }}"
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800"
+                                                            aria-label="Muat turun resit PDF"
+                                                            title="Muat turun resit (PDF)">
+                                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
+                                                            PDF
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             @endforeach

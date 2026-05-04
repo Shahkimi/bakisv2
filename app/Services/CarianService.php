@@ -18,7 +18,7 @@ final readonly class CarianService
             ->with(['memberStatus:id,name,code'])
             ->select(['id', 'no_ahli', 'nama', 'no_kp', 'member_status_id']);
 
-        $this->applyAktifThisYearExists($query);
+        $query->withAktifThisYearExists();
 
         $this->applySearch($query, $request);
         $totalRecords = Member::count();
@@ -31,21 +31,6 @@ final readonly class CarianService
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $filteredRecords,
             'data' => $data->map(fn (Member $member) => $this->formatRow($member)),
-        ]);
-    }
-
-    private function applyAktifThisYearExists(Builder $query): void
-    {
-        $year = (int) date('Y');
-        $query->withExists([
-            'payments as aktif_this_year' => function (Builder $q) use ($year): void {
-                $q->where('status', 'approved')
-                    ->where('tahun_mula', '<=', $year)
-                    ->where(function (Builder $q2) use ($year): void {
-                        $q2->whereNull('tahun_tamat')
-                            ->orWhere('tahun_tamat', '>=', $year);
-                    });
-            },
         ]);
     }
 

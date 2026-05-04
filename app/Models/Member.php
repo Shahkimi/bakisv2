@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -85,6 +86,36 @@ class Member extends Model
                     ->orWhere('tahun_tamat', '>=', $currentYear);
             })
             ->exists();
+    }
+
+    /**
+     * Relation constraints for `withExists` / `loadExists` alias `aktif_this_year`
+     * (approved payment covering the current calendar year).
+     *
+     * @return array<string, \Closure(Builder): void>
+     */
+    public static function aktifThisYearExistsDefinition(): array
+    {
+        $year = (int) date('Y');
+
+        return [
+            'payments as aktif_this_year' => function (Builder $q) use ($year): void {
+                $q->where('status', 'approved')
+                    ->where('tahun_mula', '<=', $year)
+                    ->where(function (Builder $q2) use ($year): void {
+                        $q2->whereNull('tahun_tamat')
+                            ->orWhere('tahun_tamat', '>=', $year);
+                    });
+            },
+        ];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     */
+    public function scopeWithAktifThisYearExists(Builder $query): void
+    {
+        $query->withExists(self::aktifThisYearExistsDefinition());
     }
 
     /**

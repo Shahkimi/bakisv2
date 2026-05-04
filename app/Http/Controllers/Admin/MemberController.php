@@ -59,7 +59,8 @@ final class MemberController extends Controller
 
     public function edit(Member $member): View
     {
-        $member->load(['payments.yuran']);
+        $member->load(['payments.yuran', 'memberStatus']);
+        $member->loadExists(Member::aktifThisYearExistsDefinition());
         $jabatans = Jabatan::where('is_active', true)->orderBy('nama_jabatan')->get();
         $jawatans = Jawatan::where('is_active', true)->orderBy('nama_jawatan')->get();
         $statuses = MemberStatus::where('is_active', true)->orderBy('name')->get();

@@ -3,6 +3,36 @@
 @section('title', 'Edit Ahli')
 
 @section('content')
+@php
+    $hasAktifThisYear = array_key_exists('aktif_this_year', $member->getAttributes())
+        ? (bool) $member->aktif_this_year
+        : null;
+    [$listStatusName, $listStatusCode] = $member->listStatusDisplayForCurrentYear($hasAktifThisYear);
+    $statusColors = [
+        'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+        'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
+        'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    ];
+    $statusClass = $statusColors[$listStatusCode ?? 'tidak_aktif'] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+    $memberListStatusId = $listStatusCode !== null ? $statuses->firstWhere('code', $listStatusCode)?->id : null;
+    $memberStatusSelectId = old('member_status_id');
+    if ($memberStatusSelectId === null || $memberStatusSelectId === '') {
+        $memberStatusSelectId = $memberListStatusId ?? $member->member_status_id;
+    }
+    if (! $statuses->contains(fn ($s) => (string) $s->id === (string) $memberStatusSelectId)) {
+        $memberStatusSelectId = $member->member_status_id;
+    }
+    $statusesForMemberSelect = $statuses->sort(function ($a, $b) use ($listStatusCode) {
+        $aMatch = $listStatusCode !== null && $a->code === $listStatusCode ? 0 : 1;
+        $bMatch = $listStatusCode !== null && $b->code === $listStatusCode ? 0 : 1;
+        if ($aMatch !== $bMatch) {
+            return $aMatch <=> $bMatch;
+        }
+
+        return strcmp((string) $a->name, (string) $b->name);
+    })->values();
+@endphp
 <div class="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full" x-data="{ openSection: 'membership' }">
     {{-- Page Header --}}
     <div class="mb-8 flex flex-col gap-3">
@@ -68,21 +98,11 @@
                         </span>
                     </div>
 
-                    {{-- Status & No. Ahli Badges --}}
+                    {{-- Status & No. Ahli Badges (list parity: payment-based Aktif via listStatusDisplayForCurrentYear) --}}
                     <div class="flex flex-wrap justify-center gap-2 mt-3">
-                        @if($member->memberStatus)
-                            @php
-                                $statusColors = [
-                                    'aktif' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-                                    'tidak_aktif' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
-                                    'meninggal' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-                                ];
-                                $statusClass = $statusColors[$member->memberStatus->code] ?? $statusColors['tidak_aktif'];
-                            @endphp
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
-                                {{ $member->memberStatus->name }}
-                            </span>
-                        @endif
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
+                            {{ $listStatusName }}
+                        </span>
                         @if($member->no_ahli)
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-800 text-white dark:bg-gray-600">
                                 {{ $member->no_ahli }}
@@ -183,8 +203,8 @@
                                 <div>
                                     <label for="member_status_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status Ahli <span class="text-red-500">*</span></label>
                                     <select name="member_status_id" id="member_status_id" required class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                                        @foreach($statuses as $s)
-                                            <option value="{{ $s->id }}" {{ old('member_status_id', $member->member_status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                                        @foreach($statusesForMemberSelect as $s)
+                                            <option value="{{ $s->id }}" {{ (string) $memberStatusSelectId === (string) $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -438,6 +458,7 @@
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Jumlah</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Jenis Pembayaran</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Status</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Tindakan</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
@@ -445,7 +466,7 @@
                                                 @php
                                                     $start = $payment->tahun_mula ?? $payment->tahun_bayar;
                                                     $end = $payment->tahun_tamat ?? $payment->tahun_bayar;
-                                                    $yearLabel = $start === $end ? (string) $payment->tahun_bayar : $payment->tahun_bayar . ' (liputan ' . $start . '\u2013' . $end . ')';
+                                                    $yearLabel = $start === $end ? (string) $payment->tahun_bayar : $payment->tahun_bayar . ' (liputan ' . $start . '–' . $end . ')';
                                                 @endphp
                                                 <tr class="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors duration-150">
                                                     <td class="px-4 py-3.5 text-sm font-semibold text-gray-900 dark:text-white">{{ $yearLabel }}</td>
@@ -468,6 +489,17 @@
                                                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                                                             Disahkan
                                                         </span>
+                                                    </td>
+                                                    <td class="px-4 py-3.5 whitespace-nowrap">
+                                                        <a href="{{ route('admin.payments.receipt', $payment) }}"
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800"
+                                                            aria-label="Muat turun resit PDF"
+                                                            title="Muat turun resit (PDF)">
+                                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
+                                                            PDF
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             @endforeach
