@@ -7,32 +7,18 @@
 @page { size:A4 portrait; margin:12mm 14mm 10mm 14mm; }
 body { font-family:'DejaVu Sans',sans-serif; font-size:10.5px; color:#1e293b; background:#fff; margin:0; padding:0; line-height:1.5; }
 table { border-collapse:collapse; }
-
-/* Header */
-.logo-box  { background-color:#1a3c5e; color:#fff; font-size:20px; font-weight:700; width:42px; height:42px; text-align:center; vertical-align:middle; border-radius:7px; }
-.brand-name{ font-size:19px; font-weight:700; color:#1a3c5e; padding-left:9px; vertical-align:middle; }
-.rtitle    { font-size:24px; font-weight:800; color:#1a3c5e; letter-spacing:1px; text-align:right; }
-.rno       { font-size:11px; color:#2563eb; font-weight:700; text-align:right; padding-top:3px; }
-.rdate     { font-size:9px; color:#94a3b8; text-align:right; padding-top:2px; }
-
-/* Banner */
-.banner-ok  { font-size:11px; font-weight:700; color:#15803d; }
-.banner-sub { font-size:9.5px; color:#166534; padding-top:2px; }
-
-/* Section label */
-.slabel { font-size:8.5px; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:1px; }
-
-/* Items table */
+.logo-box   { background-color:#1a3c5e; color:#fff; font-size:20px; font-weight:700; width:42px; height:42px; text-align:center; vertical-align:middle; border-radius:7px; }
+.brand-name { font-size:19px; font-weight:700; color:#1a3c5e; padding-left:9px; vertical-align:middle; }
+.rtitle     { font-size:24px; font-weight:800; color:#1a3c5e; letter-spacing:1px; text-align:right; }
+.rno        { font-size:11px; color:#2563eb; font-weight:700; text-align:right; padding-top:3px; }
+.rdate      { font-size:9px; color:#94a3b8; text-align:right; padding-top:2px; }
+.slabel     { font-size:8.5px; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:1px; }
 .itable thead td { background-color:#1a3c5e; color:#fff; padding:7px 9px; font-size:9.5px; font-weight:700; }
 .itable tbody td { padding:8px 9px; border-bottom:1px solid #f1f5f9; color:#334155; }
 .itable .row-alt td { background-color:#f8fafc; }
 .iname { font-weight:700; color:#1a3c5e; }
 .idesc { font-size:8.5px; color:#94a3b8; padding-top:2px; }
-
-/* Notes */
 .notes { background-color:#fffbeb; border:1px solid #fde68a; border-radius:5px; padding:8px 12px; font-size:9.5px; color:#92400e; line-height:1.65; }
-
-/* Footer */
 .foot-l { font-size:8.5px; color:#94a3b8; line-height:1.7; vertical-align:bottom; }
 .foot-r { font-size:8.5px; color:#94a3b8; text-align:right; vertical-align:bottom; }
 </style>
@@ -40,9 +26,7 @@ table { border-collapse:collapse; }
 <body>
 @php
     $isSinglePayment = isset($payment);
-    if (!$member->relationLoaded('payments')) {
-        $member->load(['payments.yuran']);
-    }
+    if (!$member->relationLoaded('payments')) { $member->load(['payments.yuran']); }
     $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED)->values();
     if ($isSinglePayment) $approvedPayments = collect([$payment]);
     $totalPaid       = $approvedPayments->sum(fn($p) => (float)($p->jumlah ?? 0));
@@ -54,7 +38,7 @@ table { border-collapse:collapse; }
     $isActive        = str_contains(strtolower($statusName), 'aktif');
 @endphp
 
-{{-- TOP ACCENT --}}
+{{-- TOP ACCENT STRIP --}}
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr><td height="5" style="background-color:#1a3c5e; font-size:1px; line-height:1px;">&nbsp;</td></tr>
 </table>
@@ -68,12 +52,8 @@ table { border-collapse:collapse; }
           <td class="logo-box" width="42" height="42" align="center" valign="middle">B</td>
           <td class="brand-name">BAKIS</td>
         </tr>
-        <tr>
-          <td colspan="2" style="font-size:9px; color:#7a8fa6; padding-top:3px; padding-left:51px;">Sistem Pengurusan Keahlian</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="font-size:8.5px; color:#94a3b8; padding-left:51px;">Dokumen resit dijana secara elektronik.</td>
-        </tr>
+        <tr><td colspan="2" style="font-size:9px; color:#7a8fa6; padding-top:3px; padding-left:51px;">Sistem Pengurusan Keahlian</td></tr>
+        <tr><td colspan="2" style="font-size:8.5px; color:#94a3b8; padding-left:51px;">Dokumen resit dijana secara elektronik.</td></tr>
       </table>
     </td>
     <td width="38%" style="vertical-align:top;">
@@ -84,26 +64,17 @@ table { border-collapse:collapse; }
   </tr>
 </table>
 
-{{-- STATUS BANNER --}}
+{{-- STATUS BANNER — no dot icon, just left border + text --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#dcfce7; border-left:4px solid #16a34a; border-radius:5px; margin-bottom:12px;">
   <tr>
     <td style="padding:9px 14px;">
-      <table cellpadding="0" cellspacing="0">
-        <tr>
-          <td width="16" style="vertical-align:middle;">
-            <table cellpadding="0" cellspacing="0"><tr><td width="10" height="10" style="background-color:#16a34a; border-radius:5px; font-size:1px;">&nbsp;</td></tr></table>
-          </td>
-          <td style="padding-left:8px; vertical-align:middle;">
-            @if($isSinglePayment)
-              <div class="banner-ok">&#10004; Bayaran diterima &amp; disahkan</div>
-              <div class="banner-sub">Resit rasmi bagi pembayaran yuran keahlian &mdash; {{ match($payment->jenis ?? '') { 'pendaftaran_baru'=>'Pendaftaran Baru','pembaharuan'=>'Pembaharuan',default=>'Keahlian' } }}</div>
-            @else
-              <div class="banner-ok">&#10004; Ringkasan pembayaran disahkan</div>
-              <div class="banner-sub">Status: {{ $statusName }} &mdash; {{ $approvedPayments->count() }} rekod disahkan</div>
-            @endif
-          </td>
-        </tr>
-      </table>
+      @if($isSinglePayment)
+        <div style="font-size:11px; font-weight:700; color:#15803d;">Bayaran diterima &amp; disahkan</div>
+        <div style="font-size:9.5px; color:#166534; padding-top:2px;">Resit rasmi bagi pembayaran yuran keahlian &mdash; {{ match($payment->jenis ?? '') { 'pendaftaran_baru'=>'Pendaftaran Baru','pembaharuan'=>'Pembaharuan',default=>'Keahlian' } }}</div>
+      @else
+        <div style="font-size:11px; font-weight:700; color:#15803d;">Ringkasan pembayaran disahkan</div>
+        <div style="font-size:9.5px; color:#166534; padding-top:2px;">Status: {{ $statusName }} &mdash; {{ $approvedPayments->count() }} rekod disahkan</div>
+      @endif
     </td>
   </tr>
 </table>
@@ -111,26 +82,25 @@ table { border-collapse:collapse; }
 {{-- MAKLUMAT AHLI --}}
 <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
 
-  {{-- Card header bar --}}
+  {{-- Header bar — plain text, no icon --}}
   <tr>
-    <td colspan="3" style="background-color:#1a3c5e; border-radius:6px 6px 0 0; padding:9px 14px;">
+    <td style="background-color:#1a3c5e; border-radius:6px 6px 0 0; padding:9px 14px;">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="vertical-align:middle;">
-            {{-- &#9632; = solid square (■), safe in DejaVu Sans --}}
-            <span style="font-size:11px; font-weight:700; color:#ffffff; letter-spacing:0.5px;">&#9632;&nbsp; MAKLUMAT AHLI &amp; PENGEBILAN</span>
+          <td style="vertical-align:middle; font-size:11px; font-weight:700; color:#ffffff; letter-spacing:0.5px;">
+            MAKLUMAT AHLI &amp; PENGEBILAN
           </td>
           <td style="text-align:right; vertical-align:middle;">
-            <span style="background-color:{{ $isActive ? '#16a34a' : '#dc2626' }}; color:#ffffff; font-size:8.5px; font-weight:700; padding:2px 9px; border-radius:20px;">&#9679;&nbsp;{{ strtoupper($statusName) }}</span>
+            <span style="background-color:{{ $isActive ? '#16a34a' : '#dc2626' }}; color:#ffffff; font-size:8.5px; font-weight:700; padding:2px 10px; border-radius:20px;">{{ strtoupper($statusName) }}</span>
           </td>
         </tr>
       </table>
     </td>
   </tr>
 
-  {{-- Row 1: Nama | No. Ahli --}}
+  {{-- Row 1: Nama Ahli | No. Ahli --}}
   <tr>
-    <td colspan="3" style="padding:0; border-bottom:1px solid #f1f5f9;">
+    <td style="padding:0; border-bottom:1px solid #f1f5f9;">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td width="4" style="background-color:#2563eb; font-size:1px;">&nbsp;</td>
@@ -149,7 +119,7 @@ table { border-collapse:collapse; }
 
   {{-- Row 2: E-mel | No. Telefon --}}
   <tr>
-    <td colspan="3" style="padding:0; border-bottom:1px solid #f1f5f9;">
+    <td style="padding:0; border-bottom:1px solid #f1f5f9;">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td width="4" style="background-color:#e2e8f0; font-size:1px;">&nbsp;</td>
@@ -168,10 +138,10 @@ table { border-collapse:collapse; }
 
   {{-- Row 3: No. KP | Tarikh Daftar --}}
   <tr>
-    <td colspan="3" style="padding:0;">
+    <td style="padding:0;">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td width="4" style="background-color:#e2e8f0; font-size:1px; border-radius:0 0 0 6px;">&nbsp;</td>
+          <td width="4" style="background-color:#e2e8f0; font-size:1px;">&nbsp;</td>
           <td style="padding:8px 14px;">
             <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">No. Kad Pengenalan</div>
             <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->no_kp ?? '&mdash;' }}</div>
@@ -264,7 +234,7 @@ table { border-collapse:collapse; }
         </td>
         <td width="25%" style="padding:9px 12px; background-color:#dcfce7; border-radius:0 5px 5px 0;">
           <div style="font-size:8px; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Status</div>
-          <div style="font-size:10px; color:#15803d; font-weight:700; padding-top:3px;">&#10004; DIBAYAR</div>
+          <div style="font-size:10px; color:#15803d; font-weight:700; padding-top:3px;">DIBAYAR</div>
         </td>
       </tr>
     </table>
@@ -273,8 +243,7 @@ table { border-collapse:collapse; }
 
 {{-- NOTES --}}
 <div class="notes" style="margin-bottom:10px;">
-  {{-- &#9654; = right-pointing triangle (►), safe in DejaVu Sans --}}
-  <strong style="display:block; margin-bottom:3px; font-size:10px;">&#9654; Nota Penting:</strong>
+  <strong style="display:block; margin-bottom:3px; font-size:10px;">Nota Penting:</strong>
   1. Resit ini dijana komputer dan sah tanpa tandatangan fizikal.<br/>
   2. Faedah keahlian berkuat kuasa mengikut tarikh kelulusan pembayaran.<br/>
   3. Sila simpan resit ini untuk rujukan dan rekod anda.<br/>
