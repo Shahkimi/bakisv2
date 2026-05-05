@@ -225,6 +225,7 @@
                                         <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jumlah</th>
                                         <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jenis</th>
                                         <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Resit</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
@@ -253,6 +254,18 @@
                                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
                                                     Ditolak
                                                 </span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 sm:px-5 py-3.5">
+                                            @if($p->status === 'approved' && filled($checkedNoKp))
+                                                <a href="{{ route('semak.payments.receipt', $p) }}?{{ http_build_query(['no_kp' => $checkedNoKp]) }}"
+                                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/55 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors no-underline"
+                                                   aria-label="Muat turun resit PDF">
+                                                    <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                                    PDF
+                                                </a>
+                                            @else
+                                                <span class="text-slate-300 dark:text-slate-600">—</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -296,6 +309,16 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if($p->status === 'approved' && filled($checkedNoKp))
+                                    <div class="pt-2 border-t border-slate-200/80 dark:border-slate-600/60">
+                                        <a href="{{ route('semak.payments.receipt', $p) }}?{{ http_build_query(['no_kp' => $checkedNoKp]) }}"
+                                           class="inline-flex w-full items-center justify-center gap-1 px-2.5 py-2 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/55 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors no-underline"
+                                           aria-label="Muat turun resit PDF">
+                                            <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                            PDF
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
                             @endforeach
                         </div>

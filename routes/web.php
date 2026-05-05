@@ -67,6 +67,7 @@ Route::middleware('throttle:semak')->group(function () {
     Route::get('/semak', [SemakController::class, 'index'])->name('semak.index');
     Route::post('/semak', [SemakController::class, 'check'])->name('semak.check');
     Route::get('/semak/result', [SemakController::class, 'showResult'])->name('semak.result');
+    Route::get('/semak/payments/{payment}/receipt', [SemakController::class, 'downloadPaymentReceipt'])->name('semak.payments.receipt');
     Route::get('/semak/qr/{paymentAccount}', [SemakController::class, 'showQr'])->name('semak.qr')->middleware('signed');
     Route::post('/semak/bayar', [SemakController::class, 'bayar'])->name('semak.bayar');
     Route::post('/semak/daftar', [SemakController::class, 'register'])->name('semak.register');

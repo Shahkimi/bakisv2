@@ -9,10 +9,13 @@ use App\Http\Requests\RegisterMemberRequest;
 use App\Http\Requests\RenewalPaymentRequest;
 use App\Models\Jabatan;
 use App\Models\Jawatan;
+use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Services\MemberService;
+use App\Services\PaymentReceiptPdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -22,7 +25,8 @@ use Throwable;
 class SemakController extends Controller
 {
     public function __construct(
-        private readonly MemberService $memberService
+        private readonly MemberService $memberService,
+        private readonly PaymentReceiptPdfService $paymentReceiptPdfService,
     ) {}
 
     public function index(Request $request): View
@@ -91,6 +95,40 @@ class SemakController extends Controller
             'result' => $result,
             'checkedNoKp' => $noKp,
             'paymentAccounts' => $paymentAccounts,
+        ]);
+    }
+
+    public function downloadPaymentReceipt(Request $request, Payment $payment): Response
+    {
+        $noKpRaw = $request->query('no_kp');
+        if (! is_string($noKpRaw)) {
+            abort(404);
+        }
+        $queryKp = preg_replace('/\D/', '', $noKpRaw);
+        if (strlen($queryKp) !== 12) {
+            abort(404);
+        }
+
+        if ($payment->status !== Payment::STATUS_APPROVED) {
+            abort(404);
+        }
+
+        $payment->loadMissing('member');
+        $member = $payment->member;
+        if ($member === null) {
+            abort(404);
+        }
+
+        $memberKp = preg_replace('/\D/', '', (string) $member->no_kp);
+        if ($queryKp === '' || $memberKp === '' || $queryKp !== $memberKp) {
+            abort(404);
+        }
+
+        ['content' => $content, 'filename' => $filename] = $this->paymentReceiptPdfService->render($payment);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 

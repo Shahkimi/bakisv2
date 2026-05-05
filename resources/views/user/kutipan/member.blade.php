@@ -300,6 +300,10 @@
                 .replaceAll("'", '&#039;');
         }
 
+        function paymentReceiptDownloadUrl(paymentId) {
+            return `{{ url('/user/payments') }}/${encodeURIComponent(String(paymentId))}/receipt`;
+        }
+
         function initials(nama) {
             const parts = String(nama || '').trim().split(/\s+/).filter(Boolean);
             const firstTwo = parts.slice(0, 2).map(p => p[0]).join('');
@@ -531,6 +535,15 @@
                         <div class="text-xs text-gray-600 dark:text-gray-300">${escapeHtml(row.approvedat)}</div>
                     </div>` : '';
 
+                const receiptPdfIcon = status === 'approved'
+                    ? `<a href="${paymentReceiptDownloadUrl(row.id)}"
+                         class="inline-flex items-center justify-center rounded-lg p-1.5 shrink-0 text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/40 ring-1 ring-inset ring-indigo-200/80 dark:ring-indigo-600/50 hover:bg-indigo-200 dark:hover:bg-indigo-900/55 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                         title="Muat turun resit PDF"
+                         aria-label="Muat turun resit PDF">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        </a>`
+                    : '';
+
                 const el = document.createElement('div');
                 el.className = 'history-payment-card group relative rounded-xl border border-gray-100 dark:border-gray-700/80 bg-white dark:bg-gray-800 opacity-0 translate-y-2 shadow-sm hover:shadow-md dark:hover:border-gray-600 transition-all duration-300 ease-out overflow-hidden';
                 el.innerHTML = `
@@ -562,8 +575,11 @@
                             <div class="mt-2.5 pt-2.5 border-t border-gray-200/60 dark:border-gray-700/60 grid grid-cols-1 gap-x-4 gap-y-1.5">
                             <div>
                                 <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">No. Resit</div>
-                                <div class="text-xs font-mono font-medium text-gray-700 dark:text-gray-200">
-                                    ${escapeHtml(row.noresitsistem) || '—'}
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="text-xs font-mono font-medium text-gray-700 dark:text-gray-200 min-w-0 flex-1 break-all">
+                                        ${escapeHtml(row.noresitsistem) || '—'}
+                                    </div>
+                                    ${receiptPdfIcon}
                                 </div>
                             </div>
                             ${approvedRow}

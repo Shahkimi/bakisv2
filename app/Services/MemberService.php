@@ -9,6 +9,7 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Yuran;
+use App\Notifications\PaymentApprovedReceiptNotification;
 use App\Notifications\PaymentProofPendingReviewNotification;
 use App\Notifications\PaymentProofUploadedNotification;
 use Illuminate\Http\UploadedFile;
@@ -239,6 +240,19 @@ final readonly class MemberService
                 'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
             ]);
         });
+
+        $payment->refresh()->load(['member.jabatan', 'member.jawatan', 'member.memberStatus', 'yuran']);
+        $member = $payment->member;
+
+        if (filled($member->email)) {
+            Notification::route('mail', [$member->email => $member->nama])
+                ->notify(new PaymentApprovedReceiptNotification($payment));
+        } else {
+            Log::info('Kelulusan pembayaran: tiada e-mel ahli untuk resit PDF.', [
+                'member_id' => $member->id,
+                'payment_id' => $payment->id,
+            ]);
+        }
     }
 
     public function submitRenewalPayment(string $noKp, array $data): Member

@@ -9,26 +9,24 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Seeds application users (admin and regular accounts for development).
- * Do not rely on these credentials in production.
+ * Seeds one panel pengguna account (role {@see User::ROLE_USER}).
+ * Run alone: php artisan db:seed --class=RoleUserSeeder
  */
-final class UserSeeder extends Seeder
+final class RoleUserSeeder extends Seeder
 {
     public function run(): void
     {
         $password = Hash::make('password');
 
         User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'user@example.com'],
             [
-                'name' => 'Admin User',
-                'no_kp' => '800101145022',
+                'name' => 'Panel User',
+                'no_kp' => '900215065088',
                 'password' => $password,
-                'role' => User::ROLE_ADMIN,
+                'role' => User::ROLE_USER,
                 'email_verified_at' => now(),
             ]
         );
-
-        $this->call(RoleUserSeeder::class);
     }
 }
