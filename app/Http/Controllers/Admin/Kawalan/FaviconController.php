@@ -18,7 +18,7 @@ final class FaviconController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.Favicon.index', [
+        return view('admin.kawalan.favicon.index', [
             'faviconUrl' => $this->siteSettingService->faviconPublicUrl(),
         ]);
     }
