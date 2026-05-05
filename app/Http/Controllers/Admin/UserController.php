@@ -26,7 +26,7 @@ final class UserController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.pengguna.index');
+        return view('admin.kawalan.pengguna');
     }
 
     public function getData(Request $request): JsonResponse

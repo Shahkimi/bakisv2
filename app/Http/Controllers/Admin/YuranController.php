@@ -21,7 +21,7 @@ final class YuranController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.yuran.index');
+        return view('admin.kawalan.yuran');
     }
 
     public function getData(Request $request): JsonResponse

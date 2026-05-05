@@ -21,7 +21,7 @@ final class JawatanController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.jawatan.index');
+        return view('admin.kawalan.jawatan');
     }
 
     public function getData(Request $request): JsonResponse

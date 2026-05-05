@@ -23,7 +23,7 @@ final class PaymentAccountController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.account.index');
+        return view('admin.kawalan.account');
     }
 
     public function getData(Request $request): JsonResponse
