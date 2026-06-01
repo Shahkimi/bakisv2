@@ -50,6 +50,7 @@ final class AdminKutipanTest extends TestCase
 
         $pembaharuanYuran10 = Yuran::create([
             'jenis_yuran' => 'Pembaharuan Keahlian',
+            'code' => Member::YURAN_CODE_PEMBAHARUAN,
             'jumlah' => 10.00,
             'tempoh_tahun' => 1,
             'is_active' => true,
@@ -341,6 +342,7 @@ final class AdminKutipanTest extends TestCase
         $refs = $this->seedBasicReferenceData();
         $pendaftaranYuran = Yuran::query()->create([
             'jenis_yuran' => 'Pendaftaran Keahlian',
+            'code' => Member::YURAN_CODE_PENDAFTARAN,
             'jumlah' => 12.00,
             'tempoh_tahun' => 1,
             'is_active' => true,
@@ -378,6 +380,7 @@ final class AdminKutipanTest extends TestCase
         $refs = $this->seedBasicReferenceData();
         $pendaftaranYuran = Yuran::query()->create([
             'jenis_yuran' => 'Pendaftaran Keahlian',
+            'code' => Member::YURAN_CODE_PENDAFTARAN,
             'jumlah' => 12.00,
             'tempoh_tahun' => 1,
             'is_active' => true,

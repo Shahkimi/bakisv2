@@ -35,6 +35,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Jenis Yuran</th>
+                    <th>Kod</th>
                     <th>Jumlah (MYR)</th>
                     <th>Status</th>
                     <th>Tindakan</th>
@@ -117,6 +118,12 @@ table.dataTable thead .sorting_desc::after { opacity: 1; background-image: url("
 $(document).ready(function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
+    const systemYuranCodes = @json(\App\Models\Yuran::SYSTEM_CODES);
+
+    function isSystemYuranCode(code) {
+        return code && systemYuranCodes.includes(code);
+    }
+
     function escapeAttr(s) {
         if (s == null) return '';
         return String(s)
@@ -143,12 +150,14 @@ $(document).ready(function() {
         const a = row.actions || {};
         const id = a.id;
         const jenisYuran = escapeAttr(a.jenis_yuran);
+        const code = escapeAttr(a.code || '');
         const jumlah = a.jumlah != null ? String(a.jumlah) : '';
         const active = a.is_active ? '1' : '0';
         const show = a.is_show ? '1' : '0';
+        const isSystemDefined = a.is_system_defined ? '1' : '0';
         return '<div class="flex flex-wrap items-center gap-1.5">' +
             '<button type="button" class="btn-edit-yuran inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Edit yuran" aria-label="Edit yuran" ' +
-            'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '" data-jumlah="' + escapeAttr(jumlah) + '" data-active="' + active + '" data-show="' + show + '">' + iconEdit + '</button>' +
+            'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '" data-code="' + code + '" data-jumlah="' + escapeAttr(jumlah) + '" data-active="' + active + '" data-show="' + show + '" data-is-system-defined="' + isSystemDefined + '">' + iconEdit + '</button>' +
             '<button type="button" class="btn-delete-yuran inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" title="Padam yuran" aria-label="Padam yuran" ' +
             'data-id="' + id + '" data-jenis-yuran="' + jenisYuran + '">' + iconTrash + '</button></div>';
     }
@@ -163,6 +172,7 @@ $(document).ready(function() {
         columns: [
             { data: 'id', name: 'id', width: '80px' },
             { data: 'jenis_yuran', name: 'jenis_yuran' },
+            { data: 'code', name: 'code' },
             { data: 'jumlah_formatted', name: 'jumlah', orderable: true, searchable: false },
             { data: 'is_active', name: 'is_active', orderable: false, render: function(d, type, row) { return renderStatusBadge(row); } },
             { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, type, row) { return renderActionsButton(row); } }
@@ -193,10 +203,23 @@ $(document).ready(function() {
     $(document).on('click', '.btn-edit-yuran', function() {
         const id = $(this).data('id');
         const jenisYuran = $(this).data('jenis-yuran');
+        const code = $(this).data('code') || '';
         const jumlah = $(this).data('jumlah');
         const active = $(this).data('active') === 1 || $(this).data('active') === '1';
         const show = $(this).data('show') === 1 || $(this).data('show') === '1';
+        const isSystemDefined = $(this).data('is-system-defined') === 1 || $(this).data('is-system-defined') === '1';
         const safeJenis = (jenisYuran || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeCode = (code || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const codeFieldHtml = isSystemDefined
+            ? `<div class="field">
+                        <label for="swal-code">Kod Yuran</label>
+                        <input type="text" id="swal-code" class="input-text bg-gray-100 text-gray-500" value="${safeCode}" readonly />
+                        <p class="mt-1 text-xs text-gray-500">Kod yuran sistem tidak boleh diubah.</p>
+                    </div>`
+            : `<div class="field">
+                        <label for="swal-code">Kod Yuran</label>
+                        <input type="text" id="swal-code" class="input-text bg-gray-50 text-gray-500" value="${safeCode}" readonly />
+                    </div>`;
 
         Swal.fire({
             title: '<span style="display:flex;align-items:center;gap:0.5rem;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Yuran</span>',
@@ -206,6 +229,7 @@ $(document).ready(function() {
                         <label for="swal-jenis">Jenis Yuran</label>
                         <input type="text" id="swal-jenis" class="input-text" name="jenis_yuran" value="${safeJenis}" placeholder="e.g. Yuran Tahunan" autocomplete="off" />
                     </div>
+                    ${codeFieldHtml}
                     <div class="field">
                         <label for="swal-jumlah">Jumlah (RM)</label>
                         <input type="number" id="swal-jumlah" class="input-text" name="jumlah" value="${escapeAttr(jumlah)}" placeholder="0.00" min="0" step="0.01" autocomplete="off" />
@@ -317,7 +341,11 @@ $(document).ready(function() {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Yuran telah dikemas kini.', timer: 2000, timerProgressBar: true, showConfirmButton: false });
                     table.ajax.reload(null, false);
                 } else {
-                    const msg = (data.errors && (data.errors.jenis_yuran && data.errors.jenis_yuran[0]) || (data.errors.jumlah && data.errors.jumlah[0])) || data.message || 'Ralat semasa menyimpan.';
+                    const msg = (data.errors && (
+                        (data.errors.jenis_yuran && data.errors.jenis_yuran[0])
+                        || (data.errors.code && data.errors.code[0])
+                        || (data.errors.jumlah && data.errors.jumlah[0])
+                    )) || data.message || 'Ralat semasa menyimpan.';
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
                 }
             })
@@ -335,6 +363,11 @@ $(document).ready(function() {
                     <div class="field">
                         <label for="swal-jenis">Jenis Yuran</label>
                         <input type="text" id="swal-jenis" class="input-text" name="jenis_yuran" value="" placeholder="e.g. Yuran Tahunan" autocomplete="off" />
+                    </div>
+                    <div class="field">
+                        <label for="swal-code">Kod Yuran</label>
+                        <input type="text" id="swal-code" class="input-text" name="code" value="" placeholder="e.g. yuran_tahunan" autocomplete="off" />
+                        <p class="mt-1 text-xs text-gray-500">Huruf kecil, nombor, dan garis bawah sahaja.</p>
                     </div>
                     <div class="field">
                         <label for="swal-jumlah">Jumlah (RM)</label>
@@ -407,9 +440,22 @@ $(document).ready(function() {
             },
             preConfirm: function() {
                 const jenisVal = (document.getElementById('swal-jenis').value || '').trim();
+                const codeVal = (document.getElementById('swal-code').value || '').trim().toLowerCase();
                 const jumlahVal = document.getElementById('swal-jumlah').value;
                 if (!jenisVal) {
                     Swal.showValidationMessage('Jenis yuran wajib diisi.');
+                    return false;
+                }
+                if (!codeVal) {
+                    Swal.showValidationMessage('Kod yuran wajib diisi.');
+                    return false;
+                }
+                if (!/^[a-z0-9_]+$/.test(codeVal)) {
+                    Swal.showValidationMessage('Kod yuran mesti huruf kecil, nombor, atau garis bawah sahaja.');
+                    return false;
+                }
+                if (isSystemYuranCode(codeVal)) {
+                    Swal.showValidationMessage('Kod yuran sistem sudah wujud.');
                     return false;
                 }
                 if (jumlahVal === '' || isNaN(parseFloat(jumlahVal)) || parseFloat(jumlahVal) < 0) {
@@ -418,7 +464,7 @@ $(document).ready(function() {
                 }
                 const isActive = document.getElementById('swal-active').value === '1';
                 const isShow = document.getElementById('swal-is-show').value === '1';
-                return { jenis_yuran: jenisVal, jumlah: parseFloat(jumlahVal), is_active: isActive, is_show: isShow };
+                return { jenis_yuran: jenisVal, code: codeVal, jumlah: parseFloat(jumlahVal), is_active: isActive, is_show: isShow };
             }
         }).then(function(result) {
             if (!result.isConfirmed || !result.value) return;
@@ -426,6 +472,7 @@ $(document).ready(function() {
             const formData = new URLSearchParams();
             formData.append('_token', csrfToken);
             formData.append('jenis_yuran', result.value.jenis_yuran);
+            formData.append('code', result.value.code);
             formData.append('jumlah', result.value.jumlah);
             formData.append('is_active', result.value.is_active ? '1' : '0');
             formData.append('is_show', result.value.is_show ? '1' : '0');
@@ -446,7 +493,11 @@ $(document).ready(function() {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Yuran berjaya ditambah.', timer: 2000, timerProgressBar: true, showConfirmButton: false });
                     table.ajax.reload(null, false);
                 } else {
-                    const msg = (data.errors && (data.errors.jenis_yuran && data.errors.jenis_yuran[0]) || (data.errors.jumlah && data.errors.jumlah[0])) || data.message || 'Ralat semasa menyimpan.';
+                    const msg = (data.errors && (
+                        (data.errors.jenis_yuran && data.errors.jenis_yuran[0])
+                        || (data.errors.code && data.errors.code[0])
+                        || (data.errors.jumlah && data.errors.jumlah[0])
+                    )) || data.message || 'Ralat semasa menyimpan.';
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
                 }
             })

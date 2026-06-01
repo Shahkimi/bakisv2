@@ -36,11 +36,12 @@ final readonly class MemberService
         }
 
         $currentYear = (int) date('Y');
+        $graceThreshold = $currentYear - Member::GRACE_YEARS;
         $paymentThisYear = $member->payments()
             ->where('tahun_mula', '<=', $currentYear)
-            ->where(function ($q) use ($currentYear) {
+            ->where(function ($q) use ($graceThreshold) {
                 $q->whereNull('tahun_tamat')
-                    ->orWhere('tahun_tamat', '>=', $currentYear);
+                    ->orWhere('tahun_tamat', '>=', $graceThreshold);
             })
             ->orderByDesc('tahun_bayar')
             ->first();
@@ -90,7 +91,7 @@ final readonly class MemberService
 
             $member = Member::create($memberData);
 
-            $pendaftaranYuran = Yuran::where('jumlah', 12)->first();
+            $pendaftaranYuran = Yuran::findByCode(Member::YURAN_CODE_PENDAFTARAN);
             $paymentData = [
                 'member_id' => $member->id,
                 'tahun_bayar' => (int) date('Y'),
@@ -152,7 +153,7 @@ final readonly class MemberService
 
             if ($hasPayment) {
                 $tahunBayar = (int) ($data['tahun_bayar'] ?? date('Y'));
-                $yuranId = isset($data['yuran_id']) ? (int) $data['yuran_id'] : (Yuran::where('jumlah', 12)->first()?->id ?? 1);
+                $yuranId = isset($data['yuran_id']) ? (int) $data['yuran_id'] : (Yuran::findByCode(Member::YURAN_CODE_PENDAFTARAN)?->id ?? 1);
                 $paymentCombo = isset($data['payment_combo']) && is_string($data['payment_combo'])
                     ? $data['payment_combo']
                     : 'registration_only';
@@ -175,7 +176,7 @@ final readonly class MemberService
                         : ($tahunBayar + 1);
 
                     $pembaharuanYuran10Id = Yuran::query()
-                        ->where('jumlah', 10.00)
+                        ->where('code', Member::YURAN_CODE_PEMBAHARUAN)
                         ->where('tempoh_tahun', 1)
                         ->value('id');
 
@@ -268,7 +269,7 @@ final readonly class MemberService
         $years = array_values(array_unique($years));
         sort($years);
 
-        $yuran = Yuran::where('jumlah', 10)->first();
+        $yuran = Yuran::findByCode(Member::YURAN_CODE_PEMBAHARUAN);
         $bukti = $data['bukti_bayaran'] ?? null;
 
         /** @var list<int> $paymentIds */

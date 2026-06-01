@@ -43,6 +43,7 @@ final class YuranController extends Controller
             'data' => [
                 'id' => $yuran->id,
                 'jenis_yuran' => $yuran->jenis_yuran,
+                'code' => $yuran->code,
                 'jumlah' => $yuran->jumlah,
                 'is_active' => $yuran->is_active,
             ],
@@ -59,6 +60,7 @@ final class YuranController extends Controller
             'data' => [
                 'id' => $yuran->id,
                 'jenis_yuran' => $yuran->jenis_yuran,
+                'code' => $yuran->code,
                 'jumlah' => $yuran->jumlah,
                 'is_active' => $yuran->is_active,
             ],

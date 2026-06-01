@@ -14,6 +14,18 @@ class Member extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Number of grace years granted after a payment's `tahun_tamat`.
+     * A member is considered Aktif while current_year <= tahun_tamat + GRACE_YEARS.
+     */
+    public const int GRACE_YEARS = 1;
+
+    public const string YURAN_CODE_PENDAFTARAN = 'pendaftaran_keahlian';
+
+    public const string YURAN_CODE_PEMBAHARUAN = 'pembaharuan_tahunan';
+
+    public const string YURAN_CODE_PEMBAHARUAN_2_TAHUN = 'pembaharuan_2_tahun';
+
     protected $fillable = [
         'no_ahli',
         'jabatan_id',
@@ -69,23 +81,35 @@ class Member extends Model
 
     public function getMembershipFee(): float
     {
-        return $this->payments()->where('status', 'approved')->exists()
-            ? 10.00
-            : 12.00;
+        $code = $this->isWithinActiveGrace()
+            ? self::YURAN_CODE_PEMBAHARUAN
+            : self::YURAN_CODE_PENDAFTARAN;
+
+        return Yuran::amountForCode($code);
     }
 
     public function isAktifThisYear(): bool
     {
         $currentYear = (int) date('Y');
+        $graceThreshold = $currentYear - self::GRACE_YEARS;
 
         return $this->payments()
             ->where('status', 'approved')
             ->where('tahun_mula', '<=', $currentYear)
-            ->where(function ($q) use ($currentYear) {
+            ->where(function ($q) use ($graceThreshold) {
                 $q->whereNull('tahun_tamat')
-                    ->orWhere('tahun_tamat', '>=', $currentYear);
+                    ->orWhere('tahun_tamat', '>=', $graceThreshold);
             })
             ->exists();
+    }
+
+    /**
+     * Readable alias for {@see isAktifThisYear()} — true while any approved
+     * payment's coverage (plus grace year) still includes the current year.
+     */
+    public function isWithinActiveGrace(): bool
+    {
+        return $this->isAktifThisYear();
     }
 
     /**
@@ -97,14 +121,15 @@ class Member extends Model
     public static function aktifThisYearExistsDefinition(): array
     {
         $year = (int) date('Y');
+        $graceThreshold = $year - self::GRACE_YEARS;
 
         return [
-            'payments as aktif_this_year' => function (Builder $q) use ($year): void {
+            'payments as aktif_this_year' => function (Builder $q) use ($year, $graceThreshold): void {
                 $q->where('status', 'approved')
                     ->where('tahun_mula', '<=', $year)
-                    ->where(function (Builder $q2) use ($year): void {
+                    ->where(function (Builder $q2) use ($graceThreshold): void {
                         $q2->whereNull('tahun_tamat')
-                            ->orWhere('tahun_tamat', '>=', $year);
+                            ->orWhere('tahun_tamat', '>=', $graceThreshold);
                     });
             },
         ];

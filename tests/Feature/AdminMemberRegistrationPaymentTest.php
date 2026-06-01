@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Jabatan;
 use App\Models\Jawatan;
+use App\Models\Member;
 use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\Yuran;
@@ -50,6 +51,7 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
 
         $pendaftaranYuran = Yuran::create([
             'jenis_yuran' => 'Pendaftaran Keahlian',
+            'code' => Member::YURAN_CODE_PENDAFTARAN,
             'jumlah' => 12.00,
             'tempoh_tahun' => 1,
             'is_active' => true,
@@ -57,6 +59,7 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
 
         $pembaharuanYuran10 = Yuran::create([
             'jenis_yuran' => 'Pembaharuan Keahlian',
+            'code' => Member::YURAN_CODE_PEMBAHARUAN,
             'jumlah' => 10.00,
             'tempoh_tahun' => 1,
             'is_active' => true,

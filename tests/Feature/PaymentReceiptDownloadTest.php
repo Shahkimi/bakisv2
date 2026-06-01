@@ -40,6 +40,7 @@ final class PaymentReceiptDownloadTest extends TestCase
 
         $yuran = Yuran::create([
             'jenis_yuran' => 'Pembaharuan Keahlian',
+            'code' => Member::YURAN_CODE_PEMBAHARUAN,
             'jumlah' => 10.00,
             'tempoh_tahun' => 1,
             'is_active' => true,

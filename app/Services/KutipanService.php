@@ -40,7 +40,7 @@ final readonly class KutipanService
     {
         return Yuran::query()
             ->where('is_active', true)
-            ->where('jumlah', 10.00)
+            ->where('code', Member::YURAN_CODE_PEMBAHARUAN)
             ->orderBy('jenis_yuran')
             ->get();
     }
@@ -187,7 +187,7 @@ final readonly class KutipanService
     public function getMinimumRenewalYearAfterPendaftaran(Member $member): ?int
     {
         $pendaftaranYuranIds = Yuran::query()
-            ->where('jumlah', 12.00)
+            ->where('code', Member::YURAN_CODE_PENDAFTARAN)
             ->pluck('id');
 
         if ($pendaftaranYuranIds->isEmpty()) {

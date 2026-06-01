@@ -18,6 +18,8 @@ final readonly class YuranService
 
     public function update(Yuran $yuran, array $data): Yuran
     {
+        unset($data['code']);
+
         $yuran->update($data);
 
         return $yuran;
@@ -25,7 +27,7 @@ final readonly class YuranService
 
     public function getDataTableData(Request $request): JsonResponse
     {
-        $query = Yuran::query()->select(['id', 'jenis_yuran', 'jumlah', 'is_active', 'is_show']);
+        $query = Yuran::query()->select(['id', 'jenis_yuran', 'code', 'jumlah', 'is_active', 'is_show']);
 
         $this->applySearch($query, $request);
         $totalRecords = Yuran::count();
@@ -48,7 +50,10 @@ final readonly class YuranService
             return;
         }
         $term = '%'.addcslashes($searchValue, '%_\\').'%';
-        $query->where('jenis_yuran', 'like', $term);
+        $query->where(function (Builder $q) use ($term): void {
+            $q->where('jenis_yuran', 'like', $term)
+                ->orWhere('code', 'like', $term);
+        });
     }
 
     private function applyOrdering(Builder $query, Request $request): void
@@ -59,7 +64,7 @@ final readonly class YuranService
 
             return;
         }
-        $columns = ['id', 'jenis_yuran', 'jumlah', 'is_active'];
+        $columns = ['id', 'jenis_yuran', 'code', 'jumlah', 'is_active'];
         $columnIndex = (int) $order['column'];
         $dir = $order['dir'] === 'desc' ? 'desc' : 'asc';
         $column = $columns[$columnIndex] ?? 'jenis_yuran';
@@ -79,16 +84,20 @@ final readonly class YuranService
         return [
             'id' => $yuran->id,
             'jenis_yuran' => e($yuran->jenis_yuran),
+            'code' => e($yuran->code ?? ''),
             'jumlah' => $yuran->jumlah,
             'jumlah_formatted' => 'RM '.number_format((float) $yuran->jumlah, 2),
             'is_active' => $yuran->is_active,
             'is_show' => $yuran->is_show,
+            'is_system_defined' => $yuran->isSystemDefined(),
             'actions' => [
                 'id' => $yuran->id,
                 'jenis_yuran' => $yuran->jenis_yuran,
+                'code' => $yuran->code,
                 'jumlah' => $yuran->jumlah,
                 'is_active' => $yuran->is_active,
                 'is_show' => $yuran->is_show,
+                'is_system_defined' => $yuran->isSystemDefined(),
             ],
         ];
     }
