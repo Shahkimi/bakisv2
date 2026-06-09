@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AcaraKehadiranController;
+use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\CarianController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
@@ -147,6 +149,17 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::put('{paymentAccount}', [PaymentAccountController::class, 'update'])->name('update');
         Route::delete('{paymentAccount}', [PaymentAccountController::class, 'destroy'])->name('destroy');
     });
+    Route::prefix('kawalan/acara')->name('kawalan.acara.')->group(function () {
+        Route::get('/', [AcaraController::class, 'index'])->name('index');
+        Route::get('data', [AcaraController::class, 'getData'])->name('data');
+        Route::post('/', [AcaraController::class, 'store'])->name('store');
+        Route::put('{acara}', [AcaraController::class, 'update'])->name('update');
+        Route::delete('{acara}', [AcaraController::class, 'destroy'])->name('destroy');
+        Route::get('{acara}/poster', [AcaraController::class, 'poster'])->name('poster');
+        Route::get('{acara}/kehadiran', [AcaraController::class, 'kehadiran'])->name('kehadiran');
+        Route::get('{acara}/kehadiran/data', [AcaraController::class, 'kehadiranData'])->name('kehadiran.data');
+        Route::get('{acara}/kehadiran/pdf', [AcaraController::class, 'kehadiranPdf'])->name('kehadiran.pdf');
+    });
     Route::prefix('kawalan/favicon')->name('kawalan.favicon.')->group(function () {
         Route::get('/', [FaviconController::class, 'index'])->name('index');
         Route::post('/', [FaviconController::class, 'store'])->name('store');
@@ -182,3 +195,14 @@ Route::middleware(['auth', 'role.user'])->prefix('user')->name('user.')->group(f
 Route::get('/api/postcode/{code}', [PostcodeController::class, 'lookup'])
     ->middleware('throttle:60,1')
     ->name('api.postcode.lookup');
+
+// Public event attendance via short link (domain/{code}). Registered LAST and tightly
+// constrained so it never shadows existing named routes.
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/{code}', [AcaraKehadiranController::class, 'show'])
+        ->where('code', '[a-z0-9]{6,10}')
+        ->name('acara.public');
+    Route::post('/{code}', [AcaraKehadiranController::class, 'store'])
+        ->where('code', '[a-z0-9]{6,10}')
+        ->name('acara.attend');
+});
