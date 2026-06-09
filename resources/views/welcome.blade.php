@@ -375,9 +375,16 @@
 </head>
 
 <body>
+    @php
+        $brandLogoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl();
+    @endphp
     <header class="container topbar">
         <div class="brand">
-            <div class="brand-badge">BK</div>
+            @if ($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="BAKIS Membership" class="brand-badge" style="object-fit: cover;">
+            @else
+                <div class="brand-badge">BK</div>
+            @endif
             <span>BAKIS Membership</span>
         </div>
         <nav class="nav-links">

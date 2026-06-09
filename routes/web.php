@@ -151,6 +151,8 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/', [FaviconController::class, 'index'])->name('index');
         Route::post('/', [FaviconController::class, 'store'])->name('store');
         Route::delete('/', [FaviconController::class, 'destroy'])->name('destroy');
+        Route::post('logo', [FaviconController::class, 'storeLogo'])->name('logo.store');
+        Route::delete('logo', [FaviconController::class, 'destroyLogo'])->name('logo.destroy');
     });
 });
 

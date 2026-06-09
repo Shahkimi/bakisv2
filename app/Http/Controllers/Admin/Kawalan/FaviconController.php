@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Kawalan;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Kawalan\StoreFaviconRequest;
+use App\Http\Requests\Admin\Kawalan\StoreLogoRequest;
 use App\Services\SiteSettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -20,6 +21,7 @@ final class FaviconController extends Controller
     {
         return view('admin.kawalan.favicon', [
             'faviconUrl' => $this->siteSettingService->faviconPublicUrl(),
+            'logoUrl' => $this->siteSettingService->logoPublicUrl(),
         ]);
     }
 
@@ -41,6 +43,27 @@ final class FaviconController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Favicon telah dibuang.',
+        ]);
+    }
+
+    public function storeLogo(StoreLogoRequest $request): JsonResponse
+    {
+        $this->siteSettingService->storeLogo($request->file('logo'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo organisasi berjaya dikemas kini.',
+            'url' => $this->siteSettingService->logoPublicUrl(),
+        ]);
+    }
+
+    public function destroyLogo(): JsonResponse
+    {
+        $this->siteSettingService->clearLogo();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo organisasi telah dibuang.',
         ]);
     }
 }

@@ -4,13 +4,24 @@
 <!-- Sidebar Navigation -->
 <aside id="sidebar" class="fixed top-0 left-0 z-50 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
     <!-- Sidebar Header -->
+    @php
+        $brandLogoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl();
+    @endphp
     <div class="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
-            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg gradient-bg flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-            </div>
+            @if ($brandLogoUrl)
+                <img
+                    src="{{ $brandLogoUrl }}"
+                    alt="{{ config('app.name') }}"
+                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0 ring-1 ring-gray-200 dark:ring-gray-600"
+                >
+            @else
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg gradient-bg flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+            @endif
             <span class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
                 {{ config('app.name', 'Laravel') }}
             </span>
@@ -115,7 +126,7 @@
                         <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span class="truncate">Favicon</span>
+                        <span class="truncate">Logo & Favicon</span>
                     </a>
                 </div>
             </details>

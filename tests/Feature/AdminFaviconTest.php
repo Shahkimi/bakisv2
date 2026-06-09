@@ -35,7 +35,8 @@ final class AdminFaviconTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.kawalan.favicon.index'))
             ->assertOk()
-            ->assertSee('Favicon', false);
+            ->assertSee('Logo & Favicon', false)
+            ->assertSee('Logo Organisasi', false);
     }
 
     public function test_admin_can_upload_favicon_and_setting_is_stored(): void
