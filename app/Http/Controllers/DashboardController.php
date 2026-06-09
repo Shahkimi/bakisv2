@@ -4,35 +4,39 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Member;
+use App\Http\Requests\Dashboard\TidakAktifSearchRequest;
+use App\Services\DashboardService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
-class DashboardController extends Controller
+final class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly DashboardService $dashboardService,
+    ) {}
+
     public function index(): View
     {
         $currentYear = (int) date('Y');
-        $graceThreshold = $currentYear - Member::GRACE_YEARS;
+        $counts = $this->dashboardService->getStatusCounts($currentYear);
 
-        $activePaymentQuery = fn ($q) => $q
-            ->where('status', 'approved')
-            ->where('tahun_mula', '<=', $currentYear)
-            ->where(fn ($q2) => $q2->whereNull('tahun_tamat')->orWhere('tahun_tamat', '>=', $graceThreshold));
+        return view('dashboard', [
+            'aktifCount' => $counts['aktif'],
+            'tidakAktifCount' => $counts['tidak_aktif'],
+            'meninggalCount' => $counts['meninggal'],
+            'totalCount' => $counts['total'],
+            'currentYear' => $currentYear,
+        ]);
+    }
 
-        $excludedStatusCodes = ['meninggal', 'pending'];
+    public function tidakAktif(TidakAktifSearchRequest $request): JsonResponse
+    {
+        $search = $request->validated()['search'] ?? null;
+        $search = is_string($search) && trim($search) !== '' ? trim($search) : null;
 
-        $meninggalCount = Member::whereHas('memberStatus', fn ($q) => $q->where('code', 'meninggal'))->count();
-
-        $aktifCount = Member::whereHas('memberStatus', fn ($q) => $q->whereNotIn('code', $excludedStatusCodes))
-            ->whereHas('payments', $activePaymentQuery)
-            ->count();
-
-        $tidakAktifCount = Member::whereHas('memberStatus', fn ($q) => $q->whereNotIn('code', $excludedStatusCodes))
-            ->whereDoesntHave('payments', $activePaymentQuery)
-            ->count();
-
-        $totalCount = $aktifCount + $tidakAktifCount + $meninggalCount;
-
-        return view('dashboard', compact('aktifCount', 'tidakAktifCount', 'meninggalCount', 'totalCount', 'currentYear'));
+        return response()->json([
+            'success' => true,
+            'data' => $this->dashboardService->getTidakAktifMembers($search),
+        ]);
     }
 }

@@ -54,6 +54,9 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset'])
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+Route::get('/dashboard/tidak-aktif', [DashboardController::class, 'tidakAktif'])
+    ->middleware(['auth', 'throttle:60,1'])
+    ->name('dashboard.tidak-aktif');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

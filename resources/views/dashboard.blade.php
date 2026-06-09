@@ -54,6 +54,23 @@
     .breakdown-item:hover {
         transform: translateX(4px);
     }
+    .breakdown-item-clickable {
+        cursor: pointer;
+    }
+    .breakdown-item-clickable:hover {
+        background-color: rgba(245, 158, 11, 0.08);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    .dark .breakdown-item-clickable:hover {
+        background-color: rgba(245, 158, 11, 0.12);
+    }
+    @keyframes skeletonPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    .skeleton-pulse {
+        animation: skeletonPulse 1.5s ease-in-out infinite;
+    }
     .chart-container-inner {
         background: radial-gradient(circle at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
     }
@@ -200,13 +217,30 @@
             <div class="lg:col-span-3 flex flex-col gap-5 lg:border-l lg:border-gray-100 lg:dark:border-gray-700 lg:pl-8">
                 <div class="space-y-5">
                     @foreach($items as $index => $item)
-                    <div class="breakdown-item rounded-lg px-3 py-2 -mx-3 hover:bg-gray-50/80 dark:hover:bg-gray-700/30 {{ $index < count($items) - 1 ? 'border-b border-gray-100 dark:border-gray-700/50 pb-5' : '' }}">
+                    @php $isTidakAktif = $item['label'] === 'Tidak Aktif'; @endphp
+                    <div
+                        @if($isTidakAktif)
+                            id="tidakAktifTrigger"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Lihat senarai pegawai tidak aktif"
+                        @endif
+                        class="breakdown-item rounded-lg px-3 py-2 -mx-3 {{ $isTidakAktif ? 'breakdown-item-clickable border border-transparent' : 'hover:bg-gray-50/80 dark:hover:bg-gray-700/30' }} {{ $index < count($items) - 1 ? 'border-b border-gray-100 dark:border-gray-700/50 pb-5' : '' }}"
+                    >
                         <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2.5 min-w-0">
                                 <span class="w-3 h-3 rounded-full {{ $item['dot'] }} shrink-0 ring-2 ring-white dark:ring-gray-800"></span>
                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ $item['label'] }}</span>
+                                @if($isTidakAktif)
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 shrink-0">
+                                        <span class="hidden sm:inline">Lihat senarai</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </span>
+                                @endif
                             </div>
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2.5 shrink-0">
                                 <span class="text-sm font-bold text-gray-900 dark:text-white tabular-nums">{{ number_format($item['count']) }}</span>
                                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold {{ $item['badge'] }}">{{ $totalCount > 0 ? $item['pct'] : 0 }}%</span>
                             </div>
@@ -252,10 +286,170 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 (function () {
     'use strict';
+
+    const TIDAK_AKTIF_URL = @json(route('dashboard.tidak-aktif'));
+    const TIDAK_AKTIF_TOTAL = {{ $tidakAktifCount }};
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatNoKp(noKp) {
+        const digits = String(noKp || '').replace(/\D/g, '');
+        if (digits.length === 12) {
+            return digits.slice(0, 6) + '-' + digits.slice(6, 8) + '-' + digits.slice(8);
+        }
+        return noKp || '—';
+    }
+
+    function getInitials(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return '?';
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function renderSkeleton() {
+        return Array.from({ length: 3 }, function () {
+            return '<div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 skeleton-pulse">'
+                + '<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0"></div>'
+                + '<div class="flex-1 space-y-2">'
+                + '<div class="h-3.5 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>'
+                + '<div class="h-3 bg-gray-100 dark:bg-gray-600 rounded w-1/2"></div>'
+                + '</div>'
+                + '<div class="h-6 w-20 bg-gray-100 dark:bg-gray-600 rounded-full"></div>'
+                + '</div>';
+        }).join('');
+    }
+
+    function renderOfficerRow(officer) {
+        const lastPayment = officer.last_payment
+            ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Bayaran Akhir: ' + escapeHtml(officer.last_payment) + '</span>'
+            : '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">Tiada</span>';
+
+        return '<div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-colors">'
+            + '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-bold text-sm flex items-center justify-center shrink-0">' + escapeHtml(getInitials(officer.nama)) + '</div>'
+            + '<div class="flex-1 min-w-0">'
+            + '<p class="text-sm font-bold text-gray-900 dark:text-white truncate">' + escapeHtml(officer.nama) + '</p>'
+            + '<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">' + escapeHtml(formatNoKp(officer.no_kp)) + '</p>'
+            + '</div>'
+            + '<div class="shrink-0">' + lastPayment + '</div>'
+            + '</div>';
+    }
+
+    function renderResults(data) {
+        if (!data || data.length === 0) {
+            return '<div class="flex flex-col items-center justify-center py-10 text-gray-400 dark:text-gray-500">'
+                + '<svg class="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'
+                + '<p class="text-sm font-medium">Tiada pegawai ditemui</p>'
+                + '</div>';
+        }
+
+        return '<div class="space-y-2">' + data.map(renderOfficerRow).join('') + '</div>';
+    }
+
+    function fetchTidakAktif(search) {
+        const params = new URLSearchParams();
+        if (search) {
+            params.set('search', search);
+        }
+
+        return fetch(TIDAK_AKTIF_URL + (params.toString() ? '?' + params.toString() : ''), {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+            },
+            credentials: 'same-origin',
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+            return response.json();
+        });
+    }
+
+    function buildModalHtml() {
+        return '<div class="text-left">'
+            + '<div class="relative mb-4">'
+            + '<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>'
+            + '<input type="text" id="tidakAktifSearch" placeholder="Cari nama atau No. KP..." class="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition" autocomplete="off">'
+            + '</div>'
+            + '<div id="tidakAktifResults" class="max-h-80 overflow-y-auto">' + renderSkeleton() + '</div>'
+            + '<p class="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">Menunjukkan sehingga 5 hasil — gunakan carian untuk menapis.</p>'
+            + '</div>';
+    }
+
+    function loadTidakAktifResults(search) {
+        const container = document.getElementById('tidakAktifResults');
+        if (!container) return;
+
+        container.innerHTML = renderSkeleton();
+
+        fetchTidakAktif(search)
+            .then(function (json) {
+                container.innerHTML = renderResults(json.data || []);
+            })
+            .catch(function () {
+                container.innerHTML = '<div class="text-center py-8 text-sm text-red-500">Ralat memuatkan data. Sila cuba lagi.</div>';
+            });
+    }
+
+    function openTidakAktifModal() {
+        Swal.fire({
+            title: '<div class="flex flex-wrap items-center justify-center gap-2">'
+                + '<span class="text-lg font-bold text-gray-900 dark:text-white">Pegawai Tidak Aktif</span>'
+                + '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">'
+                + TIDAK_AKTIF_TOTAL.toLocaleString('ms-MY') + ' pegawai</span></div>',
+            html: buildModalHtml(),
+            width: 640,
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'rounded-2xl',
+                htmlContainer: 'text-left',
+            },
+            didOpen: function () {
+                const searchInput = document.getElementById('tidakAktifSearch');
+                let debounceTimer = null;
+
+                loadTidakAktifResults('');
+
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.addEventListener('input', function () {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(function () {
+                            loadTidakAktifResults(searchInput.value.trim());
+                        }, 300);
+                    });
+                }
+            },
+        });
+    }
+
+    const tidakAktifTrigger = document.getElementById('tidakAktifTrigger');
+    if (tidakAktifTrigger) {
+        tidakAktifTrigger.addEventListener('click', openTidakAktifModal);
+        tidakAktifTrigger.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openTidakAktifModal();
+            }
+        });
+    }
 
     function animateCounter(el, target, duration) {
         if (target === 0) { el.textContent = '0'; return; }
