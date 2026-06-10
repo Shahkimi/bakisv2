@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin\Kawalan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Kawalan\StoreFaviconRequest;
 use App\Http\Requests\Admin\Kawalan\StoreLogoRequest;
+use App\Services\AcaraPdfService;
 use App\Services\SiteSettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -49,6 +50,7 @@ final class FaviconController extends Controller
     public function storeLogo(StoreLogoRequest $request): JsonResponse
     {
         $this->siteSettingService->storeLogo($request->file('logo'));
+        AcaraPdfService::forgetAllPosterCaches();
 
         return response()->json([
             'success' => true,
@@ -60,6 +62,7 @@ final class FaviconController extends Controller
     public function destroyLogo(): JsonResponse
     {
         $this->siteSettingService->clearLogo();
+        AcaraPdfService::forgetAllPosterCaches();
 
         return response()->json([
             'success' => true,

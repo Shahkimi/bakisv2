@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.favicon-links')
     <title>Pautan Tamat Tempoh — {{ $acara->nama_acara }}</title>
+    @include('partials.acara-social-meta', ['acara' => $acara, 'indexable' => false])
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else

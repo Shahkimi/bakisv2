@@ -86,7 +86,7 @@ final readonly class AcaraService
     {
         $query = Acara::query()
             ->withCount('kehadirans')
-            ->select(['id', 'nama_acara', 'lokasi', 'waktu', 'code', 'expires_at', 'is_active']);
+            ->select(['id', 'nama_acara', 'lokasi', 'tarikh', 'waktu_mula', 'waktu_tamat', 'code', 'expires_at', 'is_active']);
 
         $this->applySearch($query, $request);
         $totalRecords = Acara::count();
@@ -124,7 +124,8 @@ final readonly class AcaraService
 
             return;
         }
-        $columns = ['id', 'nama_acara', 'lokasi', 'waktu', 'expires_at', 'is_active'];
+        // Column indices match the DataTables columns: 0=nama_acara, 1=code, 2=expires_at, 3=kehadiran_count, 4=actions
+        $columns = ['nama_acara', 'code', 'expires_at', 'kehadiran_count', 'actions'];
         $columnIndex = (int) $order['column'];
         $dir = $order['dir'] === 'desc' ? 'desc' : 'asc';
         $column = $columns[$columnIndex] ?? 'expires_at';
@@ -147,27 +148,31 @@ final readonly class AcaraService
         $isExpired = $acara->isExpired();
 
         return [
-            'id' => $acara->id,
-            'nama_acara' => e($acara->nama_acara),
-            'lokasi' => e($acara->lokasi),
-            'waktu' => e($acara->waktu),
-            'code' => e($acara->code),
-            'public_url' => $acara->publicUrl(),
-            'expires_at' => $acara->expires_at->toIso8601String(),
-            'expires_at_formatted' => $acara->expires_at->translatedFormat('d M Y, g:i A'),
-            'is_active' => $acara->is_active,
-            'is_expired' => $isExpired,
-            'is_open' => $acara->isOpen(),
-            'kehadiran_count' => $acara->kehadirans_count,
+            'id'                  => $acara->id,
+            'nama_acara'          => e($acara->nama_acara),
+            'lokasi'              => e($acara->lokasi),
+            'tarikh'              => $acara->tarikh?->translatedFormat('d M Y'),
+            'waktu_mula'          => e($acara->waktu_mula ?? ''),
+            'waktu_tamat'         => e($acara->waktu_tamat ?? ''),
+            'code'                => e($acara->code),
+            'public_url'          => $acara->publicUrl(),
+            'expires_at'          => $acara->expires_at->toIso8601String(),
+            'expires_at_formatted'=> $acara->expires_at->translatedFormat('d M Y, g:i A'),
+            'is_active'           => $acara->is_active,
+            'is_expired'          => $isExpired,
+            'is_open'             => $acara->isOpen(),
+            'kehadiran_count'     => $acara->kehadirans_count,
             'actions' => [
-                'id' => $acara->id,
-                'nama_acara' => $acara->nama_acara,
-                'lokasi' => $acara->lokasi,
-                'waktu' => $acara->waktu,
-                'code' => $acara->code,
-                'public_url' => $acara->publicUrl(),
-                'expires_at' => $acara->expires_at->format('Y-m-d\TH:i'),
-                'is_active' => $acara->is_active,
+                'id'          => $acara->id,
+                'nama_acara'  => $acara->nama_acara,
+                'lokasi'      => $acara->lokasi,
+                'tarikh'      => $acara->tarikh?->format('Y-m-d'),
+                'waktu_mula'  => $acara->waktu_mula,
+                'waktu_tamat' => $acara->waktu_tamat,
+                'code'        => $acara->code,
+                'public_url'  => $acara->publicUrl(),
+                'expires_at'  => $acara->expires_at->format('Y-m-d\TH:i'),
+                'is_active'   => $acara->is_active,
             ],
         ];
     }

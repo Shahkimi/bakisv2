@@ -34,10 +34,9 @@
             <thead>
                 <tr>
                     <th>Acara</th>
-                    <th>Waktu</th>
                     <th>Pautan</th>
                     <th>Tamat Tempoh</th>
-                    <th>Hadir</th>
+                    <th>Kehadiran</th>
                     <th>Tindakan</th>
                 </tr>
             </thead>
@@ -167,13 +166,12 @@ $(document).ready(function() {
         ajax: { url: '{{ route("admin.kawalan.acara.data") }}', type: 'GET' },
         columns: [
             { data: 'nama_acara', name: 'nama_acara', render: function(d, t, row) { return renderAcara(row); } },
-            { data: 'waktu', name: 'waktu' },
             { data: 'code', name: 'code', orderable: false, render: function(d, t, row) { return renderLink(row); } },
             { data: 'expires_at', name: 'expires_at', render: function(d, t, row) { return renderExpiry(row); } },
             { data: 'kehadiran_count', name: 'kehadiran_count', orderable: false, searchable: false, render: function(d, t, row) { return renderCount(row); } },
             { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, t, row) { return renderActions(row); } }
         ],
-        order: [[3, 'desc']],
+        order: [[2, 'desc']],
         pageLength: 5,
         lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
         initComplete: function() { $('.dataTables_filter input').attr('placeholder', 'Cari acara…'); },
@@ -200,8 +198,18 @@ $(document).ready(function() {
                     <input type="text" id="swal-lokasi" class="input-text" value="${escapeAttr(v.lokasi || '')}" placeholder="cth: Dewan Auditorium HSB" autocomplete="off" />
                 </div>
                 <div class="field">
-                    <label for="swal-waktu">Waktu</label>
-                    <input type="text" id="swal-waktu" class="input-text" value="${escapeAttr(v.waktu || '')}" placeholder="cth: 8:00 Pagi Sehingga 12 Tengah Hari" autocomplete="off" />
+                    <label for="swal-tarikh">Tarikh Acara</label>
+                    <input type="date" id="swal-tarikh" class="input-text" value="${escapeAttr(v.tarikh || '')}" />
+                </div>
+                <div class="field" style="display:flex;gap:0.75rem;">
+                    <div style="flex:1;">
+                        <label for="swal-waktu-mula">Waktu Bermula</label>
+                        <input type="text" id="swal-waktu-mula" class="input-text" value="${escapeAttr(v.waktu_mula || '')}" placeholder="cth: 8:00 Pagi" autocomplete="off" />
+                    </div>
+                    <div style="flex:1;">
+                        <label for="swal-waktu-tamat">Waktu Tamat</label>
+                        <input type="text" id="swal-waktu-tamat" class="input-text" value="${escapeAttr(v.waktu_tamat || '')}" placeholder="cth: 12:00 Tengah Hari" autocomplete="off" />
+                    </div>
                 </div>
                 <div class="field">
                     <label for="swal-expires">Pautan Tamat Pada</label>
@@ -229,16 +237,22 @@ $(document).ready(function() {
     }
 
     function readForm() {
-        const nama = (document.getElementById('swal-nama').value || '').trim();
-        const lokasi = (document.getElementById('swal-lokasi').value || '').trim();
-        const waktu = (document.getElementById('swal-waktu').value || '').trim();
-        const expires = (document.getElementById('swal-expires').value || '').trim();
-        if (!nama) { Swal.showValidationMessage('Nama acara wajib diisi.'); return false; }
-        if (!lokasi) { Swal.showValidationMessage('Lokasi wajib diisi.'); return false; }
-        if (!waktu) { Swal.showValidationMessage('Waktu wajib diisi.'); return false; }
-        if (!expires) { Swal.showValidationMessage('Tarikh tamat wajib diisi.'); return false; }
+        const nama       = (document.getElementById('swal-nama').value || '').trim();
+        const lokasi     = (document.getElementById('swal-lokasi').value || '').trim();
+        const tarikh     = (document.getElementById('swal-tarikh').value || '').trim();
+        const waktuMula  = (document.getElementById('swal-waktu-mula').value || '').trim();
+        const waktuTamat = (document.getElementById('swal-waktu-tamat').value || '').trim();
+        const expires    = (document.getElementById('swal-expires').value || '').trim();
+        if (!nama)       { Swal.showValidationMessage('Nama acara wajib diisi.'); return false; }
+        if (!lokasi)     { Swal.showValidationMessage('Lokasi wajib diisi.'); return false; }
+        if (!tarikh)     { Swal.showValidationMessage('Tarikh acara wajib diisi.'); return false; }
+        if (!waktuMula)  { Swal.showValidationMessage('Waktu bermula wajib diisi.'); return false; }
+        if (!waktuTamat) { Swal.showValidationMessage('Waktu tamat wajib diisi.'); return false; }
+        if (!expires)    { Swal.showValidationMessage('Tarikh tamat wajib diisi.'); return false; }
         return {
-            nama_acara: nama, lokasi: lokasi, waktu: waktu, expires_at: expires,
+            nama_acara: nama, lokasi: lokasi, tarikh: tarikh,
+            waktu_mula: waktuMula, waktu_tamat: waktuTamat,
+            expires_at: expires,
             is_active: document.getElementById('swal-active').value === '1'
         };
     }

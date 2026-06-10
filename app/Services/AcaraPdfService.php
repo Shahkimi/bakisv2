@@ -11,6 +11,10 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 final readonly class AcaraPdfService
 {
+    public function __construct(
+        private SiteSettingService $siteSettingService,
+    ) {}
+
     /**
      * A4 event poster carrying the event details and a QR code to the public link.
      * Result is cached — repeat downloads return instantly.
@@ -21,26 +25,31 @@ final readonly class AcaraPdfService
     {
         $cacheKey = self::posterCacheKey($acara->id);
 
-        $content = Cache::remember($cacheKey, now()->addHours(24), function () use ($acara): string {
+        $encoded = Cache::remember($cacheKey, now()->addHours(24), function () use ($acara): string {
             $qrBase64 = $this->qrBase64($acara);
 
-            return Pdf::loadView('admin.acara.poster-pdf', [
-                'acara'    => $acara,
+            $output = Pdf::loadView('admin.acara.poster-pdf', [
+                'acara' => $acara,
                 'qrBase64' => $qrBase64,
+                'logoDataUri' => $this->siteSettingService->logoBase64DataUri(),
             ])
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
-                    'dpi'                      => 96,
-                    'defaultFont'              => 'DejaVu Sans',
-                    'isRemoteEnabled'          => false,
-                    'isHtml5ParserEnabled'     => true,
-                    'isFontSubsettingEnabled'  => false,
+                    'dpi' => 96,
+                    'defaultFont' => 'DejaVu Sans',
+                    'isRemoteEnabled' => false,
+                    'isHtml5ParserEnabled' => true,
+                    'isFontSubsettingEnabled' => false,
                 ])
                 ->output();
+
+            return base64_encode($output);
         });
 
+        $content = base64_decode($encoded);
+
         return [
-            'content'  => $content,
+            'content' => $content,
             'filename' => sprintf('poster-acara-%s.pdf', $this->slug($acara)),
         ];
     }
@@ -57,20 +66,20 @@ final readonly class AcaraPdfService
             ->get();
 
         $pdf = Pdf::loadView('admin.acara.kehadiran-pdf', [
-            'acara'      => $acara,
+            'acara' => $acara,
             'kehadirans' => $kehadirans,
         ])
             ->setPaper('a4', 'portrait')
             ->setOptions([
-                'dpi'                     => 96,
-                'defaultFont'             => 'DejaVu Sans',
-                'isRemoteEnabled'         => false,
-                'isHtml5ParserEnabled'    => true,
+                'dpi' => 96,
+                'defaultFont' => 'DejaVu Sans',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
                 'isFontSubsettingEnabled' => false,
             ]);
 
         return [
-            'content'  => $pdf->output(),
+            'content' => $pdf->output(),
             'filename' => sprintf('kehadiran-acara-%s.pdf', $this->slug($acara)),
         ];
     }
@@ -83,6 +92,13 @@ final readonly class AcaraPdfService
         Cache::forget(self::posterCacheKey($acaraId));
     }
 
+    public static function forgetAllPosterCaches(): void
+    {
+        Acara::query()->pluck('id')->each(
+            fn (int $id) => self::forgetPosterCache($id)
+        );
+    }
+
     // ── Internals ────────────────────────────────────────────────────────────
 
     /**
@@ -91,7 +107,7 @@ final readonly class AcaraPdfService
      */
     private function qrBase64(Acara $acara): string
     {
-        $qrKey = 'acara_qr_b64_' . $acara->code;
+        $qrKey = 'acara_qr_b64_'.$acara->code;
 
         return Cache::rememberForever($qrKey, function () use ($acara): string {
             $svg = QrCode::format('svg')
@@ -114,6 +130,6 @@ final readonly class AcaraPdfService
         $safe = preg_replace('/[^a-zA-Z0-9_-]+/', '-', trim($acara->nama_acara));
         $safe = trim((string) $safe, '-');
 
-        return ($safe !== '' ? $safe : 'acara') . '-' . $acara->code;
+        return ($safe !== '' ? $safe : 'acara').'-'.$acara->code;
     }
 }

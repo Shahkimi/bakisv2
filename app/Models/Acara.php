@@ -16,7 +16,9 @@ class Acara extends Model
     protected $fillable = [
         'nama_acara',
         'lokasi',
-        'waktu',
+        'tarikh',
+        'waktu_mula',
+        'waktu_tamat',
         'code',
         'expires_at',
         'is_active',
@@ -28,8 +30,9 @@ class Acara extends Model
     protected function casts(): array
     {
         return [
+            'tarikh'     => 'date',
             'expires_at' => 'datetime',
-            'is_active' => 'boolean',
+            'is_active'  => 'boolean',
         ];
     }
 

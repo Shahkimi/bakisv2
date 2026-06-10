@@ -18,10 +18,12 @@ final class UpdateAcaraRequest extends FormRequest
     {
         return [
             'nama_acara' => ['required', 'string', 'max:255'],
-            'lokasi' => ['required', 'string', 'max:255'],
-            'waktu' => ['required', 'string', 'max:255'],
+            'lokasi'     => ['required', 'string', 'max:255'],
+            'tarikh'     => ['required', 'date'],
+            'waktu_mula' => ['required', 'string', 'max:50'],
+            'waktu_tamat'=> ['required', 'string', 'max:50'],
             'expires_at' => ['required', 'date'],
-            'is_active' => ['required', 'boolean'],
+            'is_active'  => ['required', 'boolean'],
         ];
     }
 
@@ -30,8 +32,10 @@ final class UpdateAcaraRequest extends FormRequest
     {
         return [
             'nama_acara.required' => 'Nama acara wajib diisi.',
-            'lokasi.required' => 'Lokasi wajib diisi.',
-            'waktu.required' => 'Waktu wajib diisi.',
+            'lokasi.required'     => 'Lokasi wajib diisi.',
+            'tarikh.required'     => 'Tarikh acara wajib diisi.',
+            'waktu_mula.required' => 'Waktu mula wajib diisi.',
+            'waktu_tamat.required'=> 'Waktu tamat wajib diisi.',
             'expires_at.required' => 'Tarikh tamat pautan wajib diisi.',
         ];
     }

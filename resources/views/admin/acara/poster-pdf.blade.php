@@ -1,205 +1,427 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<title>Poster Acara</title>
-<style>
-@page { size:A4 portrait; margin:0; }
-body { font-family:'DejaVu Sans',sans-serif; margin:0; padding:0; background:#ffffff; }
-</style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Acara BAKIS</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+            color: #1f2937;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Full content-area height table so the poster is centered on the A4 page. */
+        .page-center {
+            width: 100%;
+            height: 273mm;
+            border-collapse: collapse;
+        }
+
+        .page-cell {
+            height: 273mm;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .poster {
+            width: 186mm;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: #ffffff;
+            border: 1px solid #d9e2ec;
+            border-radius: 18px;
+        }
+
+        .poster-content {
+            padding: 22px;
+            text-align: left;
+        }
+
+        .top-accent {
+            height: 8px;
+            background: #0f766e;
+            border-radius: 999px;
+            margin-bottom: 16px;
+        }
+
+        .header-table,
+        .info-table,
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-left {
+            width: 70%;
+            vertical-align: top;
+            padding-right: 18px;
+        }
+
+        .header-right {
+            width: 30%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e6fffb;
+            color: #115e59;
+            border: 1px solid #99f6e4;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .system-title {
+            margin: 0;
+            font-size: 22px;
+            line-height: 1.15;
+            color: #0f172a;
+        }
+
+        .system-subtitle {
+            margin: 6px 0 0;
+            color: #475569;
+            font-size: 13px;
+        }
+
+        .org-logo {
+            display: block;
+            width: 96px;
+            height: 96px;
+            margin-left: auto;
+            object-fit: contain;
+            border-radius: 16px;
+        }
+
+        .hero {
+            margin-top: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .hero-label {
+            margin: 0 0 8px;
+            color: #0f766e;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .hero-title {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.12;
+            color: #0f172a;
+        }
+
+        .hero-desc {
+            margin: 8px 0 0;
+            color: #475569;
+            font-size: 13px;
+        }
+
+        .info-table {
+            margin-top: 14px;
+        }
+
+        .info-card-wrap {
+            width: 50%;
+            padding-right: 10px;
+            vertical-align: top;
+        }
+
+        .info-card-wrap.last {
+            padding-right: 0;
+            padding-left: 10px;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border: 1px solid #dbe4ee;
+            border-top: 3px solid #0f766e;
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .info-label {
+            margin: 0 0 8px;
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            font-weight: bold;
+        }
+
+        .info-value {
+            margin: 0;
+            color: #0f172a;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.35;
+        }
+
+        .info-note {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .attendance-box {
+            margin-top: 16px;
+            background: #0f172a;
+            color: #ffffff;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .attendance-title {
+            margin: 0 0 8px;
+            font-size: 17px;
+            line-height: 1.3;
+        }
+
+        .attendance-desc {
+            margin: 0 0 14px;
+            color: #cbd5e1;
+            font-size: 12px;
+        }
+
+        .qr-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .qr-left {
+            width: 150px;
+            vertical-align: top;
+        }
+
+        .qr-right {
+            vertical-align: top;
+            padding-left: 18px;
+        }
+
+        .qr-frame {
+            width: 144px;
+            height: 144px;
+            border: 3px solid #ffffff;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 6px;
+        }
+
+        .qr-frame-inner {
+            width: 100%;
+            height: 132px;
+            border-collapse: collapse;
+        }
+
+        .qr-frame-inner td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .qr-frame img {
+            display: block;
+            width: 132px;
+            height: 132px;
+            margin: 0 auto;
+        }
+
+        .scan-label {
+            margin: 0 0 8px;
+            color: #5eead4;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.9px;
+            font-weight: bold;
+        }
+
+        .scan-url {
+            margin: 0 0 10px;
+            font-size: 16px;
+            line-height: 1.45;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .scan-help,
+        .scan-validity {
+            margin: 0 0 6px;
+            color: #cbd5e1;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .footer-table {
+            margin-top: 16px;
+        }
+
+        .footer-left,
+        .footer-right {
+            vertical-align: middle;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .status-pill.open {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #166534;
+        }
+
+        .status-pill.closed {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .generated-note {
+            margin: 0;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .muted-separator {
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
-
-{{-- ═══════════════════════════════════════════════════════
-     MASTER WRAPPER
-═══════════════════════════════════════════════════════ --}}
-<table width="595" cellpadding="0" cellspacing="0" style="width:595px; margin:0 auto; background:#ffffff;">
-
-  {{-- ── TOP DECORATIVE STRIPE ── --}}
-  <tr>
-    <td style="background-color:#1e40af; height:6px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-  <tr>
-    <td style="background-color:#3b82f6; height:3px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-
-  {{-- ── HEADER ── --}}
-  <tr>
-    <td style="background-color:#0f172a; padding:22px 36px;">
-      <table width="100%" cellpadding="0" cellspacing="0">
+    <table class="page-center" width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          {{-- Logo badge --}}
-          <td width="50" valign="middle">
-            <table cellpadding="0" cellspacing="0" width="46" height="46"
-                   style="background-color:#3b82f6; border-radius:10px;">
-              <tr>
-                <td align="center" valign="middle"
-                    style="font-size:22px; font-weight:800; color:#ffffff; line-height:46px;">B</td>
-              </tr>
-            </table>
-          </td>
-          {{-- Brand --}}
-          <td valign="middle" style="padding-left:12px;">
-            <div style="font-size:19px; font-weight:800; color:#ffffff; letter-spacing:2px;">BAKIS</div>
-            <div style="font-size:9px; color:#94a3b8; letter-spacing:1px; margin-top:2px;">SISTEM PENGURUSAN KEAHLIAN</div>
-          </td>
-          {{-- Right label --}}
-          <td align="right" valign="middle">
-            <div style="font-size:8.5px; font-weight:700; color:#3b82f6; letter-spacing:2.5px; text-transform:uppercase;">POSTER ACARA</div>
-            <div style="font-size:8px; color:#475569; margin-top:4px;">{{ now()->format('d M Y') }}</div>
-          </td>
+            <td class="page-cell" align="center" valign="middle" height="273mm">
+                <table class="poster" width="186mm" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="poster-content">
+                    <div class="top-accent"></div>
+
+                    <table class="header-table">
+                        <tr>
+                            <td class="header-left">
+                                <div class="brand-badge">BAKIS</div>
+                                <h1 class="system-title">Sistem Pengurusan Keahlian<br>Poster Acara</h1>
+                                <p class="system-subtitle">Reka bentuk poster acara yang lebih kemas, profesional dan sesuai untuk cetakan PDF.</p>
+                            </td>
+                            <td class="header-right">
+                                @if ($logoDataUri)
+                                    <img src="{{ $logoDataUri }}" alt="Logo Organisasi" class="org-logo" />
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="hero">
+                        <p class="hero-label">Jemputan Kehadiran</p>
+                        <h2 class="hero-title">{{ $acara->nama_acara }}</h2>
+                        <p class="hero-desc">Sila hadir mengikut maklumat acara di bawah dan rekodkan kehadiran melalui kod QR yang disediakan.</p>
+
+                        <table class="info-table">
+                            <tr>
+                                <td class="info-card-wrap">
+                                    <div class="info-card">
+                                        <p class="info-label">Lokasi</p>
+                                        <p class="info-value">{{ $acara->lokasi }}</p>
+                                        <p class="info-note">Sila hadir lebih awal untuk pendaftaran.</p>
+                                    </div>
+                                </td>
+                                <td class="info-card-wrap last">
+                                    <div class="info-card">
+                                        <p class="info-label">Tarikh &amp; Waktu</p>
+                                        <p class="info-value">{{ $acara->tarikh?->translatedFormat('d M Y') ?? '-' }}</p>
+                                        <p class="info-note">{{ $acara->waktu_mula }} &ndash; {{ $acara->waktu_tamat }}</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="attendance-box">
+                        <h3 class="attendance-title">Imbas kod QR untuk merekod kehadiran</h3>
+                        <p class="attendance-desc">Selepas imbasan dibuat, masukkan nombor kad pengenalan untuk melengkapkan proses kehadiran.</p>
+
+                        <table class="qr-table">
+                            <tr>
+                                <td class="qr-left">
+                                    <div class="qr-frame">
+                                        <table class="qr-frame-inner">
+                                            <tr>
+                                                <td>
+                                                    <img src="data:image/svg+xml;base64,{{ $qrBase64 }}" alt="Kod QR" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                                <td class="qr-right">
+                                    <p class="scan-label">Pautan Kehadiran</p>
+                                    <p class="scan-url">{{ $acara->publicUrl() }}</p>
+                                    <p class="scan-help">Masukkan No. Kad Pengenalan selepas mengimbas.</p>
+                                    <p class="scan-validity">Kehadiran dibuka sehingga {{ $acara->expires_at->translatedFormat('d M Y, H:i') }}.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <table class="footer-table">
+                        <tr>
+                            <td class="footer-left">
+                                <p class="generated-note">Poster dijana secara automatik oleh Sistem BAKIS <span class="muted-separator">&bull;</span> {{ now()->format('d M Y, H:i') }}</p>
+                            </td>
+                            <td class="footer-right">
+                                @if ($acara->isOpen())
+                                    <span class="status-pill open">Kehadiran Dibuka</span>
+                                @else
+                                    <span class="status-pill closed">Kehadiran Ditutup</span>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- ── HERO TITLE AREA ── --}}
-  <tr>
-    <td style="background-color:#f8fafc; padding:36px 36px 10px; text-align:center;">
-      {{-- Kicker badge --}}
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align="center" style="padding-bottom:14px;">
-            <table cellpadding="0" cellspacing="0" style="border:1.5px solid #93c5fd; border-radius:999px; background-color:#eff6ff;">
-              <tr>
-                <td style="padding:5px 22px; font-size:9.5px; font-weight:700; color:#1d4ed8; letter-spacing:3px; text-transform:uppercase;">
-                  &#9733;&nbsp; JEMPUTAN KEHADIRAN &nbsp;&#9733;
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-      {{-- Event title --}}
-      <div style="font-size:32px; font-weight:800; color:#0f172a; line-height:1.2; padding:0 20px 18px;">{{ $acara->nama_acara }}</div>
-      {{-- Blue rule --}}
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto; margin-bottom:10px;">
-        <tr>
-          <td style="width:28px; height:4px; background-color:#1e40af; border-radius:2px; font-size:1px; line-height:1px;">&nbsp;</td>
-          <td style="width:8px;">&nbsp;</td>
-          <td style="width:60px; height:4px; background-color:#3b82f6; border-radius:2px; font-size:1px; line-height:1px;">&nbsp;</td>
-          <td style="width:8px;">&nbsp;</td>
-          <td style="width:28px; height:4px; background-color:#1e40af; border-radius:2px; font-size:1px; line-height:1px;">&nbsp;</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- ── SEPARATOR ── --}}
-  <tr>
-    <td style="background-color:#e2e8f0; height:1px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-
-  {{-- ── INFO CARDS ROW ── --}}
-  <tr>
-    <td style="background-color:#f8fafc; padding:22px 36px 20px;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-
-          {{-- LOKASI card --}}
-          <td width="49%" valign="top"
-              style="background-color:#ffffff; border:1px solid #dbeafe; border-left:4px solid #3b82f6;
-                     border-radius:10px; padding:14px 16px;">
-            <div style="font-size:8.5px; font-weight:700; color:#3b82f6; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;">
-              &#128205;&nbsp; LOKASI
-            </div>
-            <div style="font-size:14px; font-weight:700; color:#0f172a; line-height:1.35;">{{ $acara->lokasi }}</div>
-          </td>
-
-          <td width="2%">&nbsp;</td>
-
-          {{-- WAKTU card --}}
-          <td width="49%" valign="top"
-              style="background-color:#ffffff; border:1px solid #ede9fe; border-left:4px solid #7c3aed;
-                     border-radius:10px; padding:14px 16px;">
-            <div style="font-size:8.5px; font-weight:700; color:#7c3aed; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px;">
-              &#128336;&nbsp; WAKTU
-            </div>
-            <div style="font-size:14px; font-weight:700; color:#0f172a; line-height:1.35;">{{ $acara->waktu }}</div>
-          </td>
-
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- ── QR INSTRUCTION BAND ── --}}
-  <tr>
-    <td style="background-color:#1e40af; padding:11px 36px; text-align:center;">
-      <div style="font-size:11px; font-weight:700; color:#ffffff; letter-spacing:1.5px; text-transform:uppercase;">
-        &#128247;&nbsp; IMBAS KOD QR DI BAWAH UNTUK MEREKOD KEHADIRAN
-      </div>
-    </td>
-  </tr>
-
-  {{-- ── QR CODE ── --}}
-  <tr>
-    <td style="background-color:#f8fafc; padding:28px 36px 20px; text-align:center;">
-      {{-- Outer decorative frame --}}
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto; border:2px solid #bfdbfe; border-radius:16px; background-color:#ffffff; padding:20px;">
-        <tr>
-          <td>
-            {{-- Corner top --}}
-            <table cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
-              <tr>
-                <td style="width:20px; height:20px; border-top:3px solid #3b82f6; border-left:3px solid #3b82f6; border-radius:4px 0 0 0; font-size:1px;">&nbsp;</td>
-                <td style="width:220px;">&nbsp;</td>
-                <td style="width:20px; height:20px; border-top:3px solid #3b82f6; border-right:3px solid #3b82f6; border-radius:0 4px 0 0; font-size:1px;">&nbsp;</td>
-              </tr>
-            </table>
-            {{-- QR code as PNG image --}}
-            <div style="width:260px; height:260px; margin:0 auto;">
-              <img src="data:image/svg+xml;base64,{{ $qrBase64 }}" width="260" height="260" style="display:block;" />
-            </div>
-            {{-- Corner bottom --}}
-            <table cellpadding="0" cellspacing="0" style="margin-top:4px;">
-              <tr>
-                <td style="width:20px; height:20px; border-bottom:3px solid #3b82f6; border-left:3px solid #3b82f6; border-radius:0 0 0 4px; font-size:1px;">&nbsp;</td>
-                <td style="width:220px;">&nbsp;</td>
-                <td style="width:20px; height:20px; border-bottom:3px solid #3b82f6; border-right:3px solid #3b82f6; border-radius:0 0 4px 0; font-size:1px;">&nbsp;</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      {{-- URL + hint --}}
-      <div style="font-size:13px; font-weight:700; color:#1d4ed8; margin-top:14px; letter-spacing:0.3px;">{{ $acara->publicUrl() }}</div>
-      <div style="font-size:10px; color:#64748b; margin-top:4px;">Masukkan No. Kad Pengenalan selepas mengimbas</div>
-    </td>
-  </tr>
-
-  {{-- ── BOTTOM SEPARATOR ── --}}
-  <tr>
-    <td style="background-color:#e2e8f0; height:1px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-
-  {{-- ── FOOTER ── --}}
-  <tr>
-    <td style="background-color:#0f172a; padding:12px 36px;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td align="left">
-            <span style="font-size:8.5px; color:#64748b;">Poster dijana secara automatik oleh </span>
-            <span style="font-size:8.5px; font-weight:700; color:#3b82f6;">Sistem BAKIS</span>
-          </td>
-          <td align="right">
-            <span style="font-size:8.5px; color:#475569;">{{ now()->format('d M Y, H:i') }}</span>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- ── BOTTOM STRIPE ── --}}
-  <tr>
-    <td style="background-color:#3b82f6; height:3px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-  <tr>
-    <td style="background-color:#1e40af; height:6px; font-size:1px; line-height:1px;">&nbsp;</td>
-  </tr>
-
-</table>
-
+    </table>
 </body>
 </html>

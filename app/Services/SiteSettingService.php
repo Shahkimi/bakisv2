@@ -96,6 +96,41 @@ final readonly class SiteSettingService
         );
     }
 
+    public function logoBase64DataUri(): ?string
+    {
+        /** @var Setting|null $row */
+        $row = Setting::query()->where('key', self::LOGO_KEY)->first();
+        if ($row === null) {
+            return null;
+        }
+
+        $path = $row->value;
+        if (! is_string($path) || $path === '' || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        $version = (string) ($row->updated_at?->getTimestamp() ?? 0);
+        $cacheKey = self::CACHE_PREFIX.'.'.self::LOGO_KEY.'.b64.'.$version;
+
+        return Cache::remember(
+            $cacheKey,
+            3600,
+            function () use ($path): ?string {
+                $mime = Storage::disk('public')->mimeType($path);
+                if ($mime === false || ! str_starts_with($mime, 'image/')) {
+                    return null;
+                }
+
+                $contents = Storage::disk('public')->get($path);
+                if ($contents === null) {
+                    return null;
+                }
+
+                return 'data:'.$mime.';base64,'.base64_encode($contents);
+            }
+        );
+    }
+
     public function storeLogo(UploadedFile $file): string
     {
         $this->forgetLogoCache();

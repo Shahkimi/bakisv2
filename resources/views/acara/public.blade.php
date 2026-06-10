@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @include('partials.favicon-links')
     <title>Kehadiran — {{ $acara->nama_acara }}</title>
+    @include('partials.acara-social-meta', ['acara' => $acara, 'indexable' => true])
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -37,8 +38,9 @@
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 mt-0.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Waktu</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $acara->waktu }}</p>
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Tarikh &amp; Waktu</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $acara->tarikh?->translatedFormat('d M Y') ?? '-' }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $acara->waktu_mula }} – {{ $acara->waktu_tamat }}</p>
                         </div>
                     </div>
                 </div>

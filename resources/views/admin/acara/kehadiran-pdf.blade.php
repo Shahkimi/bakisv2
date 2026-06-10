@@ -60,8 +60,9 @@ table { border-collapse:collapse; }
           <div class="meta-value">{{ $acara->lokasi }}</div>
         </td>
         <td width="40%">
-          <div class="meta-label">Waktu</div>
-          <div class="meta-value">{{ $acara->waktu }}</div>
+          <div class="meta-label">Tarikh &amp; Waktu</div>
+          <div class="meta-value">{{ $acara->tarikh?->translatedFormat('d M Y') ?? '-' }}</div>
+          <div class="meta-value" style="font-size:10px;font-weight:normal;">{{ $acara->waktu_mula }} – {{ $acara->waktu_tamat }}</div>
           <div class="meta-label">Kod Pautan</div>
           <div class="meta-value">{{ $acara->code }}</div>
         </td>
