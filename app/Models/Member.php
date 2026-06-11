@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Vinkla\Hashids\Facades\Hashids;
 
 class Member extends Model
 {
@@ -52,6 +53,22 @@ class Member extends Model
         return [
             'tarikh_daftar' => 'date',
         ];
+    }
+
+    public function getRouteKey(): string
+    {
+        return Hashids::encode($this->getKey());
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        $decoded = Hashids::decode((string) $value);
+
+        if (empty($decoded)) {
+            return null;
+        }
+
+        return $this->withTrashed()->where($field ?? $this->getRouteKeyName(), $decoded[0])->first();
     }
 
     public function getNamaAttribute(?string $value): string

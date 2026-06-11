@@ -433,7 +433,7 @@
 
             <aside class="hero-side">
                 <div class="mini-card">
-                    <h3>Member Dashboard</h3>
+                    <h3>Ahli Jawatankuasa</h3>
                     <p>Track renewals, update your details, and access your membership card in one place.</p>
                 </div>
                 <div class="mini-card">

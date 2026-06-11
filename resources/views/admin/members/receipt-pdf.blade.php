@@ -1,270 +1,391 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<title>Resit Keahlian</title>
-<style>
-@page { size:A4 portrait; margin:12mm 14mm 10mm 14mm; }
-body { font-family:'DejaVu Sans',sans-serif; font-size:10.5px; color:#1e293b; background:#fff; margin:0; padding:0; line-height:1.5; }
-table { border-collapse:collapse; }
-.logo-box   { background-color:#1a3c5e; color:#fff; font-size:20px; font-weight:700; width:42px; height:42px; text-align:center; vertical-align:middle; border-radius:7px; }
-.brand-name { font-size:19px; font-weight:700; color:#1a3c5e; padding-left:9px; vertical-align:middle; }
-.rtitle     { font-size:24px; font-weight:800; color:#1a3c5e; letter-spacing:1px; text-align:right; }
-.rno        { font-size:11px; color:#2563eb; font-weight:700; text-align:right; padding-top:3px; }
-.rdate      { font-size:9px; color:#94a3b8; text-align:right; padding-top:2px; }
-.slabel     { font-size:8.5px; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:1px; }
-.itable thead td { background-color:#1a3c5e; color:#fff; padding:7px 9px; font-size:9.5px; font-weight:700; }
-.itable tbody td { padding:8px 9px; border-bottom:1px solid #f1f5f9; color:#334155; }
-.itable .row-alt td { background-color:#f8fafc; }
-.iname { font-weight:700; color:#1a3c5e; }
-.idesc { font-size:8.5px; color:#94a3b8; padding-top:2px; }
-.notes { background-color:#fffbeb; border:1px solid #fde68a; border-radius:5px; padding:8px 12px; font-size:9.5px; color:#92400e; line-height:1.65; }
-.foot-l { font-size:8.5px; color:#94a3b8; line-height:1.7; vertical-align:bottom; }
-.foot-r { font-size:8.5px; color:#94a3b8; text-align:right; vertical-align:bottom; }
-</style>
+    <meta charset="UTF-8">
+    @php
+        $isSinglePayment = isset($payment);
+        if (!$member->relationLoaded('payments')) { $member->load(['payments.yuran']); }
+        $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED)->values();
+        if ($isSinglePayment) $approvedPayments = collect([$payment]);
+        $totalPaid       = $approvedPayments->sum(fn($p) => (float)($p->jumlah ?? 0));
+        $receiptYear     = $isSinglePayment ? (int)$payment->tahun_bayar : (int)now()->year;
+        $receiptNoSuffix = str_pad((string)($isSinglePayment ? $payment->id : $member->id), 6, '0', STR_PAD_LEFT);
+        $receiptNo       = 'RCP-'.$receiptYear.'-'.$receiptNoSuffix;
+        $issuedAt        = ($isSinglePayment && $payment->approved_at) ? $payment->approved_at : now();
+        $statusName      = $member->memberStatus?->name ?? 'Tidak Aktif';
+        $isActive        = str_contains(strtolower($statusName), 'aktif');
+        $logoDataUri     = $logoDataUri ?? null;
+        $paymentType     = $isSinglePayment
+            ? match($payment->jenis ?? '') { 'pendaftaran_baru'=>'Pendaftaran Baru','pembaharuan'=>'Pembaharuan',default=>'Keahlian' }
+            : 'Keahlian';
+    @endphp
+    <title>Resit Rasmi - {{ $receiptNo }}</title>
+    <style>
+        @page { size: A4 portrait; margin: 14mm 16mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+            font-size: 11.5px;
+            color: #475569;
+            background: #ffffff;
+            line-height: 1.5;
+        }
+
+        /* ── SEPARATORS ── */
+        .black-sep { border: none; border-top: 1px solid #000000; margin: 0 0 18px; }
+
+        /* ── PASTEL ACCENT + HEADER ── */
+        .gold-rule { height: 4px; background: #c7d2fe; border-radius: 999px; font-size: 1px; line-height: 1px; }
+
+        .header-card { width: 100%; border-collapse: separate; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 16px; margin-top: 9px; margin-bottom: 18px; }
+        .header-inner { padding: 22px 26px; }
+        .header-left-cell { vertical-align: middle; width: 60%; }
+        .header-right-cell { vertical-align: top; text-align: right; width: 40%; }
+
+        .logo-plate { background: #ffffff; width: 56px; height: 56px; border-radius: 13px; text-align: center; vertical-align: middle; border: 1px solid #e0e7ff; }
+        .logo-box { background-color: #4f46e5; color: #ffffff; font-size: 24px; font-weight: bold; width: 56px; height: 56px; text-align: center; vertical-align: middle; border-radius: 13px; }
+        .org-logo { display: block; width: 50px; height: 50px; object-fit: contain; margin: 0 auto; }
+
+        .brand-badge {
+            display: inline-block; padding: 4px 12px;
+            background: #e0e7ff; color: #3730a3;
+            border: 1px solid #c7d2fe;
+            border-radius: 999px; font-size: 9.5px; font-weight: bold;
+            letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .brand-title { margin: 0; font-size: 19px; font-weight: bold; color: #3730a3; line-height: 1.2; letter-spacing: 0.3px; }
+        .brand-subtitle { margin: 4px 0 0; color: #64748b; font-size: 9.5px; letter-spacing: 0.3px; }
+
+        .receipt-label { font-size: 30px; font-weight: bold; color: #3730a3; line-height: 1; margin: 0; letter-spacing: 3px; }
+        .receipt-no { margin: 9px 0 0; font-size: 12px; color: #4f46e5; font-weight: bold; letter-spacing: 0.5px; }
+        .receipt-date { margin: 4px 0 0; font-size: 9.5px; color: #64748b; }
+
+        /* ── STATUS BANNER ── */
+        .status-banner { width: 100%; border-collapse: separate; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; margin-bottom: 20px; }
+        .status-accent { width: 5px; background: #6ee7b7; border-radius: 12px 0 0 12px; font-size: 1px; line-height: 1px; }
+        .status-pad { padding: 13px 18px; }
+        .status-title { margin: 0; font-size: 12.5px; font-weight: bold; color: #047857; }
+        .status-desc { margin: 3px 0 0; font-size: 10.5px; color: #059669; }
+        .lunas-pill { display: inline-block; padding: 5px 14px; background: #d1fae5; color: #047857; border: 1px solid #6ee7b7; border-radius: 999px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* ── SECTION HEADER ── */
+        .section-header { margin-bottom: 11px; }
+        .section-tick { width: 4px; background: #a5b4fc; border-radius: 999px; font-size: 1px; line-height: 1px; }
+        .section-title { margin: 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.6px; font-weight: bold; color: #3730a3; padding-left: 10px; }
+        .aktif-badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 9.5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.6px; }
+        .aktif-badge-on  { background: #d1fae5; border: 1px solid #6ee7b7; color: #047857; }
+        .aktif-badge-off { background: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; }
+
+        /* ── INFO GRID ── */
+        .info-grid { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #e0e7ff; border-radius: 12px; overflow: hidden; }
+        .info-cell { width: 50%; vertical-align: top; padding: 12px 16px; border: 1px solid #eef2ff; background: #ffffff; }
+        .info-cell-alt { background: #fafbff; }
+        .info-label { margin: 0 0 5px; font-size: 8.5px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: bold; }
+        .info-value { margin: 0; font-size: 13px; font-weight: bold; color: #312e81; }
+        .info-value-normal { margin: 0; font-size: 11.5px; color: #334155; font-weight: 600; }
+        .info-value-indigo { margin: 0; font-size: 13px; font-weight: bold; color: #4f46e5; letter-spacing: 0.5px; }
+
+        /* ── PAYMENT TABLE ── */
+        .payment-table { width: 100%; border-collapse: collapse; margin-bottom: 0; border-radius: 12px; overflow: hidden; border: 1px solid #e0e7ff; }
+        .payment-thead th { background: #e0e7ff; color: #3730a3; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.9px; padding: 11px 14px; text-align: left; font-weight: bold; }
+        .payment-thead th.right { text-align: right; }
+        .payment-thead th.center { text-align: center; }
+        .payment-tbody td { padding: 12px 14px; border-bottom: 1px solid #eef2ff; vertical-align: top; font-size: 11.5px; }
+        .payment-tbody tr.alt td { background: #fafbff; }
+        .payment-item-title { font-weight: bold; color: #312e81; margin: 0; font-size: 12px; }
+        .payment-item-sub { color: #94a3b8; font-size: 9.5px; margin: 3px 0 0; }
+        .td-center { text-align: center; color: #64748b; }
+        .td-right { text-align: right; font-weight: bold; color: #312e81; }
+
+        /* ── TOTAL PANEL ── */
+        .total-table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 22px; }
+        .total-panel { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 14px; }
+        .total-accent { width: 5px; background: #93c5fd; border-radius: 14px 0 0 14px; font-size: 1px; line-height: 1px; }
+        .total-label-cell { padding: 16px 20px; vertical-align: middle; }
+        .total-label { color: #6366f1; font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; font-weight: bold; }
+        .total-sub { color: #94a3b8; font-size: 8.5px; margin-top: 2px; }
+        .total-amount-cell { padding: 16px 20px; text-align: right; vertical-align: middle; border-left: 1px solid #c7d2fe; }
+        .total-amount { color: #3730a3; font-size: 23px; font-weight: bold; letter-spacing: 0.5px; }
+
+        /* ── PAYMENT METHOD ── */
+        .method-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .method-cell { width: 24%; vertical-align: top; padding: 12px 14px; border: 1px solid #e0e7ff; background: #fafbff; border-radius: 10px; }
+        .method-label { margin: 0 0 5px; font-size: 8.5px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: bold; }
+        .method-value { margin: 0; font-size: 11.5px; font-weight: bold; color: #312e81; }
+        .dibayar-pill { display: inline-block; padding: 4px 12px; background: #d1fae5; border: 1px solid #6ee7b7; color: #047857; border-radius: 999px; font-size: 9.5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── NOTES ── */
+        .notes-box { border: 1px solid #e0e7ff; border-left: 4px solid #a5b4fc; border-radius: 10px; padding: 15px 18px; margin-bottom: 22px; background: #f5f7ff; }
+        .notes-title { margin: 0 0 8px; font-size: 10.5px; font-weight: bold; color: #3730a3; text-transform: uppercase; letter-spacing: 0.8px; }
+        .notes-list { margin: 0; padding-left: 16px; color: #64748b; font-size: 10.5px; line-height: 1.8; }
+
+        /* ── FOOTER ── */
+        .footer-divider { border: none; border-top: 1px dashed #c7d2fe; margin-bottom: 14px; }
+        .footer-table { width: 100%; border-collapse: collapse; }
+        .footer-left { vertical-align: bottom; width: 60%; }
+        .footer-right { vertical-align: bottom; text-align: right; width: 40%; }
+        .footer-brand { margin: 0; font-size: 11px; font-weight: bold; color: #3730a3; }
+        .footer-sub { margin: 4px 0 0; font-size: 9px; color: #94a3b8; }
+        .footer-verify { margin: 6px 0 0; font-size: 8.5px; color: #c7d2fe; letter-spacing: 0.4px; }
+        .footer-signed { margin: 0; font-size: 9.5px; color: #94a3b8; }
+        .sign-line { border-top: 1px solid #c7d2fe; padding-top: 5px; width: 150px; margin-left: auto; }
+        .footer-signer { margin: 0; font-size: 10.5px; font-weight: bold; color: #4f46e5; }
+        .footer-signer-sub { margin: 1px 0 0; font-size: 8.5px; color: #94a3b8; }
+    </style>
 </head>
 <body>
-@php
-    $isSinglePayment = isset($payment);
-    if (!$member->relationLoaded('payments')) { $member->load(['payments.yuran']); }
-    $approvedPayments = $member->payments->where('status', \App\Models\Payment::STATUS_APPROVED)->values();
-    if ($isSinglePayment) $approvedPayments = collect([$payment]);
-    $totalPaid       = $approvedPayments->sum(fn($p) => (float)($p->jumlah ?? 0));
-    $receiptYear     = $isSinglePayment ? (int)$payment->tahun_bayar : (int)now()->year;
-    $receiptNoSuffix = str_pad((string)($isSinglePayment ? $payment->id : $member->id), 6, '0', STR_PAD_LEFT);
-    $receiptNo       = 'RCP-'.$receiptYear.'-'.$receiptNoSuffix;
-    $issuedAt        = ($isSinglePayment && $payment->approved_at) ? $payment->approved_at : now();
-    $statusName      = $member->memberStatus?->name ?? 'Tidak Aktif';
-    $isActive        = str_contains(strtolower($statusName), 'aktif');
-@endphp
 
-{{-- TOP ACCENT STRIP --}}
-<table width="100%" cellpadding="0" cellspacing="0">
-  <tr><td height="5" style="background-color:#1a3c5e; font-size:1px; line-height:1px;">&nbsp;</td></tr>
-</table>
+    {{-- ── PASTEL ACCENT ── --}}
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td class="gold-rule">&nbsp;</td></tr></table>
 
-{{-- HEADER --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="padding-top:10px; padding-bottom:9px; border-bottom:2px solid #1a3c5e; margin-bottom:10px;">
-  <tr>
-    <td width="62%" style="vertical-align:top;">
-      <table cellpadding="0" cellspacing="0">
+    {{-- ── HEADER ── --}}
+    <table class="header-card" cellpadding="0" cellspacing="0">
         <tr>
-          <td class="logo-box" width="42" height="42" align="center" valign="middle">B</td>
-          <td class="brand-name">BAKIS</td>
+            <td class="header-inner">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="header-left-cell">
+                            <table cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="vertical-align:middle; padding-right:14px;">
+                                        @if($logoDataUri)
+                                            <table class="logo-plate" cellpadding="0" cellspacing="0"><tr><td align="center" valign="middle" style="height:56px;"><img src="{{ $logoDataUri }}" alt="Logo" class="org-logo" /></td></tr></table>
+                                        @else
+                                            <table cellpadding="0" cellspacing="0"><tr><td class="logo-box" width="56" height="56" align="center" valign="middle">B</td></tr></table>
+                                        @endif
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        <div class="brand-badge">Resit Rasmi</div>
+                                        <h1 class="brand-title">BAKIS</h1>
+                                        <p class="brand-subtitle">Sistem Pengurusan Keahlian</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="header-right-cell">
+                            <p class="receipt-label">RESIT</p>
+                            <p class="receipt-no"># {{ $receiptNo }}</p>
+                            <p class="receipt-date">Dikeluarkan: {{ $issuedAt->format('d M Y') }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-        <tr><td colspan="2" style="font-size:9px; color:#7a8fa6; padding-top:3px; padding-left:51px;">Sistem Pengurusan Keahlian</td></tr>
-        <tr><td colspan="2" style="font-size:8.5px; color:#94a3b8; padding-left:51px;">Dokumen resit dijana secara elektronik.</td></tr>
-      </table>
-    </td>
-    <td width="38%" style="vertical-align:top;">
-      <div class="rtitle">RESIT</div>
-      <div class="rno"># {{ $receiptNo }}</div>
-      <div class="rdate">Dikeluarkan: {{ $issuedAt->format('d M Y') }}</div>
-    </td>
-  </tr>
-</table>
-
-{{-- STATUS BANNER — no dot icon, just left border + text --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#dcfce7; border-left:4px solid #16a34a; border-radius:5px; margin-bottom:12px;">
-  <tr>
-    <td style="padding:9px 14px;">
-      @if($isSinglePayment)
-        <div style="font-size:11px; font-weight:700; color:#15803d;">Bayaran diterima &amp; disahkan</div>
-        <div style="font-size:9.5px; color:#166534; padding-top:2px;">Resit rasmi bagi pembayaran yuran keahlian &mdash; {{ match($payment->jenis ?? '') { 'pendaftaran_baru'=>'Pendaftaran Baru','pembaharuan'=>'Pembaharuan',default=>'Keahlian' } }}</div>
-      @else
-        <div style="font-size:11px; font-weight:700; color:#15803d;">Ringkasan pembayaran disahkan</div>
-        <div style="font-size:9.5px; color:#166534; padding-top:2px;">Status: {{ $statusName }} &mdash; {{ $approvedPayments->count() }} rekod disahkan</div>
-      @endif
-    </td>
-  </tr>
-</table>
-
-{{-- MAKLUMAT AHLI --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
-
-  {{-- Header bar — plain text, no icon --}}
-  <tr>
-    <td style="background-color:#1a3c5e; border-radius:6px 6px 0 0; padding:9px 14px;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="vertical-align:middle; font-size:11px; font-weight:700; color:#ffffff; letter-spacing:0.5px;">
-            MAKLUMAT AHLI &amp; PENGEBILAN
-          </td>
-          <td style="text-align:right; vertical-align:middle;">
-            <span style="background-color:{{ $isActive ? '#16a34a' : '#dc2626' }}; color:#ffffff; font-size:8.5px; font-weight:700; padding:2px 10px; border-radius:20px;">{{ strtoupper($statusName) }}</span>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- Row 1: Nama Ahli | No. Ahli --}}
-  <tr>
-    <td style="padding:0; border-bottom:1px solid #f1f5f9;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td width="4" style="background-color:#2563eb; font-size:1px;">&nbsp;</td>
-          <td style="padding:9px 14px;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">Nama Penuh Ahli</div>
-            <div style="font-size:13px; color:#1a3c5e; font-weight:700; padding-top:2px;">{{ $member->nama }}</div>
-          </td>
-          <td width="50%" style="padding:9px 14px; border-left:1px solid #f1f5f9;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">No. Ahli</div>
-            <div style="font-size:13px; color:#2563eb; font-weight:700; padding-top:2px; letter-spacing:0.5px;">{{ $member->no_ahli ?? '&mdash;' }}</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- Row 2: E-mel | No. Telefon --}}
-  <tr>
-    <td style="padding:0; border-bottom:1px solid #f1f5f9;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td width="4" style="background-color:#e2e8f0; font-size:1px;">&nbsp;</td>
-          <td style="padding:8px 14px;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">E-mel</div>
-            <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->email ?? '&mdash;' }}</div>
-          </td>
-          <td width="50%" style="padding:8px 14px; border-left:1px solid #f1f5f9;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">No. Telefon / HP</div>
-            <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->no_hp ?? $member->no_tel ?? '&mdash;' }}</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-  {{-- Row 3: No. KP | Tarikh Daftar --}}
-  <tr>
-    <td style="padding:0;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td width="4" style="background-color:#e2e8f0; font-size:1px;">&nbsp;</td>
-          <td style="padding:8px 14px;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">No. Kad Pengenalan</div>
-            <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->no_kp ?? '&mdash;' }}</div>
-          </td>
-          <td width="50%" style="padding:8px 14px; border-left:1px solid #f1f5f9;">
-            <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.7px;">Tarikh Daftar</div>
-            <div style="font-size:11px; color:#334155; font-weight:600; padding-top:2px;">{{ $member->created_at ? $member->created_at->format('d M Y') : '&mdash;' }}</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
-</table>
-
-{{-- BUTIRAN PEMBAYARAN --}}
-<div class="slabel" style="margin-bottom:6px;">Butiran Pembayaran</div>
-
-@if($approvedPayments->isEmpty())
-  <div class="notes" style="margin-bottom:10px;">Tiada rekod pembayaran yang telah disahkan.</div>
-@else
-  <table class="itable" width="100%" style="margin-bottom:4px;">
-    <thead>
-      <tr>
-        <td width="5%">#</td>
-        <td width="49%">Perihal</td>
-        <td width="8%">Ktt</td>
-        <td width="19%">Harga (RM)</td>
-        <td width="19%" style="text-align:right;">Amaun (RM)</td>
-      </tr>
-    </thead>
-    <tbody>
-      @foreach($approvedPayments as $i => $p)
-        @php
-          $start     = $p->tahun_mula ?? $p->tahun_bayar;
-          $end       = $p->tahun_tamat ?? $p->tahun_bayar;
-          $coverage  = ($start == $end) ? (string)$start : $start.' &ndash; '.$end;
-          $lineTotal = (float)($p->jumlah ?? 0);
-          $typeLabel = match($p->jenis ?? '') {
-            'pendaftaran_baru' => 'Yuran Pendaftaran Baru',
-            'pembaharuan'      => 'Yuran Pembaharuan',
-            default            => 'Yuran Keahlian',
-          };
-        @endphp
-        <tr class="{{ $i % 2 === 1 ? 'row-alt' : '' }}">
-          <td>{{ $i+1 }}</td>
-          <td>
-            <div class="iname">{{ $typeLabel }}</div>
-            <div class="idesc">Liputan tahun: {!! $coverage !!}@if($p->yuran?->jenis_yuran) &nbsp;&middot;&nbsp;{{ $p->yuran->jenis_yuran }}@endif</div>
-          </td>
-          <td>1</td>
-          <td>{{ number_format($lineTotal,2) }}</td>
-          <td style="text-align:right; font-weight:700; color:#1a3c5e;">{{ number_format($lineTotal,2) }}</td>
-        </tr>
-      @endforeach
-    </tbody>
-  </table>
-
-  {{-- TOTALS --}}
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
-    <tr>
-      <td width="56%">&nbsp;</td>
-      <td width="44%">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #1a3c5e;">
-          <tr>
-            <td style="padding:7px 9px 4px 9px; font-size:12px; font-weight:800; color:#1a3c5e;">JUMLAH DIBAYAR</td>
-            <td style="padding:7px 0 4px 0; font-size:14px; font-weight:800; color:#2563eb; text-align:right;">RM&nbsp;{{ number_format($totalPaid,2) }}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-
-  {{-- KAEDAH PEMBAYARAN --}}
-  @if($isSinglePayment)
-    <div class="slabel" style="margin-bottom:6px;">Kaedah Pembayaran</div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e2e8f0; border-radius:6px; margin-bottom:12px;">
-      <tr>
-        <td width="25%" style="padding:9px 12px; border-right:1px solid #f1f5f9;">
-          <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Kaedah</div>
-          <div style="font-size:10px; color:#1a3c5e; font-weight:600; padding-top:3px;">Sistem BAKIS</div>
-        </td>
-        <td width="25%" style="padding:9px 12px; border-right:1px solid #f1f5f9;">
-          <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Rujukan / No. Resit</div>
-          <div style="font-size:10px; color:#1a3c5e; font-weight:600; padding-top:3px;">{{ $payment->no_resit_sistem ?? '&mdash;' }}</div>
-        </td>
-        <td width="25%" style="padding:9px 12px; border-right:1px solid #f1f5f9;">
-          <div style="font-size:8px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Tarikh Kelulusan</div>
-          <div style="font-size:10px; color:#1a3c5e; font-weight:600; padding-top:3px;">{{ ($payment->approved_at ?? $payment->updated_at)?->format('d M Y, H:i') ?? '&mdash;' }}</div>
-        </td>
-        <td width="25%" style="padding:9px 12px; background-color:#dcfce7; border-radius:0 5px 5px 0;">
-          <div style="font-size:8px; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Status</div>
-          <div style="font-size:10px; color:#15803d; font-weight:700; padding-top:3px;">DIBAYAR</div>
-        </td>
-      </tr>
     </table>
-  @endif
-@endif
 
-{{-- NOTES --}}
-<div class="notes" style="margin-bottom:10px;">
-  <strong style="display:block; margin-bottom:3px; font-size:10px;">Nota Penting:</strong>
-  1. Resit ini dijana komputer dan sah tanpa tandatangan fizikal.<br/>
-  2. Faedah keahlian berkuat kuasa mengikut tarikh kelulusan pembayaran.<br/>
-  3. Sila simpan resit ini untuk rujukan dan rekod anda.<br/>
-  4. Untuk pertanyaan, hubungi pentadbir melalui saluran rasmi organisasi.
-</div>
+    {{-- ── HEADER SEPARATOR ── --}}
+    <hr class="black-sep">
 
-{{-- FOOTER --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="border-top:1.5px dashed #cbd5e1; padding-top:7px; margin-top:4px;">
-  <tr>
-    <td class="foot-l">
-      <strong style="color:#1a3c5e;">BAKIS</strong> &mdash; Sistem Pengurusan Keahlian<br/>
-      Dijana: {{ now()->format('d M Y, H:i') }} ({{ config('app.timezone','UTC') }})
-    </td>
-    <td class="foot-r">
-      Disahkan oleh:
-      <table cellpadding="0" cellspacing="0" style="margin-left:auto; margin-top:14px;">
-        <tr><td style="border-top:1px solid #cbd5e1; padding-top:4px; width:120px; text-align:center; font-size:8.5px; color:#94a3b8;">Pentadbir Keahlian</td></tr>
-      </table>
-    </td>
-  </tr>
-</table>
+    {{-- ── STATUS BANNER ── --}}
+    <table class="status-banner" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="status-accent">&nbsp;</td>
+            <td class="status-pad">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="vertical-align:middle;">
+                            @if($isSinglePayment)
+                                <p class="status-title">Bayaran diterima &amp; disahkan</p>
+                                <p class="status-desc">Resit rasmi bagi pembayaran yuran keahlian &mdash; {{ $paymentType }}</p>
+                            @else
+                                <p class="status-title">Ringkasan pembayaran disahkan</p>
+                                <p class="status-desc">Status keahlian: {{ $statusName }} &mdash; {{ $approvedPayments->count() }} rekod pembayaran disahkan</p>
+                            @endif
+                        </td>
+                        <td style="vertical-align:middle; text-align:right; width:90px;">
+                            <span class="lunas-pill">Lunas</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── MEMBER INFO ── --}}
+    <table class="section-header" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="vertical-align:middle;">
+                <table cellpadding="0" cellspacing="0"><tr>
+                    <td class="section-tick" height="13">&nbsp;</td>
+                    <td><p class="section-title">Maklumat Ahli &amp; Pengebilan</p></td>
+                </tr></table>
+            </td>
+            <td style="text-align:right; vertical-align:middle;">
+                <span class="aktif-badge {{ $isActive ? 'aktif-badge-on' : 'aktif-badge-off' }}">{{ $statusName }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="info-grid" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="info-cell">
+                <p class="info-label">Nama Penuh Ahli</p>
+                <p class="info-value">{{ $member->nama }}</p>
+            </td>
+            <td class="info-cell info-cell-alt">
+                <p class="info-label">No. Ahli</p>
+                <p class="info-value-indigo">{{ $member->no_ahli ?? '—' }}</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-cell">
+                <p class="info-label">E-Mel</p>
+                <p class="info-value-normal">{{ $member->email ?? '—' }}</p>
+            </td>
+            <td class="info-cell info-cell-alt">
+                <p class="info-label">No. Telefon / HP</p>
+                <p class="info-value-normal">{{ $member->no_hp ?? $member->no_tel ?? '—' }}</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-cell">
+                <p class="info-label">No. Kad Pengenalan</p>
+                <p class="info-value-normal">{{ $member->no_kp ?? '—' }}</p>
+            </td>
+            <td class="info-cell info-cell-alt">
+                <p class="info-label">Tarikh Daftar</p>
+                <p class="info-value-normal">{{ $member->created_at ? $member->created_at->format('d M Y') : '—' }}</p>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── SECTION SEPARATOR ── --}}
+    <hr class="black-sep">
+
+    {{-- ── PAYMENT DETAILS ── --}}
+    <table class="section-header" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="vertical-align:middle;">
+                <table cellpadding="0" cellspacing="0"><tr>
+                    <td class="section-tick" height="13">&nbsp;</td>
+                    <td><p class="section-title">Butiran Pembayaran</p></td>
+                </tr></table>
+            </td>
+        </tr>
+    </table>
+
+    @if($approvedPayments->isEmpty())
+        <div class="notes-box" style="border-left-color:#fca5a5; background:#fef7f7; margin-bottom:20px;">Tiada rekod pembayaran yang telah disahkan.</div>
+    @else
+    <table class="payment-table" cellpadding="0" cellspacing="0">
+        <thead class="payment-thead">
+            <tr>
+                <th style="width:6%">#</th>
+                <th>Perihal</th>
+                <th class="center" style="width:8%">Ktt</th>
+                <th class="right" style="width:18%">Harga (RM)</th>
+                <th class="right" style="width:18%">Amaun (RM)</th>
+            </tr>
+        </thead>
+        <tbody class="payment-tbody">
+            @foreach($approvedPayments as $i => $p)
+                @php
+                    $start     = $p->tahun_mula ?? $p->tahun_bayar;
+                    $end       = $p->tahun_tamat ?? $p->tahun_bayar;
+                    $coverage  = ($start == $end) ? (string)$start : $start.' &ndash; '.$end;
+                    $lineTotal = (float)($p->jumlah ?? 0);
+                    $typeLabel = match($p->jenis ?? '') {
+                        'pendaftaran_baru' => 'Yuran Pendaftaran Baru',
+                        'pembaharuan'      => 'Yuran Pembaharuan',
+                        default            => 'Yuran Keahlian',
+                    };
+                @endphp
+                <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
+                    <td style="color:#a5b4fc; font-weight:bold;">{{ str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) }}</td>
+                    <td>
+                        <p class="payment-item-title">{{ $typeLabel }}</p>
+                        <p class="payment-item-sub">Liputan tahun: {!! $coverage !!}@if($p->yuran?->jenis_yuran) &middot; {{ $p->yuran->jenis_yuran }}@endif</p>
+                    </td>
+                    <td class="td-center">1</td>
+                    <td class="td-right" style="color:#64748b;">{{ number_format($lineTotal, 2) }}</td>
+                    <td class="td-right">{{ number_format($lineTotal, 2) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <table class="total-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td width="50%">&nbsp;</td>
+            <td width="50%">
+                <table class="total-panel" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="total-accent">&nbsp;</td>
+                        <td class="total-label-cell">
+                            <div class="total-label">Jumlah Dibayar</div>
+                            <div class="total-sub">{{ $approvedPayments->count() }} item &middot; {{ $receiptYear }}</div>
+                        </td>
+                        <td class="total-amount-cell">
+                            <span class="total-amount">RM {{ number_format($totalPaid, 2) }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ── PAYMENT METHOD ── --}}
+    @if($isSinglePayment)
+    <table class="section-header" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="vertical-align:middle;">
+                <table cellpadding="0" cellspacing="0"><tr>
+                    <td class="section-tick" height="13">&nbsp;</td>
+                    <td><p class="section-title">Kaedah Pembayaran</p></td>
+                </tr></table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="method-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="method-cell">
+                <p class="method-label">Kaedah</p>
+                <p class="method-value">Sistem BAKIS</p>
+            </td>
+            <td style="width:1.3%;"></td>
+            <td class="method-cell">
+                <p class="method-label">Rujukan / No. Resit</p>
+                <p class="method-value">{{ $payment->no_resit_sistem ?? '—' }}</p>
+            </td>
+            <td style="width:1.3%;"></td>
+            <td class="method-cell">
+                <p class="method-label">Tarikh Kelulusan</p>
+                <p class="method-value">{{ ($payment->approved_at ?? $payment->updated_at)?->format('d M Y, H:i') ?? '—' }}</p>
+            </td>
+            <td style="width:1.3%;"></td>
+            <td class="method-cell" style="background:#e0f2fe; border-color:#bae6fd;">
+                <p class="method-label">Status</p>
+                <span class="dibayar-pill">Dibayar</span>
+            </td>
+        </tr>
+    </table>
+    @endif
+    @endif
+
+    {{-- ── NOTES ── --}}
+    <div class="notes-box">
+        <p class="notes-title">Nota Penting</p>
+        <ol class="notes-list">
+            <li>Resit ini dijana komputer dan sah tanpa tandatangan fizikal.</li>
+            <li>Faedah keahlian berkuat kuasa mengikut tarikh kelulusan pembayaran.</li>
+            <li>Sila simpan resit ini untuk rujukan dan rekod anda.</li>
+            <li>Untuk pertanyaan, hubungi pentadbir melalui saluran rasmi organisasi.</li>
+        </ol>
+    </div>
+
+    {{-- ── FOOTER ── --}}
+    <hr class="footer-divider">
+    <table class="footer-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="footer-left">
+                <p class="footer-brand">BAKIS — Sistem Pengurusan Keahlian</p>
+                <p class="footer-sub">Dijana: {{ now()->format('d M Y, H:i') }} ({{ config('app.timezone', 'UTC') }})</p>
+                <p class="footer-verify">ID Pengesahan: {{ $receiptNo }}</p>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>

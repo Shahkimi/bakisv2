@@ -68,7 +68,7 @@
                        name="no_ahli"
                        id="no_ahli"
                        value="{{ old('no_ahli') }}"
-                       placeholder="AHL-?????"
+                       placeholder="BKS-{{ date('y') }}????"
                        class="block w-full pl-9 pr-10 py-3 text-sm border border-gray-200 dark:border-gray-700
                               rounded-xl bg-gray-50 dark:bg-gray-900/40 text-gray-400 dark:text-gray-500
                               placeholder-gray-300 dark:placeholder-gray-600
@@ -85,7 +85,7 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-xs text-gray-400 dark:text-gray-500">Dijana automatik: <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">AHL-XXXXX</code></p>
+            <p class="text-xs text-gray-400 dark:text-gray-500">Dijana automatik: <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">BKS-YYXXXX</code></p>
             @error('no_ahli')<p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
 
@@ -128,7 +128,7 @@
         </svg>
         <p class="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
             <strong>Nota:</strong> Status ahli ditetapkan kepada <strong>Aktif</strong> secara automatik.
-            No. Ahli akan dijana selepas rekod disimpan dalam format <code class="font-mono">AHL-XXXXX</code>.
+            No. Ahli akan dijana selepas rekod disimpan dalam format <code class="font-mono">BKS-YYXXXX</code>.
             Tarikh daftar telah diisi dengan tarikh hari ini — boleh diubah jika perlu.
         </p>
     </div>

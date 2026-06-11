@@ -155,6 +155,7 @@ final readonly class PaymentService
             'id' => $payment->id,
             'member' => [
                 'id' => $payment->member?->id,
+                'route_key' => $payment->member?->getRouteKey(),
                 'nama' => $payment->member?->nama ?? '–',
                 'no_kp' => $payment->member?->no_kp ?? '–',
             ],

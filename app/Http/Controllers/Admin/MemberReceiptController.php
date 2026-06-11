@@ -6,16 +6,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
+use App\Services\SiteSettingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
 class MemberReceiptController extends Controller
 {
+    public function __construct(
+        private readonly SiteSettingService $siteSettingService
+    ) {}
+
     public function download(Member $member): Response
     {
         $member->load(['jabatan', 'jawatan', 'memberStatus', 'payments.yuran']);
 
-        $pdf = Pdf::loadView('admin.members.receipt-pdf', compact('member'))
+        $pdf = Pdf::loadView('admin.members.receipt-pdf', [
+            'member' => $member,
+            'logoDataUri' => $this->siteSettingService->logoBase64DataUri(),
+        ])
             ->setPaper('a4', 'portrait')
             ->setOptions([
                 'dpi' => 150,

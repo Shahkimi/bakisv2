@@ -142,7 +142,7 @@ final readonly class MemberService
 
             if (empty($member->no_ahli)) {
                 $member->update([
-                    'no_ahli' => 'AHL-'.str_pad((string) $member->id, 5, '0', STR_PAD_LEFT),
+                    'no_ahli' => $this->generateNoAhli(),
                 ]);
             }
 
@@ -215,7 +215,7 @@ final readonly class MemberService
                 if ($approveImmediately) {
                     $aktifStatus = MemberStatus::where('code', 'aktif')->first();
                     $member->update([
-                        'no_ahli' => $member->no_ahli ?? 'AHL-'.str_pad((string) $member->id, 5, '0', STR_PAD_LEFT),
+                        'no_ahli' => $member->no_ahli ?? $this->generateNoAhli(),
                         'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
                     ]);
                 }
@@ -237,7 +237,7 @@ final readonly class MemberService
             $member = $payment->member;
             $aktifStatus = MemberStatus::where('code', 'aktif')->first();
             $member->update([
-                'no_ahli' => $member->no_ahli ?: 'AHL-'.str_pad((string) $member->id, 5, '0', STR_PAD_LEFT),
+                'no_ahli' => $member->no_ahli ?: $this->generateNoAhli(),
                 'member_status_id' => $aktifStatus?->id ?? $member->member_status_id,
             ]);
         });
@@ -354,5 +354,19 @@ final readonly class MemberService
         }
 
         return $emails;
+    }
+
+    private function generateNoAhli(): string
+    {
+        $yy     = date('y');
+        $prefix = 'BKS-'.$yy;
+
+        $last = Member::where('no_ahli', 'like', $prefix.'%')
+            ->orderByRaw('CAST(SUBSTR(no_ahli, '.(strlen($prefix) + 1).') AS UNSIGNED) DESC')
+            ->value('no_ahli');
+
+        $next = $last ? ((int) substr($last, strlen($prefix)) + 1) : 1;
+
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 }

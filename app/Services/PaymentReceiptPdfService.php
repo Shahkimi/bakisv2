@@ -9,6 +9,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 final readonly class PaymentReceiptPdfService
 {
+    public function __construct(
+        private SiteSettingService $siteSettingService
+    ) {}
+
     /**
      * @return array{content: string, filename: string}
      */
@@ -20,6 +24,7 @@ final readonly class PaymentReceiptPdfService
         $pdf = Pdf::loadView('admin.members.receipt-pdf', [
             'member' => $member,
             'payment' => $payment,
+            'logoDataUri' => $this->siteSettingService->logoBase64DataUri(),
         ])
             ->setPaper('a4', 'portrait')
             ->setOptions([
