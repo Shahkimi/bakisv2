@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MemberReceiptController;
 use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\PembayaranController;
+use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YuranController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -41,8 +42,9 @@ Route::get('/', function () {
         ->get(['jenis_yuran', 'jumlah', 'tempoh_tahun', 'is_active', 'is_show']);
 
     $committee = app(\App\Services\CommitteeMemberService::class)->listOrdered(onlyActive: true);
+    $programs = app(\App\Services\ProgramService::class)->listForPublic();
 
-    return view('welcome', compact('yurans', 'committee'));
+    return view('welcome', compact('yurans', 'committee', 'programs'));
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -177,6 +179,13 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('reorder', [CommitteeMemberController::class, 'reorder'])->name('reorder');
         Route::put('{committeeMember}', [CommitteeMemberController::class, 'update'])->name('update');
         Route::delete('{committeeMember}', [CommitteeMemberController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('kawalan/program')->name('kawalan.program.')->group(function () {
+        Route::get('/', [ProgramController::class, 'index'])->name('index');
+        Route::get('list', [ProgramController::class, 'list'])->name('list');
+        Route::post('/', [ProgramController::class, 'store'])->name('store');
+        Route::put('{program}', [ProgramController::class, 'update'])->name('update');
+        Route::delete('{program}', [ProgramController::class, 'destroy'])->name('destroy');
     });
 });
 
