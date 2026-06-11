@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AcaraKehadiranController;
 use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\CarianController;
+use App\Http\Controllers\Admin\CommitteeMemberController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\Kawalan\FaviconController;
@@ -39,7 +40,9 @@ Route::get('/', function () {
         ->orderBy('jenis_yuran', 'desc')
         ->get(['jenis_yuran', 'jumlah', 'tempoh_tahun', 'is_active', 'is_show']);
 
-    return view('welcome', compact('yurans'));
+    $committee = app(\App\Services\CommitteeMemberService::class)->listOrdered(onlyActive: true);
+
+    return view('welcome', compact('yurans', 'committee'));
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -166,6 +169,14 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::delete('/', [FaviconController::class, 'destroy'])->name('destroy');
         Route::post('logo', [FaviconController::class, 'storeLogo'])->name('logo.store');
         Route::delete('logo', [FaviconController::class, 'destroyLogo'])->name('logo.destroy');
+    });
+    Route::prefix('kawalan/ajk')->name('kawalan.ajk.')->group(function () {
+        Route::get('/', [CommitteeMemberController::class, 'index'])->name('index');
+        Route::get('list', [CommitteeMemberController::class, 'list'])->name('list');
+        Route::post('/', [CommitteeMemberController::class, 'store'])->name('store');
+        Route::post('reorder', [CommitteeMemberController::class, 'reorder'])->name('reorder');
+        Route::put('{committeeMember}', [CommitteeMemberController::class, 'update'])->name('update');
+        Route::delete('{committeeMember}', [CommitteeMemberController::class, 'destroy'])->name('destroy');
     });
 });
 

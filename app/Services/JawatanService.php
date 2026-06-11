@@ -72,9 +72,13 @@ final readonly class JawatanService
     private function getPaginatedData(Builder $query, Request $request)
     {
         $start = $request->integer('start', 0);
-        $length = min($request->integer('length', 10), 100);
+        $length = $request->integer('length', 10);
 
-        return $query->skip($start)->take($length)->get();
+        if ($length === -1) {
+            return $query->get();
+        }
+
+        return $query->skip($start)->take(min($length, 50))->get();
     }
 
     private function formatRow(Jawatan $jawatan): array

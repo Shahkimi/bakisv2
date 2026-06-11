@@ -173,7 +173,7 @@ $(document).ready(function() {
         ],
         order: [[2, 'desc']],
         pageLength: 5,
-        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
+        lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
         initComplete: function() { $('.dataTables_filter input').attr('placeholder', 'Cari acara…'); },
         language: {
             processing: 'Memuatkan...', search: 'Cari:', lengthMenu: 'Papar _MENU_ rekod',

@@ -94,7 +94,7 @@ $(document).ready(function() {
         ],
         ordering: false,
         pageLength: 10,
-        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'Semua']],
+        lengthMenu: [[10, 25, 50], [10, 25, 50]],
         initComplete: function() { $('.dataTables_filter input').attr('placeholder', 'Cari nama / No. KP…'); },
         language: {
             processing: 'Memuatkan...', search: 'Cari:', lengthMenu: 'Papar _MENU_ rekod',

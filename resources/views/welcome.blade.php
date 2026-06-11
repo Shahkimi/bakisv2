@@ -370,6 +370,65 @@
             .quick-access-row .btn {
                 width: 100%;
             }
+
+            .committee {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .committee {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .member-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .member-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .member-photo {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 0.85rem;
+            border: 3px solid var(--surface);
+            box-shadow: 0 6px 18px rgba(125, 53, 6, 0.18);
+            background: var(--bg);
+        }
+
+        .member-photo.placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand);
+            font-family: "Sora", sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .member-name {
+            margin: 0;
+            font-family: "Sora", sans-serif;
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        .member-jawatan {
+            margin: 0.3rem 0 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--brand-deep);
         }
     </style>
 </head>
@@ -492,6 +551,26 @@
                 @endforelse
             </div>
         </section>
+
+        @if ($committee->isNotEmpty())
+        <section class="section" id="committee">
+            <h2 class="section-title">Ahli Jawatankuasa</h2>
+            <div class="committee">
+                @foreach ($committee as $member)
+                    <article class="member-card">
+                        @php($photo = $member->photoUrl())
+                        @if ($photo)
+                            <img class="member-photo" src="{{ $photo }}" alt="{{ $member->name }}" loading="lazy">
+                        @else
+                            <div class="member-photo placeholder">{{ \Illuminate\Support\Str::of($member->name)->substr(0, 1)->upper() }}</div>
+                        @endif
+                        <h4 class="member-name">{{ $member->name }}</h4>
+                        <p class="member-jawatan">{{ $member->jawatan }}</p>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+        @endif
     </main>
 
     <footer class="container footer">

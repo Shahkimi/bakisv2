@@ -176,7 +176,7 @@ $(document).ready(function() {
         ],
         order: [[1, 'asc']],
         pageLength: 5,
-        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'Semua']],
+        lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
         initComplete: function() {
             $('.dataTables_filter input').attr('placeholder', 'Cari nama, e-mel atau No. KP…');
         },
