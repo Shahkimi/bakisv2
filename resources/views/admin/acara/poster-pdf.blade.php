@@ -340,8 +340,8 @@
                         <tr>
                             <td class="header-left">
                                 <div class="brand-badge">BAKIS</div>
-                                <h1 class="system-title">Sistem Pengurusan Keahlian<br>Poster Acara</h1>
-                                <p class="system-subtitle">Reka bentuk poster acara yang lebih kemas, profesional dan sesuai untuk cetakan PDF.</p>
+                                <h1 class="system-title">Sistem Pengurusan Keahlian</h1>
+                                <p class="system-subtitle">BAKIS - Badan Kebajikan Islam Hospital Sultanah Bahiyah Alor Setar</p>
                             </td>
                             <td class="header-right">
                                 @if ($logoDataUri)

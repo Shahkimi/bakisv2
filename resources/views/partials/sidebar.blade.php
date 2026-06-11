@@ -7,30 +7,44 @@
     @php
         $brandLogoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl();
     @endphp
-    <div class="flex items-center justify-between h-16 px-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+    <div class="relative flex flex-col items-center justify-center pt-6 pb-5 px-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 overflow-hidden">
+        {{-- Subtle decorative gradient blob behind logo --}}
+        <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-400/20 to-purple-500/20 dark:from-indigo-500/15 dark:to-purple-600/15 blur-2xl"></div>
+        </div>
+
+        {{-- Close button --}}
+        <button id="closeSidebar"
+                class="absolute top-3 right-3 lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 flex-shrink-0"
+                aria-label="Close sidebar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        {{-- Logo --}}
+        <div class="relative z-10 mb-3">
             @if ($brandLogoUrl)
-                <img
-                    src="{{ $brandLogoUrl }}"
-                    alt="{{ config('app.name') }}"
-                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0 ring-1 ring-gray-200 dark:ring-gray-600"
-                >
+                <div class="p-1 rounded-2xl bg-white dark:bg-gray-700 shadow-md ring-1 ring-gray-200 dark:ring-gray-600">
+                    <img
+                        src="{{ $brandLogoUrl }}"
+                        alt="{{ config('app.name') }}"
+                        class="w-16 h-16 rounded-xl object-contain"
+                    >
+                </div>
             @else
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg gradient-bg flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <div class="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center shadow-lg ring-2 ring-white/20">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
             @endif
-            <span class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                {{ config('app.name', 'Laravel') }}
-            </span>
         </div>
-        <button id="closeSidebar" class="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0" aria-label="Close sidebar">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+
+        {{-- App name --}}
+        <span class="relative z-10 text-base font-bold text-gray-900 dark:text-white text-center leading-tight px-6 truncate max-w-full">
+            {{ config('app.name', 'Laravel') }}
+        </span>
     </div>
 
     <!-- Navigation Menu -->
