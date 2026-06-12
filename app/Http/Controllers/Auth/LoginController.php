@@ -24,6 +24,8 @@ final class LoginController extends Controller
 
         $request->session()->regenerate();
 
+        $request->session()->flash('show_splash', true);
+
         return redirect()->intended('/dashboard');
     }
 

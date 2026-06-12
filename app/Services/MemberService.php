@@ -246,8 +246,17 @@ final readonly class MemberService
         $member = $payment->member;
 
         if (filled($member->email)) {
-            Notification::route('mail', [$member->email => $member->nama])
-                ->notify(new PaymentApprovedReceiptNotification($payment));
+            try {
+                $email = strtolower(trim((string) $member->email));
+                Notification::route('mail', [$email => $member->nama])
+                    ->notify(new PaymentApprovedReceiptNotification($payment));
+            } catch (\Throwable $e) {
+                Log::warning('Kelulusan pembayaran: e-mel resit gagal dihantar.', [
+                    'member_id' => $member->id,
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         } else {
             Log::info('Kelulusan pembayaran: tiada e-mel ahli untuk resit PDF.', [
                 'member_id' => $member->id,

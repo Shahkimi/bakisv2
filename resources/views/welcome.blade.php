@@ -5,889 +5,258 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.favicon-links')
-    <title>BAKIS Membership</title>
+    <title>BAKIS — Keahlian Warga Hospital</title>
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css'])
+    @else
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@4.0.0/dist/tailwind.min.css" rel="stylesheet">
+    @endif
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
         :root {
-            --bg: #f5f1e6;
-            --surface: #fffdfa;
-            --ink: #181513;
-            --muted: #5f554f;
-            --brand: #b75817;
-            --brand-deep: #7d3506;
-            --accent: #0f5f57;
-            --line: #d8cfc4;
-            --shadow: 0 20px 45px rgba(125, 53, 6, 0.15);
-            --radius-xl: 26px;
-            --radius-lg: 16px;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        /* ── Viewport fit ── */
-        html,
-        body {
-            height: 100%;
-            overflow: hidden;
+            --moss: #0B3D33;
+            --emerald: #0E7A66;
+            --pulse: #16B89A;
+            --brass: #C49A4A;
+            --brass-deep: #9C7322;
+            --paper: #F2F6F3;
+            --surface: #FFFFFF;
+            --ink: #16221E;
+            --muted: #5C6B64;
+            --line: #DCE6E1;
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
         }
 
         body {
-            margin: 0;
-            font-family: "Manrope", sans-serif;
-            color: var(--ink);
+            font-family: var(--font-body);
             background:
-                radial-gradient(circle at 15% 10%, #ffd79e 0%, transparent 40%),
-                radial-gradient(circle at 80% 15%, #f6b98e 0%, transparent 35%),
-                linear-gradient(155deg, #f9f4e9 0%, #f2eadc 50%, #efe3d5 100%);
-            display: flex;
-            flex-direction: column;
+                radial-gradient(circle at 12% 8%, rgba(22, 184, 154, 0.10) 0%, transparent 42%),
+                radial-gradient(circle at 88% 12%, rgba(196, 154, 74, 0.10) 0%, transparent 38%),
+                linear-gradient(160deg, #f6faf8 0%, var(--paper) 55%, #eef4f0 100%);
         }
 
-        main {
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+        .font-display { font-family: var(--font-display); }
+        .font-body { font-family: var(--font-body); }
+        .font-500 { font-weight: 500; }
+        .font-600 { font-weight: 600; }
+        .font-700 { font-weight: 700; }
+        .font-800 { font-weight: 800; }
+
+        /* ── Signature: heartbeat / ECG pulse line ── */
+        .pulse-line {
+            stroke: var(--pulse);
+            stroke-width: 2.4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 620;
+            stroke-dashoffset: 620;
+            animation: ecg 3.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
         }
 
-        .container {
-            width: min(1120px, calc(100% - 2rem));
-            margin: 0 auto;
+        .pulse-node {
+            fill: var(--brass);
+            opacity: 0;
+            animation: node-glow 3.6s ease-in-out infinite;
         }
 
-        /* ── Header ── */
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding: 1.1rem 0;
-            flex-shrink: 0;
+        @keyframes ecg {
+            0%   { stroke-dashoffset: 620; }
+            55%  { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 0; }
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            font-family: "Sora", sans-serif;
-            letter-spacing: 0.02em;
-            font-weight: 700;
-        }
-
-        .brand-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: grid;
-            place-items: center;
-            color: #fff;
-            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
-            box-shadow: var(--shadow);
-            font-size: 0.95rem;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .btn {
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            padding: 0.72rem 1.2rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
-            border: 1px solid transparent;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            border-color: var(--line);
-            color: var(--ink);
-            background: rgba(255, 253, 250, 0.8);
-        }
-
-        .btn-solid {
-            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
-            color: #fff;
-            box-shadow: var(--shadow);
-        }
-
-        .btn-accent {
-            background: linear-gradient(135deg, #0f5f57, #0b463f);
-            color: #fff;
-            box-shadow: 0 14px 30px rgba(15, 95, 87, 0.22);
-        }
-
-        /* ── Hero grid — fills all remaining space ── */
-        .hero {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            grid-template-rows: 1fr;
-            gap: 1.4rem;
-            padding: 1.4rem 0 0;
-            align-items: stretch;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .hero-panel,
-        .hero-side {
-            background: var(--surface);
-            border: 1px solid rgba(125, 53, 6, 0.15);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow);
-        }
-
-        .hero-panel {
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-            overflow-y: auto;
-            animation: rise .6s ease-out both;
-        }
-
-        .hero-panel::after {
-            content: "";
-            position: absolute;
-            right: -65px;
-            top: -55px;
-            width: 190px;
-            height: 190px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(183, 88, 23, 0.3), rgba(183, 88, 23, 0));
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            border: 1px solid #e6d5c5;
-            background: #fff8f1;
-            border-radius: 999px;
-            padding: 0.4rem 0.7rem;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: var(--brand-deep);
-        }
-
-        h1 {
-            margin: 1rem 0 0.85rem;
-            font-family: "Sora", sans-serif;
-            font-size: clamp(1.9rem, 3.8vw, 3.05rem);
-            line-height: 1.12;
-            letter-spacing: -0.02em;
-        }
-
-        .hero p {
-            margin: 0;
-            color: var(--muted);
-            max-width: 58ch;
-            line-height: 1.6;
-        }
-
-        .hero-actions {
-            margin-top: 1.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.7rem;
-        }
-
-        .quick-access {
-            margin-top: 1.15rem;
-            padding: 0.9rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid #eadccf;
-            background: #fff8f0;
-            display: grid;
-            gap: 0.7rem;
-        }
-
-        .quick-access strong {
-            font-family: "Sora", sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.02em;
-            color: var(--brand-deep);
-        }
-
-        .quick-access-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.65rem;
-        }
-
-        .stats {
-            margin-top: 1.6rem;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.65rem;
-        }
-
-        .stat {
-            border: 1px dashed #e4d7c8;
-            background: #fffcf7;
-            border-radius: 14px;
-            padding: 0.8rem;
-        }
-
-        .stat strong {
-            display: block;
-            font-size: 1.2rem;
-            font-family: "Sora", sans-serif;
-        }
-
-        .stat span {
-            color: var(--muted);
-            font-size: 0.85rem;
-        }
-
-        .hero-side {
-            padding: 1rem;
-            display: grid;
-            gap: 0.8rem;
-            animation: rise .6s ease-out .12s both;
-            overflow-y: auto;
-            min-height: 0;
-            align-content: start;
-        }
-
-        .mini-card {
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-            border: 1px solid var(--line);
-            background: linear-gradient(180deg, #fff, #fef9f4);
-        }
-
-        .mini-card h3 {
-            margin: 0 0 0.35rem;
-            font-family: "Sora", sans-serif;
-            font-size: 1rem;
-        }
-
-        .mini-card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.91rem;
-            line-height: 1.5;
-        }
-
-        /* ── Membership plans — compact horizontal strip ── */
-        .section {
-            margin-top: 0.85rem;
-            padding-bottom: 0;
-            flex-shrink: 0;
-        }
-
-        .section-title {
-            font-family: "Sora", sans-serif;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin: 0 0 0.45rem;
-        }
-
-        .plans {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.55rem;
-        }
-
-        .plan {
-            background: rgba(255, 253, 249, 0.92);
-            border: 1px solid var(--line);
-            border-radius: var(--radius-lg);
-            padding: 0.6rem 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-        }
-
-        .plan h4 {
-            margin: 0;
-            font-family: "Sora", sans-serif;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--muted);
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .price {
-            margin: 0;
-            font-size: 1.1rem;
-            font-family: "Sora", sans-serif;
-            font-weight: 700;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .price small {
-            font-family: "Manrope", sans-serif;
-            font-size: 0.78rem;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        /* bullet list hidden in compact strip mode */
-        .plan ul {
-            display: none;
-        }
-
-        /* ── Footer ── */
-        .footer {
-            border-top: 1px solid rgba(95, 85, 79, 0.2);
-            padding: 0.6rem 0 0.75rem;
-            color: var(--muted);
-            font-size: 0.88rem;
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-            flex-shrink: 0;
+        @keyframes node-glow {
+            0%, 40% { opacity: 0; r: 3; }
+            58%     { opacity: 1; r: 5.5; }
+            80%     { opacity: 0.9; r: 4; }
+            100%    { opacity: 0; r: 3; }
         }
 
         @keyframes rise {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Breakpoints ── */
-        @media (max-width: 980px) {
-            .hero {
-                grid-template-columns: 1fr;
-            }
+        .rise { animation: rise .6s ease-out both; }
+        .rise-delay { animation: rise .6s ease-out .12s both; }
 
-            .plans {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 720px) {
-            /* restore normal scroll on small screens */
-            html, body { overflow: auto; height: auto; }
-            main { overflow: visible; flex: none; }
-            .hero { flex: none; grid-template-rows: auto; min-height: auto; padding: 1.5rem 0 0; }
-            .hero-panel, .hero-side { overflow-y: visible; min-height: auto; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .plans { grid-template-columns: 1fr; gap: 0.85rem; }
-            .stats { grid-template-columns: 1fr; }
-            .hero-panel { padding: 1.4rem; }
-            .quick-access-row .btn { width: 100%; }
-            /* restore full plan cards on mobile */
-            .section { margin-top: 1.2rem; padding-bottom: 2rem; }
-            .section-title { font-size: clamp(1.4rem, 2.2vw, 1.9rem); text-transform: none; letter-spacing: 0; color: var(--ink); margin-bottom: 0.8rem; }
-            .plan { flex-direction: column; align-items: flex-start; gap: 0.3rem; padding: 1rem; }
-            .plan h4 { font-size: 1rem; color: var(--ink); white-space: normal; overflow: visible; }
-            .price { font-size: 1.7rem; }
-            .plan ul { display: grid; gap: 0.4rem; font-size: 0.9rem; color: var(--muted); list-style: none; padding: 0; margin: 0; }
-            .plan li::before { content: "* "; color: var(--accent); font-weight: 800; }
-            .footer { padding: 1.3rem 0 2rem; }
-        }
-
-        /* ===== Ahli Jawatankuasa carousel (hero-side) ===== */
-        .ajk-card {
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(125, 53, 6, 0.12);
-            background: var(--surface);
-            overflow: hidden;
-            box-shadow: 0 2px 20px rgba(125, 53, 6, 0.09), 0 1px 4px rgba(0, 0, 0, 0.04);
-        }
-
-        .ajk-header {
-            padding: 0.7rem 1rem 0.72rem;
-            background: linear-gradient(135deg, #7d3506 0%, #b75817 55%, #c9661f 100%);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.6rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ajk-header::after {
-            content: "";
-            position: absolute;
-            right: -18px;
-            top: -18px;
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.07);
-        }
-
-        .ajk-title {
-            margin: 0;
-            font-family: "Sora", sans-serif;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.01em;
-        }
-
-        .ajk-eyebrow {
-            font-size: 0.62rem;
-            letter-spacing: 0.13em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.58);
-            white-space: nowrap;
-        }
-
-        .ajk-viewport {
-            overflow: hidden;
-        }
-
+        /* ── AJK carousel track ── */
         .ajk-track {
             display: flex;
             transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: transform;
         }
-
-        .ajk-slide {
-            flex: 0 0 100%;
-            min-width: 100%;
-            display: grid;
-            grid-template-columns: 92px 1fr;
-        }
-
-        .ajk-photo-zone {
-            background: linear-gradient(170deg, rgba(183, 88, 23, 0.07) 0%, rgba(125, 53, 6, 0.03) 100%);
-            border-right: 1px solid rgba(183, 88, 23, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem 0;
-        }
-
-        .ajk-photo {
-            width: 66px;
-            height: 66px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2.5px solid #fff;
-            box-shadow: 0 0 0 4px rgba(183, 88, 23, 0.12), 0 5px 18px rgba(125, 53, 6, 0.28);
-            background: var(--bg);
-        }
-
-        .ajk-photo.placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(183, 88, 23, 0.09);
-            color: var(--brand);
-            font-family: "Sora", sans-serif;
-            font-size: 1.55rem;
-            font-weight: 700;
-        }
-
-        .ajk-info {
-            padding: 1rem 1rem 1rem 0.9rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 0.45rem;
-            min-width: 0;
-        }
-
-        .ajk-name {
-            margin: 0;
-            font-family: "Sora", sans-serif;
-            font-size: 0.92rem;
-            font-weight: 700;
-            color: var(--ink);
-            line-height: 1.3;
-        }
-
-        .ajk-badge {
-            display: inline-flex;
-            align-items: center;
-            align-self: flex-start;
-            padding: 0.22rem 0.6rem;
-            background: rgba(183, 88, 23, 0.1);
-            color: var(--brand-deep);
-            border-radius: 999px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            border: 1px solid rgba(183, 88, 23, 0.16);
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .ajk-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.55rem 0.85rem;
-            border-top: 1px solid rgba(183, 88, 23, 0.07);
-            background: rgba(125, 53, 6, 0.018);
-        }
-
-        .ajk-arrow {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: 1px solid rgba(183, 88, 23, 0.2);
-            background: #fff;
-            color: var(--brand-deep);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.18s;
-        }
-
-        .ajk-arrow:hover {
-            background: var(--brand);
-            border-color: var(--brand);
-            color: #fff;
-            transform: scale(1.1);
-        }
-
-        .ajk-arrow svg {
-            width: 13px;
-            height: 13px;
-        }
-
-        .ajk-progress-wrap {
-            flex: 1;
-            height: 3px;
-            background: rgba(183, 88, 23, 0.13);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-
+        .ajk-slide { flex: 0 0 100%; min-width: 100%; }
         .ajk-progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, var(--brand-deep), var(--brand));
+            background: linear-gradient(90deg, var(--brass-deep), var(--brass));
             border-radius: 999px;
         }
 
-        .ajk-counter {
-            font-size: 0.71rem;
-            font-weight: 700;
-            color: var(--muted);
-            font-family: "Sora", sans-serif;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-            flex-shrink: 0;
+        /* ── Mobile: restore normal scrolling (mirrors prior behavior) ── */
+        @media (max-width: 720px) {
+            html, body { overflow: auto; height: auto; }
+            .vp-main { overflow: visible; flex: none; }
+            .vp-hero { flex: none; min-height: auto; }
+            .vp-panel, .vp-side { overflow-y: visible; min-height: auto; }
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .pulse-line { animation: none; stroke-dashoffset: 0; }
+            .pulse-node { animation: none; opacity: 1; }
             .ajk-track { transition: none; }
             .ajk-progress-fill { transition: none !important; }
-        }
-
-        /* ===== Program BAKIS card (hero-side) ===== */
-        .prog-card {
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(125, 53, 6, 0.12);
-            background: var(--surface);
-            overflow: hidden;
-            box-shadow: 0 2px 20px rgba(125, 53, 6, 0.09), 0 1px 4px rgba(0, 0, 0, 0.04);
-        }
-
-        .prog-header {
-            padding: 0.7rem 1rem 0.72rem;
-            background: linear-gradient(135deg, #0f5f57 0%, #11756b 55%, #138a7d 100%);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.6rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .prog-header::after {
-            content: "";
-            position: absolute;
-            right: -18px;
-            top: -18px;
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .prog-title {
-            margin: 0;
-            font-family: "Sora", sans-serif;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.01em;
-        }
-
-        .prog-eyebrow {
-            font-size: 0.62rem;
-            letter-spacing: 0.13em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.6);
-            white-space: nowrap;
-        }
-
-        .prog-list {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .prog-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 0.9rem;
-            border-bottom: 1px solid rgba(183, 88, 23, 0.08);
-            transition: background 0.2s;
-        }
-
-        .prog-row:last-child {
-            border-bottom: 0;
-        }
-
-        .prog-row:hover {
-            background: rgba(15, 95, 87, 0.035);
-        }
-
-        .prog-row.is-past {
-            opacity: 0.62;
-        }
-
-        .prog-date-chip {
-            flex-shrink: 0;
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-            background: linear-gradient(160deg, #e7f3f1, #d2ebe7);
-            color: var(--accent);
-            border: 1px solid rgba(15, 95, 87, 0.14);
-        }
-
-        .prog-row.is-past .prog-date-chip {
-            background: linear-gradient(160deg, #f1efe9, #e7e1d6);
-            color: var(--muted);
-            border-color: var(--line);
-        }
-
-        .prog-date-chip .d {
-            font-family: "Sora", sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .prog-date-chip .m {
-            font-size: 0.58rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-top: 0.12rem;
-        }
-
-        .prog-body {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .prog-name {
-            margin: 0;
-            font-family: "Sora", sans-serif;
-            font-size: 0.86rem;
-            font-weight: 600;
-            color: var(--ink);
-            line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .prog-time {
-            margin: 0.2rem 0 0;
-            font-size: 0.74rem;
-            color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .prog-time svg {
-            width: 12px;
-            height: 12px;
-            flex-shrink: 0;
-        }
-
-        .prog-badge {
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.28rem;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            font-size: 0.64rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            background: rgba(15, 95, 87, 0.12);
-            color: var(--accent);
-            border: 1px solid rgba(15, 95, 87, 0.18);
-            white-space: nowrap;
-        }
-
-        .prog-badge .dot {
-            width: 0.38rem;
-            height: 0.38rem;
-            border-radius: 999px;
-            background: currentColor;
-        }
-
-        .prog-badge.is-past {
-            background: rgba(95, 85, 79, 0.1);
-            color: var(--muted);
-            border-color: var(--line);
+            .rise, .rise-delay { animation: none; }
         }
     </style>
 </head>
 
-<body>
+<body class="m-0 h-screen overflow-hidden flex flex-col text-[var(--ink)] max-[720px]:h-auto max-[720px]:overflow-auto">
     @php
         $brandLogoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl();
     @endphp
-    <header class="container topbar">
-        <div class="brand">
+
+    <header class="w-[min(1180px,calc(100%-2rem))] mx-auto flex items-center justify-between gap-4 py-4 shrink-0">
+        <div class="flex items-center gap-3">
             @if ($brandLogoUrl)
-                <img src="{{ $brandLogoUrl }}" alt="BAKIS Membership" class="brand-badge" style="object-fit: cover;">
+                <img src="{{ $brandLogoUrl }}" alt="BAKIS"
+                    class="w-11 h-11 rounded-xl object-cover ring-1 ring-[var(--line)] shadow-sm">
             @else
-                <div class="brand-badge">BK</div>
+                <div class="w-11 h-11 rounded-xl grid place-items-center text-white font-display font-semibold text-sm shadow-md"
+                    style="background: linear-gradient(135deg, var(--emerald), var(--moss));">BK</div>
             @endif
-            <span>BAKIS Membership</span>
+            <div class="leading-tight">
+                <div class="font-display font-700 text-lg tracking-tight text-[var(--moss)]">BAKIS</div>
+                <div class="text-[0.68rem] text-[var(--muted)] font-medium">Badan Kebajikan Islam · Hospital Sultanah Bahiyah</div>
+            </div>
         </div>
-        <nav class="nav-links">
-            <a class="btn btn-outline" href="/login">Login</a>
-            <a class="btn btn-accent" href="/semak">Semak Status Ahli</a>
+        <nav class="flex items-center gap-2.5">
+            <a href="/login"
+                class="inline-flex items-center rounded-full px-4 py-2.5 text-sm font-semibold text-[var(--ink)] bg-white/80 border border-[var(--line)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]">Log Masuk</a>
+            <a href="/semak"
+                class="inline-flex items-center rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brass)]"
+                style="background: linear-gradient(135deg, var(--brass), var(--brass-deep));">Semak Status Ahli</a>
         </nav>
     </header>
 
-    <main class="container">
-        <section class="hero">
-            <article class="hero-panel">
-                <span class="eyebrow">Official Portal</span>
-                <h1>Welcome to BAKIS Membership</h1>
-                <p>
-                    Manage your profile, enjoy exclusive member privileges, and stay updated with upcoming community
-                    programs through one membership hub.
+    <main class="vp-main w-[min(1180px,calc(100%-2rem))] mx-auto flex-1 min-h-0 overflow-hidden flex flex-col">
+        <section class="vp-hero grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 pt-5 flex-1 min-h-0 items-stretch">
+
+            <article class="vp-panel rise relative overflow-hidden overflow-y-auto rounded-[26px] bg-[var(--surface)] border border-[var(--line)] shadow-[0_20px_45px_rgba(11,61,51,0.12)] p-8">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--paper)] px-3 py-1.5 text-[0.78rem] font-bold text-[var(--emerald)]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[var(--brass)]"></span>Portal Rasmi Keahlian
+                </span>
+
+                <h1 class="font-display font-700 mt-4 mb-3 leading-[1.08] tracking-tight text-[var(--moss)] text-[clamp(1.9rem,3.6vw,3rem)]">
+                    Menyatukan warga hospital melalui semangat kebajikan
+                </h1>
+
+                <p class="m-0 max-w-[56ch] leading-relaxed text-[var(--muted)]">
+                    Daftar dan perbaharui keahlian, semak status anda, dan ikuti program kebajikan
+                    BAKIS untuk warga Hospital Sultanah Bahiyah — semuanya di satu portal.
                 </p>
-                <div class="quick-access">
-                    <strong>Quick Access</strong>
-                    <div class="quick-access-row">
-                        <a class="btn btn-solid" href="/login">Login</a>
-                        <a class="btn btn-accent" href="/semak">Semak Status Ahli</a>
-                    </div>
-                </div>
-                <div class="hero-actions">
+
+                {{-- Signature: heartbeat / ECG pulse line --}}
+                <svg class="mt-5 w-full h-12" viewBox="0 0 620 60" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="pulse-line"
+                        d="M0 30 H150 L168 30 L182 12 L200 48 L216 22 L230 30 H360 L378 30 L392 14 L410 46 L426 24 L440 30 H620" />
+                    <circle class="pulse-node" cx="392" cy="14" r="3" />
+                </svg>
+
+                <div class="mt-5 flex flex-wrap gap-2.5">
                     @if (Route::has('register'))
-                        <a class="btn btn-solid" href="{{ route('register') }}">Create Membership</a>
+                        <a href="{{ route('register') }}"
+                            class="inline-flex items-center rounded-full px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]"
+                            style="background: linear-gradient(135deg, var(--emerald), var(--moss));">Daftar Keahlian</a>
                     @endif
-                    <a class="btn btn-outline" href="#plans">View Membership Plans</a>
+                    <a href="/semak"
+                        class="inline-flex items-center rounded-full px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brass)]"
+                        style="background: linear-gradient(135deg, var(--brass), var(--brass-deep));">Semak Status Ahli</a>
+                    <a href="/login"
+                        class="inline-flex items-center rounded-full px-5 py-3 text-sm font-bold text-[var(--ink)] bg-white border border-[var(--line)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]">Log Masuk</a>
                 </div>
-                <div class="stats">
-                    <div class="stat">
-                        <strong>24/7</strong>
-                        <span>Portal Access</span>
+
+                {{-- Honest value cards (no fabricated metrics) --}}
+                <div class="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                        <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Kebajikan</strong>
+                        <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Sokongan untuk warga hospital</span>
                     </div>
-                    <div class="stat">
-                        <strong>Fast</strong>
-                        <span>Membership Setup</span>
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                        <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Keahlian</strong>
+                        <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Daftar &amp; perbaharui dalam talian</span>
                     </div>
-                    <div class="stat">
-                        <strong>Secure</strong>
-                        <span>Account Protection</span>
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                        <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Komuniti</strong>
+                        <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Program sepanjang tahun</span>
                     </div>
                 </div>
             </article>
 
-            <aside class="hero-side">
+            <aside class="vp-side rise-delay grid gap-3 overflow-y-auto min-h-0 content-start">
                 @if ($committee->isNotEmpty())
-                    <div class="ajk-card" id="ajk-carousel" data-count="{{ $committee->count() }}">
-                        <div class="ajk-header">
-                            <h3 class="ajk-title">Ahli Jawatankuasa</h3>
-                            <span class="ajk-eyebrow">Barisan Kepimpinan</span>
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]"
+                        id="ajk-carousel" data-count="{{ $committee->count() }}">
+                        <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
+                            style="background: linear-gradient(135deg, var(--moss) 0%, var(--emerald) 60%, #129b82 100%);">
+                            <h3 class="m-0 font-display font-700 text-[0.95rem]">Ahli Jawatankuasa</h3>
+                            <span class="text-[0.62rem] uppercase tracking-[0.13em] font-bold text-white/60 whitespace-nowrap">Barisan Kepimpinan</span>
                         </div>
-                        <div class="ajk-viewport">
+                        <div class="overflow-hidden">
                             <div class="ajk-track" id="ajk-track">
                                 @foreach ($committee as $member)
                                     @php($photo = $member->photoUrl())
-                                    <div class="ajk-slide">
-                                        <div class="ajk-photo-zone">
+                                    <div class="ajk-slide grid grid-cols-[92px_1fr]">
+                                        <div class="flex items-center justify-center py-4 border-r border-[var(--line)]"
+                                            style="background: linear-gradient(170deg, rgba(14,122,102,0.07), rgba(11,61,51,0.03));">
                                             @if ($photo)
-                                                <img class="ajk-photo" src="{{ $photo }}" alt="{{ $member->name }}" loading="lazy">
+                                                <img src="{{ $photo }}" alt="{{ $member->name }}" loading="lazy"
+                                                    class="w-[66px] h-[66px] rounded-full object-cover border-[2.5px] border-white shadow-[0_0_0_4px_rgba(14,122,102,0.12),0_5px_18px_rgba(11,61,51,0.25)]">
                                             @else
-                                                <div class="ajk-photo placeholder">{{ \Illuminate\Support\Str::of($member->name)->substr(0, 1)->upper() }}</div>
+                                                <div class="w-[66px] h-[66px] rounded-full flex items-center justify-center font-display font-700 text-2xl border-[2.5px] border-white text-[var(--emerald)] bg-[var(--paper)] shadow-[0_0_0_4px_rgba(14,122,102,0.12)]">
+                                                    {{ \Illuminate\Support\Str::of($member->name)->substr(0, 1)->upper() }}
+                                                </div>
                                             @endif
                                         </div>
-                                        <div class="ajk-info">
-                                            <h4 class="ajk-name">{{ $member->name }}</h4>
-                                            <span class="ajk-badge">{{ $member->jawatan }}</span>
+                                        <div class="flex flex-col justify-center gap-1.5 p-4 min-w-0">
+                                            <h4 class="m-0 font-display font-700 text-[0.92rem] leading-snug text-[var(--ink)]">{{ $member->name }}</h4>
+                                            <span class="inline-flex self-start max-w-full items-center rounded-full px-2.5 py-1 text-[0.72rem] font-bold whitespace-nowrap overflow-hidden text-ellipsis border border-[var(--line)] text-[var(--brass-deep)] bg-[rgba(196,154,74,0.1)]">{{ $member->jawatan }}</span>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
                         @if ($committee->count() > 1)
-                            <div class="ajk-controls">
-                                <button type="button" class="ajk-arrow" id="ajk-prev" aria-label="Sebelumnya">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
+                            <div class="flex items-center gap-2.5 px-3.5 py-2.5 border-t border-[var(--line)] bg-[rgba(11,61,51,0.02)]">
+                                <button type="button" id="ajk-prev" aria-label="Sebelumnya"
+                                    class="w-[26px] h-[26px] rounded-full border border-[var(--line)] bg-white text-[var(--emerald)] inline-flex items-center justify-center shrink-0 transition hover:bg-[var(--emerald)] hover:text-white hover:border-[var(--emerald)] hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--emerald)]">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
                                 </button>
-                                <div class="ajk-progress-wrap">
+                                <div class="flex-1 h-[3px] rounded-full overflow-hidden bg-[rgba(14,122,102,0.13)]">
                                     <div class="ajk-progress-fill" id="ajk-progress"></div>
                                 </div>
-                                <span class="ajk-counter" id="ajk-counter">01&thinsp;/&thinsp;{{ str_pad($committee->count(), 2, '0', STR_PAD_LEFT) }}</span>
-                                <button type="button" class="ajk-arrow" id="ajk-next" aria-label="Seterusnya">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+                                <span class="text-[0.71rem] font-bold text-[var(--muted)] font-display tracking-wider whitespace-nowrap shrink-0" id="ajk-counter">01&thinsp;/&thinsp;{{ str_pad($committee->count(), 2, '0', STR_PAD_LEFT) }}</span>
+                                <button type="button" id="ajk-next" aria-label="Seterusnya"
+                                    class="w-[26px] h-[26px] rounded-full border border-[var(--line)] bg-white text-[var(--emerald)] inline-flex items-center justify-center shrink-0 transition hover:bg-[var(--emerald)] hover:text-white hover:border-[var(--emerald)] hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--emerald)]">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
                                 </button>
                             </div>
                         @endif
                     </div>
                 @else
-                    <div class="mini-card">
-                        <h3>Ahli Jawatankuasa</h3>
-                        <p>Track renewals, update your details, and access your membership card in one place.</p>
+                    <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
+                        <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Ahli Jawatankuasa</h3>
+                        <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Senarai barisan kepimpinan BAKIS akan dipaparkan di sini.</p>
                     </div>
                 @endif
+
                 @if ($programs->isNotEmpty())
                     @php($monthsMy = [1 => 'Jan', 2 => 'Feb', 3 => 'Mac', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Ogo', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Dis'])
                     @php($fmtTime = function ($t) {
@@ -896,102 +265,101 @@
                         $h = (int) $m[1]; $ap = $h >= 12 ? 'PM' : 'AM'; $h = $h % 12 ?: 12;
                         return $h.':'.$m[2].' '.$ap;
                     })
-                    <div class="prog-card">
-                        <div class="prog-header">
-                            <h3 class="prog-title">Program BAKIS</h3>
-                            <span class="prog-eyebrow">Aktiviti &amp; Acara</span>
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
+                        <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
+                            style="background: linear-gradient(135deg, var(--brass-deep) 0%, var(--brass) 70%, #d6ad5e 100%);">
+                            <h3 class="m-0 font-display font-700 text-[0.95rem]">Program BAKIS</h3>
+                            <span class="text-[0.62rem] uppercase tracking-[0.13em] font-bold text-white/70 whitespace-nowrap">Aktiviti &amp; Acara</span>
                         </div>
-                        <div class="prog-list">
+                        <div class="flex flex-col">
                             @foreach ($programs as $program)
                                 @php($past = $program->isPast())
                                 @php($range = trim(($fmtTime($program->waktu_mula) ?: '').(($program->waktu_mula && $program->waktu_tamat) ? ' – ' : '').($fmtTime($program->waktu_tamat) ?: '')))
-                                <div class="prog-row {{ $past ? 'is-past' : '' }}">
-                                    <div class="prog-date-chip">
-                                        <span class="d">{{ $program->tarikh->format('d') }}</span>
-                                        <span class="m">{{ $monthsMy[(int) $program->tarikh->format('n')] }}</span>
+                                <div class="flex items-center gap-3 px-3.5 py-3 border-b border-[var(--line)] last:border-b-0 transition hover:bg-[rgba(14,122,102,0.035)] {{ $past ? 'opacity-60' : '' }}">
+                                    <div class="shrink-0 w-[46px] h-[46px] rounded-xl flex flex-col items-center justify-center leading-none border {{ $past ? 'border-[var(--line)] text-[var(--muted)]' : 'border-[rgba(14,122,102,0.16)] text-[var(--emerald)]' }}"
+                                        style="background: {{ $past ? 'linear-gradient(160deg,#f1efe9,#e7e1d6)' : 'linear-gradient(160deg,#e7f3f1,#d2ebe7)' }};">
+                                        <span class="font-display font-700 text-[1.1rem]">{{ $program->tarikh->format('d') }}</span>
+                                        <span class="text-[0.58rem] font-bold uppercase tracking-wider mt-0.5">{{ $monthsMy[(int) $program->tarikh->format('n')] }}</span>
                                     </div>
-                                    <div class="prog-body">
-                                        <p class="prog-name">{{ $program->nama_program }}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="m-0 font-display font-600 text-[0.86rem] leading-snug text-[var(--ink)] whitespace-nowrap overflow-hidden text-ellipsis">{{ $program->nama_program }}</p>
                                         @if ($range !== '')
-                                            <p class="prog-time">
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <p class="mt-0.5 mb-0 text-[0.74rem] text-[var(--muted)] flex items-center gap-1">
+                                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                 {{ $range }}
                                             </p>
                                         @endif
                                     </div>
                                     @if ($past)
-                                        <span class="prog-badge is-past"><span class="dot"></span>Telah Dianjurkan</span>
+                                        <span class="shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[0.64rem] font-bold border border-[var(--line)] text-[var(--muted)] bg-[rgba(92,107,100,0.1)] whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-current"></span>Telah Dianjurkan</span>
                                     @else
-                                        <span class="prog-badge"><span class="dot"></span>Akan Datang</span>
+                                        <span class="shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[0.64rem] font-bold border border-[rgba(14,122,102,0.18)] text-[var(--emerald)] bg-[rgba(14,122,102,0.12)] whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-current"></span>Akan Datang</span>
                                     @endif
                                 </div>
                             @endforeach
                         </div>
                     </div>
                 @else
-                    <div class="mini-card">
-                        <h3>Program BAKIS</h3>
-                        <p>Aktiviti, bengkel, dan acara komuniti BAKIS akan dipaparkan di sini.</p>
+                    <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
+                        <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Program BAKIS</h3>
+                        <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Aktiviti, bengkel, dan acara komuniti BAKIS akan dipaparkan di sini.</p>
                     </div>
                 @endif
-                <div class="mini-card">
-                    <h3>Priority Announcements</h3>
-                    <p>Receive timely updates about membership matters and upcoming opportunities.</p>
+
+                <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
+                    <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Hebahan Penting</h3>
+                    <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Maklumat terkini berkaitan keahlian dan peluang kebajikan akan disampaikan di sini.</p>
                 </div>
             </aside>
         </section>
 
-        <section class="section" id="plans">
-            <h2 class="section-title">Membership Options</h2>
-            <div class="plans">
+        <section class="mt-3.5 shrink-0 max-[720px]:mt-6 max-[720px]:pb-8" id="plans">
+            <h2 class="font-display font-700 text-[0.72rem] tracking-[0.1em] uppercase text-[var(--muted)] m-0 mb-2 max-[720px]:text-base max-[720px]:tracking-normal max-[720px]:normal-case max-[720px]:text-[var(--moss)]">Pilihan Keahlian</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 @forelse($yurans as $yuran)
-                    <article class="plan">
-                        <h4>{{ $yuran->jenis_yuran }}</h4>
-                        <p class="price">
+                    <article class="rounded-2xl border border-[var(--line)] bg-white/90 px-3.5 py-2.5 flex items-center justify-between gap-3 max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-2 max-[720px]:p-4">
+                        <h4 class="m-0 flex-1 min-w-0 font-display font-600 text-[0.84rem] text-[var(--muted)] overflow-hidden text-ellipsis whitespace-nowrap max-[720px]:whitespace-normal max-[720px]:text-base max-[720px]:text-[var(--ink)]">{{ $yuran->jenis_yuran }}</h4>
+                        <p class="m-0 shrink-0 font-display font-700 text-[1.1rem] whitespace-nowrap text-[var(--moss)] max-[720px]:text-2xl">
                             RM {{ number_format((float) $yuran->jumlah, 2) }}
-                            <small>/ {{ (int) $yuran->tempoh_tahun }} year{{ (int) $yuran->tempoh_tahun === 1 ? '' : 's' }}</small>
+                            <small class="font-body text-[0.78rem] font-semibold text-[var(--muted)]">/ {{ (int) $yuran->tempoh_tahun }} tahun</small>
                         </p>
-                        <ul>
+                        <ul class="hidden max-[720px]:grid gap-1.5 text-[0.9rem] text-[var(--muted)] list-none p-0 m-0">
                             @switch($yuran->jenis_yuran)
                                 @case('Pendaftaran Keahlian')
-                                    <li>Digital member profile</li>
-                                    <li>Community event notifications</li>
-                                    <li>Standard support access</li>
+                                    <li>Profil ahli digital</li>
+                                    <li>Notifikasi program komuniti</li>
+                                    <li>Akses sokongan standard</li>
                                     @break
                                 @case('Pembaharuan Keahlian')
-                                    <li>All Basic benefits</li>
-                                    <li>Priority event registration</li>
-                                    <li>Discounted selected programs</li>
+                                    <li>Semua manfaat asas</li>
+                                    <li>Keutamaan pendaftaran acara</li>
+                                    <li>Diskaun program terpilih</li>
                                     @break
                                 @case('Pembaharuan 2 Tahun')
-                                    <li>All Active benefits</li>
-                                    <li>Exclusive networking sessions</li>
-                                    <li>Premium member recognition</li>
+                                    <li>Semua manfaat aktif</li>
+                                    <li>Sesi jaringan eksklusif</li>
+                                    <li>Pengiktirafan ahli premium</li>
                                     @break
                                 @default
-                                    <li>Membership benefits</li>
-                                    <li>Access to community updates</li>
-                                    <li>Priority support access</li>
+                                    <li>Manfaat keahlian</li>
+                                    <li>Akses kemas kini komuniti</li>
+                                    <li>Keutamaan sokongan</li>
                             @endswitch
                         </ul>
                     </article>
                 @empty
-                    <article class="plan">
-                        <h4>Membership Options</h4>
-                        <p class="price">RM0 <small>/ year</small></p>
-                        <ul>
-                            <li>No active membership options found.</li>
-                        </ul>
+                    <article class="rounded-2xl border border-[var(--line)] bg-white/90 px-3.5 py-2.5">
+                        <h4 class="m-0 font-display font-600 text-[0.84rem] text-[var(--ink)]">Pilihan Keahlian</h4>
+                        <p class="m-0 mt-1 text-[0.9rem] text-[var(--muted)]">Tiada pilihan keahlian aktif buat masa ini.</p>
                     </article>
                 @endforelse
             </div>
         </section>
-
     </main>
 
-    <footer class="container footer">
-        <span>&copy; {{ date('Y') }} BAKIS. All rights reserved.</span>
-        <span>Built for members, programs, and community growth.</span>
+    <footer class="w-[min(1180px,calc(100%-2rem))] mx-auto border-t border-[var(--line)] pt-2.5 pb-3 text-[0.86rem] text-[var(--muted)] flex justify-between gap-4 flex-wrap shrink-0 max-[720px]:pb-8">
+        <span>&copy; {{ date('Y') }} BAKIS — Badan Kebajikan Islam, Hospital Sultanah Bahiyah.</span>
+        <span>Dibina untuk warga, program, dan kebajikan komuniti.</span>
     </footer>
 
     <script>

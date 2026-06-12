@@ -39,6 +39,12 @@ final class ProgramController extends Controller
             'waktu_tamat' => $program->waktu_tamat,
             'is_past' => $program->isPast(),
             'is_active' => $program->is_active,
+            'kehadiran' => $program->acara_id !== null,
+            'acara_id' => $program->acara_id,
+            'lokasi' => $program->acara?->lokasi,
+            'expires_at' => $program->acara?->expires_at?->format('Y-m-d\TH:i'),
+            'public_url' => $program->acara?->publicUrl(),
+            'code' => $program->acara?->code,
         ]);
 
         return response()->json(['data' => $data]);

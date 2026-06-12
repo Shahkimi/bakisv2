@@ -6,15 +6,15 @@ namespace App\Notifications;
 
 use App\Models\Payment;
 use App\Services\PaymentReceiptPdfService;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-final class PaymentApprovedReceiptNotification extends Notification implements ShouldQueue
+/**
+ * Sent synchronously so the receipt reaches the member without a queue worker.
+ * (Queued mail would require `php artisan queue:work` when QUEUE_CONNECTION is not `sync`.)
+ */
+final class PaymentApprovedReceiptNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
         public Payment $payment
     ) {}

@@ -21,10 +21,10 @@ final class AcaraKehadiranController extends Controller
         $acara = Acara::where('code', $code)->firstOrFail();
 
         if (! $acara->isOpen()) {
-            return view('acara.expired', ['acara' => $acara]);
+            return view('kehadiran.expired', ['acara' => $acara]);
         }
 
-        return view('acara.public', ['acara' => $acara]);
+        return view('kehadiran.public', ['acara' => $acara]);
     }
 
     public function store(StoreKehadiranRequest $request, string $code): View|RedirectResponse
@@ -32,7 +32,7 @@ final class AcaraKehadiranController extends Controller
         $acara = Acara::where('code', $code)->firstOrFail();
 
         if (! $acara->isOpen()) {
-            return view('acara.expired', ['acara' => $acara]);
+            return view('kehadiran.expired', ['acara' => $acara]);
         }
 
         $noKp = $request->validated('no_kp');
@@ -54,7 +54,7 @@ final class AcaraKehadiranController extends Controller
             ],
         );
 
-        return view('acara.success', [
+        return view('kehadiran.success', [
             'acara' => $acara,
             'kehadiran' => $kehadiran,
             'alreadyRecorded' => ! $kehadiran->wasRecentlyCreated,

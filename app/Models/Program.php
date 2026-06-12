@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Program extends Model
 {
@@ -14,6 +15,7 @@ class Program extends Model
         'waktu_mula',
         'waktu_tamat',
         'is_active',
+        'acara_id',
     ];
 
     protected function casts(): array
@@ -22,6 +24,16 @@ class Program extends Model
             'tarikh' => 'date',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function acara(): BelongsTo
+    {
+        return $this->belongsTo(Acara::class);
+    }
+
+    public function hasKehadiran(): bool
+    {
+        return $this->acara_id !== null;
     }
 
     public function isPast(): bool

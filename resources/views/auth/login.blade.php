@@ -81,6 +81,13 @@
             background: #fff;
         }
 
+        .brand-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
         .badge {
             width: 40px;
             height: 40px;
@@ -90,7 +97,19 @@
             font-family: "Sora", sans-serif;
             color: #fff;
             background: linear-gradient(135deg, var(--brand), var(--brand-deep));
-            margin-bottom: 0.8rem;
+            margin: 0 auto 0.8rem;
+        }
+
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            margin: 0 auto 0.85rem;
+            display: block;
         }
 
         h1 {
@@ -343,9 +362,16 @@
         }
     }">
         <div class="card-inner">
-            <div class="badge">BK</div>
-            <h1>Admin Login</h1>
-            <p class="subtitle">Halaman ini untuk pentadbir BAKIS sahaja.</p>
+            @php($logoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl())
+            <div class="brand-head">
+                @if ($logoUrl)
+                    <img class="brand-logo" src="{{ $logoUrl }}" alt="Logo BAKIS">
+                @else
+                    <div class="badge">BK</div>
+                @endif
+                <h1>Admin Login</h1>
+                <p class="subtitle">Halaman ini untuk pentadbir BAKIS sahaja.</p>
+            </div>
 
             @if (session('status'))
                 <div class="notice-success" role="status">{{ session('status') }}</div>

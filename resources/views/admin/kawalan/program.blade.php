@@ -93,6 +93,7 @@
 .dark .program-edit-swal .toggle-label { color: #d1d5db; }
 .program-edit-swal .toggle-track { width: 2.75rem; height: 1.5rem; background: #e5e7eb; border-radius: 9999px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
 .program-edit-swal .toggle-track.active { background: #6366f1; }
+.program-edit-swal .toggle-track.toggle-kehadiran.active { background: #0E7A66; }
 .program-edit-swal .toggle-thumb { position: absolute; top: 0.25rem; left: 0.25rem; width: 1rem; height: 1rem; background: #fff; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .program-edit-swal .toggle-track.active .toggle-thumb { transform: translateX(1.25rem); }
 </style>
@@ -107,6 +108,7 @@ $(document).ready(function() {
     const listUrl = '{{ route("admin.kawalan.program.list") }}';
     const storeUrl = '{{ route("admin.kawalan.program.store") }}';
     const baseUrl = '{{ url("admin/kawalan/program") }}';
+    const acaraBaseUrl = '{{ url("admin/kawalan/acara") }}';
 
     const $grid = $('#program-grid');
     const $loading = $('#program-loading');
@@ -139,6 +141,8 @@ $(document).ready(function() {
     const iconEdit = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
     const iconTrash = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
     const iconClock = '<svg class="w-3.5 h-3.5 shrink-0 inline-block -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+    const iconCopy = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+    const iconUsers = '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-3-6.7" /></svg>';
 
     const toast = Swal.mixin({
         toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true,
@@ -155,20 +159,33 @@ $(document).ready(function() {
             ? '<span class="program-status past"><span class="dot"></span>Telah Dianjurkan</span>'
             : '<span class="program-status upcoming"><span class="dot"></span>Akan Datang</span>';
         const inactive = row.is_active ? '' : '<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Tidak aktif</span>';
+        const kehadiranBadge = row.kehadiran
+            ? '<span class="ml-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-50 text-emerald-700">' + iconUsers + 'Kehadiran</span>'
+            : '';
+        let kehadiranStrip = '';
+        if (row.kehadiran) {
+            const copyBtn = '<button type="button" class="btn-copy-link inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition" data-url="' + escapeHtml(row.public_url || '') + '" title="Salin pautan kehadiran">' + iconCopy + '<span class="font-mono">/' + escapeHtml(row.code || '') + '</span></button>';
+            const viewLink = row.acara_id
+                ? '<a href="' + acaraBaseUrl + '/' + row.acara_id + '/kehadiran" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition" title="Lihat senarai kehadiran">' + iconUsers + 'Senarai</a>'
+                : '';
+            kehadiranStrip = '<div class="flex items-center gap-1.5 flex-wrap pt-1">' + copyBtn + viewLink + '</div>';
+        }
         return '' +
             '<div class="program-card ' + (row.is_past ? 'is-past' : '') + '" data-id="' + row.id + '">' +
                 '<div class="flex items-start gap-3">' +
                     '<div class="program-datechip"><span class="d">' + escapeHtml(day) + '</span><span class="m">' + escapeHtml(mon) + '</span></div>' +
                     '<div class="min-w-0 flex-1">' +
-                        '<p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">' + name + inactive + '</p>' +
+                        '<p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug">' + name + inactive + kehadiranBadge + '</p>' +
                         '<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">' + iconClock + timeRange(row.waktu_mula, row.waktu_tamat) + '</p>' +
                     '</div>' +
                 '</div>' +
+                kehadiranStrip +
                 '<div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-gray-700">' +
                     status +
                     '<div class="flex items-center gap-1.5 shrink-0">' +
                         '<button type="button" class="btn-edit-program inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Edit" ' +
-                            'data-id="' + row.id + '" data-name="' + name + '" data-tarikh="' + escapeHtml(row.tarikh || '') + '" data-mula="' + escapeHtml(row.waktu_mula || '') + '" data-tamat="' + escapeHtml(row.waktu_tamat || '') + '" data-active="' + (row.is_active ? '1' : '0') + '">' + iconEdit + '</button>' +
+                            'data-id="' + row.id + '" data-name="' + name + '" data-tarikh="' + escapeHtml(row.tarikh || '') + '" data-mula="' + escapeHtml(row.waktu_mula || '') + '" data-tamat="' + escapeHtml(row.waktu_tamat || '') + '" data-active="' + (row.is_active ? '1' : '0') + '" ' +
+                            'data-kehadiran="' + (row.kehadiran ? '1' : '0') + '" data-lokasi="' + escapeHtml(row.lokasi || '') + '" data-expires="' + escapeHtml(row.expires_at || '') + '">' + iconEdit + '</button>' +
                         '<button type="button" class="btn-delete-program inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition" title="Padam" ' +
                             'data-id="' + row.id + '" data-name="' + name + '">' + iconTrash + '</button>' +
                     '</div>' +
@@ -204,6 +221,9 @@ $(document).ready(function() {
         const mula = escapeHtml(opts.mula || '');
         const tamat = escapeHtml(opts.tamat || '');
         const active = opts.active === undefined ? true : !!opts.active;
+        const kehadiran = !!opts.kehadiran;
+        const lokasi = escapeHtml(opts.lokasi || '');
+        const expires = escapeHtml(opts.expires || '');
         return '' +
             '<form id="program-form" class="program-edit-form">' +
                 '<div class="field">' +
@@ -231,6 +251,25 @@ $(document).ready(function() {
                     '</div>' +
                     '<input type="hidden" id="swal-active" name="is_active" value="' + (active ? '1' : '0') + '" />' +
                 '</div>' +
+                '<div class="field" style="margin-top:0.25rem;border-top:1px solid #f1f5f9;padding-top:1rem;">' +
+                    '<div class="toggle-wrap">' +
+                        '<span class="toggle-label">Kehadiran (jana pautan QR)</span>' +
+                        '<div class="toggle-track toggle-kehadiran ' + (kehadiran ? 'active' : '') + '" id="swal-kehadiran-toggle" role="button" tabindex="0" aria-pressed="' + kehadiran + '"><span class="toggle-thumb"></span></div>' +
+                    '</div>' +
+                    '<input type="hidden" id="swal-kehadiran" name="kehadiran" value="' + (kehadiran ? '1' : '0') + '" />' +
+                    '<p class="text-xs text-gray-400" style="margin-top:0.25rem;">Aktifkan untuk membuat acara kehadiran dengan pautan ringkas &amp; poster QR.</p>' +
+                '</div>' +
+                '<div id="kehadiran-fields" style="' + (kehadiran ? '' : 'display:none;') + '">' +
+                    '<div class="field">' +
+                        '<label for="swal-lokasi">Lokasi</label>' +
+                        '<input type="text" id="swal-lokasi" class="input-text" name="lokasi" value="' + lokasi + '" placeholder="cth: Dewan Auditorium HSB" autocomplete="off" />' +
+                    '</div>' +
+                    '<div class="field">' +
+                        '<label for="swal-expires">Pautan Tamat Pada</label>' +
+                        '<input type="datetime-local" id="swal-expires" class="input-text" name="expires_at" value="' + expires + '" />' +
+                        '<p class="text-xs text-gray-400" style="margin-top:0.3rem;">Pautan kehadiran akan tamat selepas tarikh &amp; masa ini.</p>' +
+                    '</div>' +
+                '</div>' +
             '</form>';
     }
 
@@ -241,6 +280,20 @@ $(document).ready(function() {
             const flip = function() { const a = toggle.classList.toggle('active'); hidden.value = a ? '1' : '0'; toggle.setAttribute('aria-pressed', a); };
             toggle.addEventListener('click', flip);
             toggle.addEventListener('keydown', function(e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+        }
+
+        const kToggle = document.getElementById('swal-kehadiran-toggle');
+        const kHidden = document.getElementById('swal-kehadiran');
+        const kFields = document.getElementById('kehadiran-fields');
+        if (kToggle && kHidden && kFields) {
+            const flipK = function() {
+                const a = kToggle.classList.toggle('active');
+                kHidden.value = a ? '1' : '0';
+                kToggle.setAttribute('aria-pressed', a);
+                kFields.style.display = a ? '' : 'none';
+            };
+            kToggle.addEventListener('click', flipK);
+            kToggle.addEventListener('keydown', function(e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipK(); } });
         }
     }
 
@@ -254,6 +307,14 @@ $(document).ready(function() {
         if (!mula) { Swal.showValidationMessage('Waktu mula wajib diisi.'); return false; }
         if (!tamat) { Swal.showValidationMessage('Waktu tamat wajib diisi.'); return false; }
         if (tamat < mula) { Swal.showValidationMessage('Waktu tamat mesti selepas waktu mula.'); return false; }
+        const kehadiran = (document.getElementById('swal-kehadiran') || {}).value === '1';
+        if (kehadiran) {
+            const lokasi = (document.getElementById('swal-lokasi').value || '').trim();
+            const expires = (document.getElementById('swal-expires').value || '').trim();
+            if (!lokasi) { Swal.showValidationMessage('Lokasi wajib diisi apabila Kehadiran diaktifkan.'); return false; }
+            if (!expires) { Swal.showValidationMessage('Tarikh tamat pautan wajib diisi apabila Kehadiran diaktifkan.'); return false; }
+            if (new Date(expires) <= new Date()) { Swal.showValidationMessage('Tarikh tamat mesti selepas masa sekarang.'); return false; }
+        }
         return true;
     }
 
@@ -262,6 +323,7 @@ $(document).ready(function() {
         const fd = new FormData(form);
         fd.append('_token', csrfToken);
         fd.set('is_active', document.getElementById('swal-active').value);
+        fd.set('kehadiran', document.getElementById('swal-kehadiran').value);
         if (isEdit) fd.append('_method', 'PUT');
 
         fetch(url, {
@@ -304,9 +366,12 @@ $(document).ready(function() {
         const mula = $(this).data('mula') || '';
         const tamat = $(this).data('tamat') || '';
         const active = String($(this).data('active')) === '1';
+        const kehadiran = String($(this).data('kehadiran')) === '1';
+        const lokasi = $(this).data('lokasi') || '';
+        const expires = $(this).data('expires') || '';
         Swal.fire({
             title: '<span style="display:flex;align-items:center;gap:0.5rem;"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Program</span>',
-            html: formHtml({ isEdit: true, name: name, tarikh: tarikh, mula: mula, tamat: tamat, active: active }),
+            html: formHtml({ isEdit: true, name: name, tarikh: tarikh, mula: mula, tamat: tamat, active: active, kehadiran: kehadiran, lokasi: lokasi, expires: expires }),
             showCancelButton: true, confirmButtonText: 'Simpan', cancelButtonText: 'Batal', confirmButtonColor: '#6366f1',
             width: '480px', customClass: { popup: 'program-edit-swal' },
             didOpen: bindModal,
@@ -342,6 +407,23 @@ $(document).ready(function() {
             .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
         });
     });
+
+    $(document).on('click', '.btn-copy-link', function() {
+        const url = $(this).data('url');
+        if (!url) return;
+        const done = function() { toast.fire({ icon: 'success', title: 'Pautan disalin' }); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done).catch(function() { fallbackCopy(url, done); });
+        } else { fallbackCopy(url, done); }
+    });
+
+    function fallbackCopy(text, cb) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); cb(); } catch (e) {}
+        document.body.removeChild(ta);
+    }
 
     loadList();
 });
