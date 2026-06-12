@@ -261,6 +261,8 @@
             const collapseButton = document.getElementById('collapseSidebar');
             const kawalanSummary = document.getElementById('kawalanSummary');
             const kawalanDetails = document.getElementById('kawalanDetails');
+            const infoSummary = document.getElementById('infoSummary');
+            const infoDetails = document.getElementById('infoDetails');
             const SIDEBAR_COLLAPSE_KEY = 'bakis-sidebar-collapsed';
 
             function isSidebarCollapsed() {
@@ -310,16 +312,41 @@
                 });
             }
 
-            // While collapsed there is no room for the Kawalan submenu — expand the rail instead
-            if (kawalanSummary && kawalanDetails) {
-                kawalanSummary.addEventListener('click', function (e) {
+            // While collapsed there is no room for the submenu — expand the rail instead
+            function expandRailOnSummaryClick(summaryEl, detailsEl) {
+                if (!summaryEl || !detailsEl) return;
+                summaryEl.addEventListener('click', function (e) {
                     if (isSidebarCollapsed()) {
                         e.preventDefault();
                         setSidebarCollapsed(false);
-                        kawalanDetails.open = true;
+                        detailsEl.open = true;
                     }
                 });
             }
+            expandRailOnSummaryClick(kawalanSummary, kawalanDetails);
+            expandRailOnSummaryClick(infoSummary, infoDetails);
+
+            // Accordion: opening one nav group collapses the other.
+            const navGroups = [kawalanDetails, infoDetails].filter(Boolean);
+            navGroups.forEach(function (detailsEl) {
+                detailsEl.addEventListener('toggle', function () {
+                    if (!detailsEl.open) return;
+                    navGroups.forEach(function (other) {
+                        if (other !== detailsEl) other.open = false;
+                    });
+                });
+            });
+
+            // Accordion: opening one sidebar group collapses the others.
+            const navGroups = Array.prototype.slice.call(document.querySelectorAll('#sidebar nav details'));
+            navGroups.forEach(function (group) {
+                group.addEventListener('toggle', function () {
+                    if (!group.open) return;
+                    navGroups.forEach(function (other) {
+                        if (other !== group) other.open = false;
+                    });
+                });
+            });
 
             function openSidebar() {
                 if (!sidebar) return;

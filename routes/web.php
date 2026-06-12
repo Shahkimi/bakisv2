@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MemberReceiptController;
 use App\Http\Controllers\Admin\PaymentAccountController;
 use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\PembayaranController;
+use App\Http\Controllers\Admin\PerlembagaanController;
 use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YuranController;
@@ -43,8 +44,9 @@ Route::get('/', function () {
 
     $committee = app(\App\Services\CommitteeMemberService::class)->listOrdered(onlyActive: true);
     $programs = app(\App\Services\ProgramService::class)->listForPublic();
+    $perlembagaans = app(\App\Services\PerlembagaanService::class)->listForPublic();
 
-    return view('welcome', compact('yurans', 'committee', 'programs'));
+    return view('welcome', compact('yurans', 'committee', 'programs', 'perlembagaans'));
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -186,6 +188,13 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/', [ProgramController::class, 'store'])->name('store');
         Route::put('{program}', [ProgramController::class, 'update'])->name('update');
         Route::delete('{program}', [ProgramController::class, 'destroy'])->name('destroy');
+    });
+    Route::prefix('kawalan/perlembagaan')->name('kawalan.perlembagaan.')->group(function () {
+        Route::get('/', [PerlembagaanController::class, 'index'])->name('index');
+        Route::get('list', [PerlembagaanController::class, 'list'])->name('list');
+        Route::post('/', [PerlembagaanController::class, 'store'])->name('store');
+        Route::put('{perlembagaan}', [PerlembagaanController::class, 'update'])->name('update');
+        Route::delete('{perlembagaan}', [PerlembagaanController::class, 'destroy'])->name('destroy');
     });
 });
 

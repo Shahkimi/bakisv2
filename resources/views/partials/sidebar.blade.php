@@ -120,11 +120,51 @@
         </div>
 
         @if($isAdmin)
+        {{-- Persatuan (admin only) --}}
+        <div class="sidebar-section mt-5">
+            <p class="sidebar-section-label px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Persatuan</p>
+            <div class="kawalan-nav-group">
+                <details id="infoDetails" class="group/details" {{ request()->routeIs('admin.kawalan.perlembagaan.*') || request()->routeIs('admin.kawalan.program.*') || request()->routeIs('admin.kawalan.acara.*') ? 'open' : '' }}>
+                    <summary id="infoSummary" data-label="Info" class="nav-item relative flex items-center px-3 sm:px-4 py-2.5 text-sm sm:text-[15px] rounded-lg transition-all duration-200 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <svg class="nav-icon w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="sidebar-label font-medium truncate flex-1">Info</span>
+                        <svg class="sidebar-label w-4 h-4 flex-shrink-0 text-gray-400 transition-transform group-open/details:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </summary>
+                    <div class="kawalan-submenu mt-1 ml-4 pl-5 border-l border-[#e6efe9] space-y-0.5">
+                        <a href="{{ route('admin.kawalan.perlembagaan.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.perlembagaan.*') ? 'is-active' : '' }}">
+                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span class="truncate">Perlembagaan</span>
+                        </a>
+                        <a href="{{ route('admin.kawalan.program.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.program.*') ? 'is-active' : '' }}">
+                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="truncate">Program</span>
+                        </a>
+                        <a href="{{ route('admin.kawalan.acara.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.acara.*') ? 'is-active' : '' }}">
+                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="truncate">Acara</span>
+                        </a>
+                    </div>
+                </details>
+            </div>
+        </div>
+        @endif
+
+        @if($isAdmin)
         {{-- Pentadbiran (admin only) --}}
         <div class="sidebar-section mt-5">
             <p class="sidebar-section-label px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Pentadbiran</p>
             <div class="kawalan-nav-group">
-                <details id="kawalanDetails" class="group/details" {{ request()->routeIs('admin.kawalan.jabatan.*') || request()->routeIs('admin.kawalan.jawatan.*') || request()->routeIs('admin.kawalan.yuran.*') || request()->routeIs('admin.kawalan.account.*') || request()->routeIs('admin.kawalan.pengguna.*') || request()->routeIs('admin.kawalan.acara.*') || request()->routeIs('admin.kawalan.favicon.*') || request()->routeIs('admin.kawalan.ajk.*') || request()->routeIs('admin.kawalan.program.*') ? 'open' : '' }}>
+                <details id="kawalanDetails" class="group/details" {{ request()->routeIs('admin.kawalan.jabatan.*') || request()->routeIs('admin.kawalan.jawatan.*') || request()->routeIs('admin.kawalan.yuran.*') || request()->routeIs('admin.kawalan.account.*') || request()->routeIs('admin.kawalan.pengguna.*') || request()->routeIs('admin.kawalan.favicon.*') || request()->routeIs('admin.kawalan.ajk.*') ? 'open' : '' }}>
                     <summary id="kawalanSummary" data-label="Kawalan" class="nav-item relative flex items-center px-3 sm:px-4 py-2.5 text-sm sm:text-[15px] rounded-lg transition-all duration-200 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                         <svg class="nav-icon w-5 h-5 sm:w-6 sm:h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -166,12 +206,6 @@
                             </svg>
                             <span class="truncate">Pengguna</span>
                         </a>
-                        <a href="{{ route('admin.kawalan.acara.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.acara.*') ? 'is-active' : '' }}">
-                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span class="truncate">Acara</span>
-                        </a>
                         <a href="{{ route('admin.kawalan.favicon.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.favicon.*') ? 'is-active' : '' }}">
                             <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -183,12 +217,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6-2a3 3 0 10-2.83-4M5 11a3 3 0 11.83-5.83" />
                             </svg>
                             <span class="truncate">Ahli Jawatankuasa</span>
-                        </a>
-                        <a href="{{ route('admin.kawalan.program.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.program.*') ? 'is-active' : '' }}">
-                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span class="truncate">Program</span>
                         </a>
                     </div>
                 </details>

@@ -306,6 +306,39 @@
                     </div>
                 @endif
 
+                @if ($perlembagaans->isNotEmpty())
+                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
+                        <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
+                            style="background: linear-gradient(135deg, var(--moss) 0%, var(--emerald) 70%, #129b82 100%);">
+                            <h3 class="m-0 font-display font-700 text-[0.95rem]">Perlembagaan</h3>
+                            <span class="text-[0.62rem] uppercase tracking-[0.13em] font-bold text-white/70 whitespace-nowrap">Info Persatuan</span>
+                        </div>
+                        <div class="flex flex-col">
+                            @foreach ($perlembagaans as $doc)
+                                @php($url = $doc->publicUrl())
+                                <a href="{{ $url ?? '#' }}" @if ($url) target="_blank" rel="noopener" @endif
+                                    class="group flex items-center gap-3 px-3.5 py-3 border-b border-[var(--line)] last:border-b-0 transition hover:bg-[rgba(14,122,102,0.04)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--emerald)] {{ $url ? '' : 'pointer-events-none opacity-60' }}">
+                                    <span class="shrink-0 w-[42px] h-[42px] rounded-xl flex items-center justify-center border border-[rgba(14,122,102,0.16)] text-[var(--emerald)]"
+                                        style="background: linear-gradient(160deg,#e7f3f1,#d2ebe7);">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="m-0 font-display font-600 text-[0.86rem] leading-snug text-[var(--ink)] whitespace-nowrap overflow-hidden text-ellipsis">{{ $doc->tajuk }}</p>
+                                        <p class="mt-0.5 mb-0 text-[0.72rem] text-[var(--muted)] flex items-center gap-1">
+                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-2-2m2 2l2-2M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" /></svg>
+                                            PDF{{ $doc->humanFileSize() !== '' ? ' · '.$doc->humanFileSize() : '' }}
+                                        </p>
+                                    </div>
+                                    <span class="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.68rem] font-bold border border-[rgba(14,122,102,0.18)] text-[var(--emerald)] bg-[rgba(14,122,102,0.1)] transition group-hover:bg-[rgba(14,122,102,0.16)] whitespace-nowrap">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+                                        Muat Turun
+                                    </span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
                     <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Hebahan Penting</h3>
                     <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Maklumat terkini berkaitan keahlian dan peluang kebajikan akan disampaikan di sini.</p>
