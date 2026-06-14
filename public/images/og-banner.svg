@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B3D33"/>
+      <stop offset="0.55" stop-color="#0E7A66"/>
+      <stop offset="1" stop-color="#129b82"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#16B89A" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#16B89A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C49A4A"/>
+      <stop offset="1" stop-color="#9C7322"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="360" fill="url(#glow)"/>
+  <circle cx="150" cy="560" r="300" fill="url(#glow)"/>
+
+  <!-- Logo badge -->
+  <g transform="translate(96,150)">
+    <rect width="116" height="116" rx="28" fill="#ffffff"/>
+    <text x="58" y="80" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="700"
+          text-anchor="middle" fill="#0B3D33">BK</text>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="240" y="208" font-family="Georgia, 'Times New Roman', serif" font-size="92" font-weight="700"
+        fill="#ffffff" letter-spacing="2">BAKIS</text>
+  <text x="244" y="252" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="600"
+        fill="#C9E7DE" letter-spacing="1">Badan Kebajikan Islam · Hospital Sultanah Bahiyah</text>
+
+  <!-- Tagline -->
+  <text x="96" y="380" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" fill="#ffffff">
+    Portal Rasmi Keahlian
+  </text>
+  <text x="96" y="448" font-family="'Segoe UI', Arial, sans-serif" font-size="30" font-weight="500" fill="#D7ECE6">
+    Daftar &amp; perbaharui keahlian · Semak status ahli · Program kebajikan
+  </text>
+
+  <!-- ECG pulse line -->
+  <path d="M96 530 H360 L386 530 L408 488 L432 572 L456 506 L478 530 H760 L786 530 L808 492 L832 568 L856 510 L878 530 H1104"
+        fill="none" stroke="#16B89A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="808" cy="492" r="9" fill="url(#brass)"/>
+
+  <!-- Brass accent bar -->
+  <rect x="96" y="312" width="120" height="8" rx="4" fill="url(#brass)"/>
+</svg>

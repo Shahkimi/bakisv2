@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.favicon-links')
-    <title>BAKIS — Keahlian Warga Hospital</title>
+    <title>BAKIS — Portal Keahlian Warga Hospital Sultanah Bahiyah</title>
+    @include('partials.landing-seo-meta')
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css'])
     @else
@@ -277,7 +278,7 @@
                         $h = (int) $m[1]; $ap = $h >= 12 ? 'PM' : 'AM'; $h = $h % 12 ?: 12;
                         return $h.':'.$m[2].' '.$ap;
                     })
-                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
+                    <div id="program-bakis" class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
                         <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
                             style="background: linear-gradient(135deg, var(--brass-deep) 0%, var(--brass) 70%, #d6ad5e 100%);">
                             <h3 class="m-0 font-display font-700 text-[0.95rem]">Program BAKIS</h3>
@@ -312,7 +313,7 @@
                         </div>
                     </div>
                 @else
-                    <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
+                    <div id="program-bakis" class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
                         <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Program BAKIS</h3>
                         <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Aktiviti, bengkel, dan acara komuniti BAKIS akan dipaparkan di sini.</p>
                     </div>
@@ -352,7 +353,7 @@
                 @endif
 
                 {{-- Hebahan Penting --}}
-                <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
+                <div id="hebahan-penting" class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
                     <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
                         style="background: linear-gradient(135deg, var(--brass-deep) 0%, var(--brass) 70%, #d6ad5e 100%);">
                         <h3 class="m-0 font-display font-700 text-[0.95rem]">Hebahan Penting</h3>
