@@ -14,6 +14,7 @@ use App\Services\UserManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -52,8 +53,21 @@ final class UserController extends Controller
             ]);
         });
 
-        Notification::route('mail', [$invitation->email => $invitation->name])
-            ->notify(new UserInvitationNotification($invitation));
+        try {
+            Notification::route('mail', [$invitation->email => $invitation->name])
+                ->notify(new UserInvitationNotification($invitation));
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghantar e-mel jemputan pengguna.', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Jemputan dicipta, tetapi e-mel gagal dihantar. Sila cuba 'Hantar semula'.",
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -115,8 +129,21 @@ final class UserController extends Controller
         $fresh = $invitation->fresh();
         assert($fresh instanceof UserInvitation);
 
-        Notification::route('mail', [$fresh->email => $fresh->name])
-            ->notify(new UserInvitationNotification($fresh));
+        try {
+            Notification::route('mail', [$fresh->email => $fresh->name])
+                ->notify(new UserInvitationNotification($fresh));
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghantar semula e-mel jemputan pengguna.', [
+                'invitation_id' => $fresh->id,
+                'email' => $fresh->email,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'E-mel gagal dihantar. Sila cuba sebentar lagi.',
+            ], 502);
+        }
 
         return response()->json([
             'success' => true,

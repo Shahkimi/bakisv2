@@ -119,6 +119,14 @@ $(document).ready(function() {
         return d.innerHTML;
     }
 
+    function parseJsonResponse(res) {
+        return res.text().then(function(body) {
+            let data = {};
+            try { data = body ? JSON.parse(body) : {}; } catch (e) { data = {}; }
+            return { ok: res.ok, data: data };
+        });
+    }
+
     function renderNoKpCell(data) {
         if (data == null || data === '') {
             return '<span class="text-gray-400 dark:text-gray-500">—</span>';
@@ -264,7 +272,7 @@ $(document).ready(function() {
                 },
                 body: fd.toString()
             })
-            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(parseJsonResponse)
             .then(function({ ok, data }) {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Jemputan dihantar.', timer: 2200, showConfirmButton: false });
@@ -360,7 +368,7 @@ $(document).ready(function() {
                 },
                 body: fd.toString()
             })
-            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(parseJsonResponse)
             .then(function({ ok, data }) {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Dikemas kini.', timer: 2000, showConfirmButton: false });
@@ -401,7 +409,7 @@ $(document).ready(function() {
                 },
                 body: new URLSearchParams({ '_token': csrfToken, '_method': 'DELETE' }).toString()
             })
-            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(parseJsonResponse)
             .then(function({ ok, data }) {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
@@ -409,7 +417,8 @@ $(document).ready(function() {
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
-            });
+            })
+            .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
         });
     });
 
@@ -434,7 +443,7 @@ $(document).ready(function() {
                 },
                 body: new URLSearchParams({ '_token': csrfToken, '_method': 'DELETE' }).toString()
             })
-            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(parseJsonResponse)
             .then(function({ ok, data }) {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
@@ -442,7 +451,8 @@ $(document).ready(function() {
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
-            });
+            })
+            .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
         });
     });
 
@@ -458,15 +468,16 @@ $(document).ready(function() {
             },
             body: new URLSearchParams({ '_token': csrfToken }).toString()
         })
-        .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+        .then(parseJsonResponse)
         .then(function({ ok, data }) {
             if (ok && data.success) {
                 Swal.fire({ icon: 'success', title: 'Dihantar', text: data.message, timer: 2200, showConfirmButton: false });
                 table.ajax.reload(null, false);
             } else {
-                Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
+                Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menghantar semula jemputan.' });
             }
-        });
+        })
+        .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
     });
 });
 </script>
