@@ -53,25 +53,24 @@ final class UserController extends Controller
             ]);
         });
 
-        try {
-            Notification::route('mail', [$invitation->email => $invitation->name])
-                ->notify(new UserInvitationNotification($invitation));
-        } catch (\Throwable $e) {
-            Log::error('Gagal menghantar e-mel jemputan pengguna.', [
-                'invitation_id' => $invitation->id,
-                'email' => $invitation->email,
-                'exception' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Jemputan dicipta, tetapi e-mel gagal dihantar. Sila cuba 'Hantar semula'.",
-            ]);
-        }
+        // Hantar e-mel selepas respons dikembalikan kepada pelayar supaya SweetAlert
+        // muncul serta-merta tanpa menunggu sambungan SMTP. Tidak memerlukan queue worker.
+        defer(function () use ($invitation): void {
+            try {
+                Notification::route('mail', [$invitation->email => $invitation->name])
+                    ->notify(new UserInvitationNotification($invitation));
+            } catch (\Throwable $e) {
+                Log::error('Gagal menghantar e-mel jemputan pengguna.', [
+                    'invitation_id' => $invitation->id,
+                    'email' => $invitation->email,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Jemputan telah dihantar ke e-mel.',
+            'message' => 'Jemputan dicipta. E-mel sedang dihantar.',
         ]);
     }
 
@@ -129,21 +128,18 @@ final class UserController extends Controller
         $fresh = $invitation->fresh();
         assert($fresh instanceof UserInvitation);
 
-        try {
-            Notification::route('mail', [$fresh->email => $fresh->name])
-                ->notify(new UserInvitationNotification($fresh));
-        } catch (\Throwable $e) {
-            Log::error('Gagal menghantar semula e-mel jemputan pengguna.', [
-                'invitation_id' => $fresh->id,
-                'email' => $fresh->email,
-                'exception' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'E-mel gagal dihantar. Sila cuba sebentar lagi.',
-            ], 502);
-        }
+        defer(function () use ($fresh): void {
+            try {
+                Notification::route('mail', [$fresh->email => $fresh->name])
+                    ->notify(new UserInvitationNotification($fresh));
+            } catch (\Throwable $e) {
+                Log::error('Gagal menghantar semula e-mel jemputan pengguna.', [
+                    'invitation_id' => $fresh->id,
+                    'email' => $fresh->email,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        });
 
         return response()->json([
             'success' => true,
