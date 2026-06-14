@@ -5,16 +5,12 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\UserInvitation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
-final class UserInvitationNotification extends Notification implements ShouldQueue
+final class UserInvitationNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
         public UserInvitation $invitation
     ) {}
