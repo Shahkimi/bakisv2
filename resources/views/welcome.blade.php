@@ -149,13 +149,13 @@
     <main class="vp-main w-[min(1180px,calc(100%-2rem))] mx-auto flex-1 min-h-0 overflow-hidden flex flex-col">
         <section class="vp-hero grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 pt-5 flex-1 min-h-0 items-stretch">
 
-            <article class="vp-panel rise relative overflow-hidden overflow-y-auto rounded-[26px] bg-[var(--surface)] border border-[var(--line)] shadow-[0_20px_45px_rgba(11,61,51,0.12)] p-8">
+            <article class="vp-panel rise self-start max-h-full relative overflow-hidden overflow-y-auto rounded-[26px] bg-[var(--surface)] border border-[var(--line)] shadow-[0_20px_45px_rgba(11,61,51,0.12)] p-8">
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--paper)] px-3 py-1.5 text-[0.78rem] font-bold text-[var(--emerald)]">
                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brass)]"></span>Portal Rasmi Keahlian
                 </span>
 
                 <h1 class="font-display font-700 mt-4 mb-3 leading-[1.08] tracking-tight text-[var(--moss)] text-[clamp(1.9rem,3.6vw,3rem)]">
-                    Menyatukan warga hospital melalui semangat kebajikan
+                    Menyatukan warga hospital melalui semangat <span class="relative whitespace-nowrap text-[var(--brass-deep)]">kebajikan<span class="absolute left-0 -bottom-0.5 h-[0.18em] w-full rounded-full bg-[rgba(196,154,74,0.4)]" aria-hidden="true"></span></span>
                 </h1>
 
                 <p class="m-0 max-w-[56ch] leading-relaxed text-[var(--muted)]">
@@ -169,6 +169,9 @@
                         d="M0 30 H150 L168 30 L182 12 L200 48 L216 22 L230 30 H360 L378 30 L392 14 L410 46 L426 24 L440 30 H620" />
                     <circle class="pulse-node" cx="392" cy="14" r="3" />
                 </svg>
+                <p class="mt-1.5 flex items-center gap-2 text-[0.66rem] font-700 uppercase tracking-[0.2em] text-[var(--muted)]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[var(--pulse)]"></span>Satu denyut, satu kebajikan
+                </p>
 
                 <div class="mt-5 flex flex-wrap gap-2.5">
                     @if (Route::has('register'))
@@ -185,15 +188,24 @@
 
                 {{-- Honest value cards (no fabricated metrics) --}}
                 <div class="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                    <div class="group rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5 transition hover:-translate-y-0.5 hover:border-[rgba(14,122,102,0.3)] hover:shadow-[0_10px_24px_rgba(11,61,51,0.09)]">
+                        <span class="inline-flex w-8 h-8 items-center justify-center rounded-lg mb-2.5 text-[var(--emerald)] bg-white border border-[var(--line)] transition group-hover:border-[rgba(14,122,102,0.3)]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </span>
                         <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Kebajikan</strong>
                         <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Sokongan untuk warga hospital</span>
                     </div>
-                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                    <div class="group rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5 transition hover:-translate-y-0.5 hover:border-[rgba(14,122,102,0.3)] hover:shadow-[0_10px_24px_rgba(11,61,51,0.09)]">
+                        <span class="inline-flex w-8 h-8 items-center justify-center rounded-lg mb-2.5 text-[var(--emerald)] bg-white border border-[var(--line)] transition group-hover:border-[rgba(14,122,102,0.3)]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        </span>
                         <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Keahlian</strong>
                         <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Daftar &amp; perbaharui dalam talian</span>
                     </div>
-                    <div class="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5">
+                    <div class="group rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-3.5 transition hover:-translate-y-0.5 hover:border-[rgba(14,122,102,0.3)] hover:shadow-[0_10px_24px_rgba(11,61,51,0.09)]">
+                        <span class="inline-flex w-8 h-8 items-center justify-center rounded-lg mb-2.5 text-[var(--emerald)] bg-white border border-[var(--line)] transition group-hover:border-[rgba(14,122,102,0.3)]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1a4 4 0 10-8 0 4 4 0 008 0zm6 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        </span>
                         <strong class="block font-display font-600 text-[var(--moss)] text-[1.02rem]">Komuniti</strong>
                         <span class="text-[0.84rem] text-[var(--muted)] leading-snug">Program sepanjang tahun</span>
                     </div>
@@ -339,54 +351,63 @@
                     </div>
                 @endif
 
-                <div class="rounded-2xl p-4 border border-[var(--line)] bg-[var(--surface)]">
-                    <h3 class="m-0 mb-1 font-display font-700 text-base text-[var(--moss)]">Hebahan Penting</h3>
-                    <p class="m-0 text-[0.91rem] leading-relaxed text-[var(--muted)]">Maklumat terkini berkaitan keahlian dan peluang kebajikan akan disampaikan di sini.</p>
+                {{-- Hebahan Penting --}}
+                <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]">
+                    <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
+                        style="background: linear-gradient(135deg, var(--brass-deep) 0%, var(--brass) 70%, #d6ad5e 100%);">
+                        <h3 class="m-0 font-display font-700 text-[0.95rem]">Hebahan Penting</h3>
+                        <span class="text-[0.62rem] uppercase tracking-[0.13em] font-bold text-white/70 whitespace-nowrap">Makluman Terkini</span>
+                    </div>
+                    <div class="flex items-start gap-3 px-3.5 py-3.5">
+                        <span class="shrink-0 w-[42px] h-[42px] rounded-xl flex items-center justify-center border border-[rgba(196,154,74,0.25)] text-[var(--brass-deep)]"
+                            style="background: linear-gradient(160deg,#fbf5e8,#f3e6c9);">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                        </span>
+                        <p class="m-0 text-[0.85rem] leading-relaxed text-[var(--muted)]">Maklumat terkini berkaitan keahlian dan peluang kebajikan akan disampaikan di sini.</p>
+                    </div>
+                </div>
+
+                {{-- Pilihan Keahlian (yuran & manfaat) --}}
+                <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]" id="plans">
+                    <div class="relative overflow-hidden flex items-center justify-between gap-2 px-4 py-3 text-white"
+                        style="background: linear-gradient(135deg, var(--emerald) 0%, var(--pulse) 70%, #1fcaa9 100%);">
+                        <h3 class="m-0 font-display font-700 text-[0.95rem]">Pilihan Keahlian</h3>
+                        <span class="text-[0.62rem] uppercase tracking-[0.13em] font-bold text-white/70 whitespace-nowrap">Yuran &amp; Manfaat</span>
+                    </div>
+                    <div class="flex flex-col">
+                        @forelse($yurans as $yuran)
+                            <div class="group flex items-center gap-3 px-3.5 py-3 border-b border-[var(--line)] last:border-b-0 transition hover:bg-[rgba(14,122,102,0.035)]">
+                                <span class="shrink-0 w-[42px] h-[42px] rounded-xl flex items-center justify-center border border-[rgba(14,122,102,0.16)] text-[var(--emerald)]"
+                                    style="background: linear-gradient(160deg,#e7f3f1,#d2ebe7);">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="m-0 font-display font-600 text-[0.86rem] leading-snug text-[var(--ink)] whitespace-nowrap overflow-hidden text-ellipsis">{{ $yuran->jenis_yuran }}</p>
+                                    <p class="mt-0.5 mb-0 text-[0.72rem] text-[var(--muted)] flex items-center gap-1">
+                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        Tempoh {{ (int) $yuran->tempoh_tahun }} tahun
+                                    </p>
+                                </div>
+                                <div class="shrink-0 text-right leading-none">
+                                    <p class="m-0 font-display font-700 text-[1rem] text-[var(--moss)] whitespace-nowrap">RM {{ number_format((float) $yuran->jumlah, 2) }}</p>
+                                    <p class="mt-1 mb-0 text-[0.62rem] font-semibold uppercase tracking-wider text-[var(--muted)]">/ {{ (int) $yuran->tempoh_tahun }} thn</p>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="px-3.5 py-4">
+                                <p class="m-0 text-[0.85rem] leading-relaxed text-[var(--muted)]">Tiada pilihan keahlian aktif buat masa ini.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                    @if ($yurans->isNotEmpty() && Route::has('register'))
+                        <a href="{{ route('register') }}"
+                            class="flex items-center justify-center gap-1.5 px-3.5 py-3 border-t border-[var(--line)] bg-[rgba(14,122,102,0.04)] text-[0.82rem] font-bold text-[var(--emerald)] transition hover:bg-[rgba(14,122,102,0.09)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--emerald)]">
+                            Daftar Keahlian
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                    @endif
                 </div>
             </aside>
-        </section>
-
-        <section class="mt-3.5 shrink-0 max-[720px]:mt-6 max-[720px]:pb-8" id="plans">
-            <h2 class="font-display font-700 text-[0.72rem] tracking-[0.1em] uppercase text-[var(--muted)] m-0 mb-2 max-[720px]:text-base max-[720px]:tracking-normal max-[720px]:normal-case max-[720px]:text-[var(--moss)]">Pilihan Keahlian</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                @forelse($yurans as $yuran)
-                    <article class="rounded-2xl border border-[var(--line)] bg-white/90 px-3.5 py-2.5 flex items-center justify-between gap-3 max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-2 max-[720px]:p-4">
-                        <h4 class="m-0 flex-1 min-w-0 font-display font-600 text-[0.84rem] text-[var(--muted)] overflow-hidden text-ellipsis whitespace-nowrap max-[720px]:whitespace-normal max-[720px]:text-base max-[720px]:text-[var(--ink)]">{{ $yuran->jenis_yuran }}</h4>
-                        <p class="m-0 shrink-0 font-display font-700 text-[1.1rem] whitespace-nowrap text-[var(--moss)] max-[720px]:text-2xl">
-                            RM {{ number_format((float) $yuran->jumlah, 2) }}
-                            <small class="font-body text-[0.78rem] font-semibold text-[var(--muted)]">/ {{ (int) $yuran->tempoh_tahun }} tahun</small>
-                        </p>
-                        <ul class="hidden max-[720px]:grid gap-1.5 text-[0.9rem] text-[var(--muted)] list-none p-0 m-0">
-                            @switch($yuran->jenis_yuran)
-                                @case('Pendaftaran Keahlian')
-                                    <li>Profil ahli digital</li>
-                                    <li>Notifikasi program komuniti</li>
-                                    <li>Akses sokongan standard</li>
-                                    @break
-                                @case('Pembaharuan Keahlian')
-                                    <li>Semua manfaat asas</li>
-                                    <li>Keutamaan pendaftaran acara</li>
-                                    <li>Diskaun program terpilih</li>
-                                    @break
-                                @case('Pembaharuan 2 Tahun')
-                                    <li>Semua manfaat aktif</li>
-                                    <li>Sesi jaringan eksklusif</li>
-                                    <li>Pengiktirafan ahli premium</li>
-                                    @break
-                                @default
-                                    <li>Manfaat keahlian</li>
-                                    <li>Akses kemas kini komuniti</li>
-                                    <li>Keutamaan sokongan</li>
-                            @endswitch
-                        </ul>
-                    </article>
-                @empty
-                    <article class="rounded-2xl border border-[var(--line)] bg-white/90 px-3.5 py-2.5">
-                        <h4 class="m-0 font-display font-600 text-[0.84rem] text-[var(--ink)]">Pilihan Keahlian</h4>
-                        <p class="m-0 mt-1 text-[0.9rem] text-[var(--muted)]">Tiada pilihan keahlian aktif buat masa ini.</p>
-                    </article>
-                @endforelse
-            </div>
         </section>
     </main>
 
