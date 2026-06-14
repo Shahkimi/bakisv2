@@ -326,17 +326,6 @@
             expandRailOnSummaryClick(kawalanSummary, kawalanDetails);
             expandRailOnSummaryClick(infoSummary, infoDetails);
 
-            // Accordion: opening one nav group collapses the other.
-            const navGroups = [kawalanDetails, infoDetails].filter(Boolean);
-            navGroups.forEach(function (detailsEl) {
-                detailsEl.addEventListener('toggle', function () {
-                    if (!detailsEl.open) return;
-                    navGroups.forEach(function (other) {
-                        if (other !== detailsEl) other.open = false;
-                    });
-                });
-            });
-
             // Accordion: opening one sidebar group collapses the others.
             const navGroups = Array.prototype.slice.call(document.querySelectorAll('#sidebar nav details'));
             navGroups.forEach(function (group) {
