@@ -91,6 +91,15 @@ table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTa
 .pengguna-edit-swal .toggle-track.active { background: #7c3aed; }
 .pengguna-edit-swal .toggle-thumb { position: absolute; top: 0.25rem; left: 0.25rem; width: 1rem; height: 1rem; background: #fff; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .pengguna-edit-swal .toggle-track.active .toggle-thumb { transform: translateX(1.25rem); }
+.pengguna-edit-swal .mode-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.pengguna-edit-swal .mode-opt { border: 1px solid #d1d5db; border-radius: 0.625rem; padding: 0.625rem 0.5rem; text-align: center; cursor: pointer; font-size: 0.8125rem; font-weight: 600; color: #4b5563; background: #fff; transition: all 0.15s; line-height: 1.3; }
+.pengguna-edit-swal .mode-opt:hover { border-color: #c4b5fd; }
+.pengguna-edit-swal .mode-opt.active { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); }
+.pengguna-edit-swal .mode-opt small { display: block; font-weight: 400; font-size: 0.6875rem; color: #6b7280; margin-top: 0.125rem; }
+.pengguna-temp-pw { display: flex; align-items: stretch; gap: 0.5rem; margin-top: 0.25rem; }
+.pengguna-temp-pw input { flex: 1; padding: 0.625rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9375rem; letter-spacing: 0.02em; background: #f9fafb; color: #111827; }
+.pengguna-temp-pw button { padding: 0 0.875rem; border: none; border-radius: 0.5rem; background: #7c3aed; color: #fff; font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: background 0.15s; }
+.pengguna-temp-pw button:hover { background: #6d28d9; }
 </style>
 @endpush
 
@@ -139,6 +148,7 @@ $(document).ready(function() {
         const iconEdit = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
         const iconTrash = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
         const iconResend = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>';
+        const iconKey = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>';
         if (a.row_type === 'user') {
             const id = a.id;
             const isSelf = id === window.penggunaCurrentUserId;
@@ -150,6 +160,8 @@ $(document).ready(function() {
                 '<button type="button" class="btn-edit-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" ' +
                 'title="Edit pengguna" aria-label="Edit pengguna" data-id="' + id + '" data-name="' + name + '" data-email="' + email + '" data-no-kp="' + noKp + '" data-role="' + role + '">' + iconEdit + '</button>';
             if (!isSelf) {
+                btns += '<button type="button" class="btn-reset-password inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition shadow-sm hover:shadow" ' +
+                    'title="Tetap semula kata laluan" aria-label="Tetap semula kata laluan" data-id="' + id + '" data-name="' + name + '">' + iconKey + '</button>';
                 btns += '<button type="button" class="btn-delete-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Padam pengguna" aria-label="Padam pengguna" data-id="' + id + '" data-name="' + name + '">' + iconTrash + '</button>';
             }
@@ -207,9 +219,23 @@ $(document).ready(function() {
 
     $(document).on('click', '.btn-create-user', function() {
         Swal.fire({
-            title: 'Jemput pengguna baharu',
+            title: 'Tambah pengguna baharu',
             html: `
                 <form id="create-user-form" class="pengguna-edit-swal pengguna-edit-form text-left">
+                    <div class="field">
+                        <label>Kaedah pendaftaran</label>
+                        <div class="mode-seg">
+                            <div class="mode-opt active" data-mode="invite" role="button" tabindex="0">
+                                Hantar pautan jemputan
+                                <small>Pengguna tetapkan kata laluan sendiri</small>
+                            </div>
+                            <div class="mode-opt" data-mode="direct" role="button" tabindex="0">
+                                Cipta + kata laluan sementara
+                                <small>Akaun terus aktif, tukar semasa log masuk</small>
+                            </div>
+                        </div>
+                        <input type="hidden" id="swal-mode" name="mode" value="invite" />
+                    </div>
                     <div class="field">
                         <label for="swal-name">Nama</label>
                         <input type="text" id="swal-name" class="input-text" placeholder="Nama penuh" autocomplete="name" />
@@ -234,7 +260,7 @@ $(document).ready(function() {
             confirmButtonText: 'Hantar jemputan',
             cancelButtonText: 'Batal',
             confirmButtonColor: '#7c3aed',
-            width: '440px',
+            width: '460px',
             customClass: { popup: 'pengguna-edit-swal' },
             didOpen: function() {
                 const toggle = document.getElementById('swal-role-toggle');
@@ -245,23 +271,38 @@ $(document).ready(function() {
                         hidden.value = on ? '1' : '0';
                     });
                 }
+                const modeInput = document.getElementById('swal-mode');
+                const opts = document.querySelectorAll('.mode-opt');
+                const confirmBtn = Swal.getConfirmButton();
+                function selectMode(mode) {
+                    modeInput.value = mode;
+                    opts.forEach(function(o) { o.classList.toggle('active', o.getAttribute('data-mode') === mode); });
+                    if (confirmBtn) confirmBtn.textContent = mode === 'direct' ? 'Cipta akaun' : 'Hantar jemputan';
+                }
+                opts.forEach(function(o) {
+                    o.addEventListener('click', function() { selectMode(o.getAttribute('data-mode')); });
+                    o.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectMode(o.getAttribute('data-mode')); } });
+                });
                 document.getElementById('swal-name')?.focus();
             },
             preConfirm: function() {
                 const name = (document.getElementById('swal-name').value || '').trim();
                 const email = (document.getElementById('swal-email').value || '').trim();
                 const role = document.getElementById('swal-role').value;
+                const mode = document.getElementById('swal-mode').value || 'invite';
                 if (!name) { Swal.showValidationMessage('Nama wajib diisi.'); return false; }
                 if (!email) { Swal.showValidationMessage('E-mel wajib diisi.'); return false; }
-                return { name: name, email: email, role: parseInt(role, 10) };
+                return { name: name, email: email, role: parseInt(role, 10), mode: mode };
             }
         }).then(function(result) {
             if (!result.isConfirmed || !result.value) return;
+            const mode = result.value.mode;
             const fd = new URLSearchParams();
             fd.append('_token', csrfToken);
             fd.append('name', result.value.name);
             fd.append('email', result.value.email);
             fd.append('role', String(result.value.role));
+            fd.append('mode', mode);
             fetch('{{ route("admin.kawalan.pengguna.store") }}', {
                 method: 'POST',
                 headers: {
@@ -275,8 +316,12 @@ $(document).ready(function() {
             .then(parseJsonResponse)
             .then(function({ ok, data }) {
                 if (ok && data.success) {
-                    Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Jemputan dihantar.', timer: 2200, showConfirmButton: false });
                     table.ajax.reload(null, false);
+                    if (mode === 'direct' && data.temp_password) {
+                        showTempPasswordDialog(data.email, data.temp_password, data.message);
+                    } else {
+                        Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Jemputan dihantar.', timer: 2200, showConfirmButton: false });
+                    }
                 } else {
                     const msg = (data.errors && (Object.values(data.errors).flat()[0])) || data.message || 'Ralat.';
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
@@ -285,6 +330,44 @@ $(document).ready(function() {
             .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
         });
     });
+
+    function showTempPasswordDialog(email, password, message) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Akaun dicipta',
+            html: `
+                <div class="pengguna-edit-swal text-left">
+                    <p style="font-size:0.875rem;color:#4b5563;margin:0 0 0.75rem;">${escapeHtmlText(message || 'Berikan kata laluan sementara ini kepada pengguna.')}</p>
+                    <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">E-mel</label>
+                    <p style="font-size:0.875rem;color:#111827;margin:0 0 0.75rem;word-break:break-all;">${escapeHtmlText(email || '')}</p>
+                    <label style="display:block;font-size:0.8125rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Kata laluan sementara</label>
+                    <div class="pengguna-temp-pw">
+                        <input type="text" id="temp-pw-value" readonly value="${escapeAttr(password)}" />
+                        <button type="button" id="temp-pw-copy">Salin</button>
+                    </div>
+                    <p style="font-size:0.75rem;color:#6b7280;margin:0.5rem 0 0;">Pengguna akan diminta menukar kata laluan ini semasa log masuk pertama.</p>
+                </div>
+            `,
+            confirmButtonText: 'Selesai',
+            confirmButtonColor: '#7c3aed',
+            width: '460px',
+            customClass: { popup: 'pengguna-edit-swal' },
+            didOpen: function() {
+                const btn = document.getElementById('temp-pw-copy');
+                const val = document.getElementById('temp-pw-value');
+                if (btn && val) {
+                    btn.addEventListener('click', function() {
+                        const done = function() { btn.textContent = 'Disalin!'; setTimeout(function() { btn.textContent = 'Salin'; }, 1500); };
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(val.value).then(done).catch(function() { val.select(); document.execCommand('copy'); done(); });
+                        } else {
+                            val.select(); document.execCommand('copy'); done();
+                        }
+                    });
+                }
+            }
+        });
+    }
 
     $(document).on('click', '.btn-edit-user', function() {
         const $btn = $(this);
@@ -380,6 +463,42 @@ $(document).ready(function() {
                         if (flat.length) msg = flat[0];
                     }
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
+                }
+            })
+            .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
+        });
+    });
+
+    $(document).on('click', '.btn-reset-password', function() {
+        const id = $(this).data('id');
+        const nama = $(this).data('name');
+        Swal.fire({
+            title: 'Tetap semula kata laluan?',
+            html: 'Kata laluan sementara baharu akan dijana untuk <strong>' + escapeHtmlText(nama) + '</strong> dan dihantar ke e-mel mereka. Pengguna perlu menukarnya semasa log masuk.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d97706',
+            confirmButtonText: 'Ya, tetap semula',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            fetch(@json(url('admin/kawalan/pengguna/user')).replace(/\/$/, '') + '/' + id + '/reset-password', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ '_token': csrfToken }).toString()
+            })
+            .then(parseJsonResponse)
+            .then(function({ ok, data }) {
+                if (ok && data.success && data.temp_password) {
+                    table.ajax.reload(null, false);
+                    showTempPasswordDialog(data.email, data.temp_password, data.message);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menetapkan semula kata laluan.' });
                 }
             })
             .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });

@@ -30,6 +30,7 @@ class User extends Authenticatable implements CanResetPasswordContract
         'no_kp',
         'password',
         'role',
+        'must_change_password',
     ];
 
     public const ROLE_USER = 0;
@@ -62,6 +63,7 @@ class User extends Authenticatable implements CanResetPasswordContract
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => 'integer',
+            'must_change_password' => 'boolean',
         ];
     }
 }

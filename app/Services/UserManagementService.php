@@ -46,7 +46,7 @@ final readonly class UserManagementService
      */
     private function queryUsers(?string $search): Collection
     {
-        $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'created_at']);
+        $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'must_change_password', 'created_at']);
 
         if ($search !== null && $search !== '') {
             $term = '%'.addcslashes($search, '%_\\').'%';
@@ -105,10 +105,17 @@ final readonly class UserManagementService
     private function formatUserRow(User $user): array
     {
         $verified = $user->email_verified_at !== null;
-        $statusLabel = $verified ? 'Disahkan' : 'Belum disahkan';
-        $statusClass = $verified
-            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+
+        if ($user->must_change_password) {
+            $statusLabel = 'Kata laluan sementara';
+            $statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+        } elseif ($verified) {
+            $statusLabel = 'Disahkan';
+            $statusClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
+        } else {
+            $statusLabel = 'Belum disahkan';
+            $statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+        }
 
         $roleLabel = $user->isAdmin() ? 'Admin' : 'Pengguna';
         $roleClass = $user->isAdmin()

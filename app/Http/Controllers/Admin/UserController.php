@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreUserInvitationRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Models\UserInvitation;
+use App\Notifications\UserCredentialsNotification;
 use App\Notifications\UserInvitationNotification;
 use App\Services\UserManagementService;
 use Illuminate\Http\JsonResponse;
@@ -43,6 +44,10 @@ final class UserController extends Controller
     {
         $data = $request->validated();
 
+        if ($data['mode'] === 'direct') {
+            return $this->storeDirectUser($data);
+        }
+
         $invitation = DB::transaction(function () use ($data): UserInvitation {
             return UserInvitation::create([
                 'name' => $data['name'],
@@ -75,6 +80,52 @@ final class UserController extends Controller
         ]);
     }
 
+    /**
+     * Create the user immediately with an auto-generated temporary password.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function storeDirectUser(array $data): JsonResponse
+    {
+        $temporaryPassword = Str::password(12);
+
+        $user = DB::transaction(function () use ($data, $temporaryPassword): User {
+            return User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'role' => $data['role'],
+                'password' => $temporaryPassword,
+                'email_verified_at' => now(),
+                'must_change_password' => true,
+            ]);
+        });
+
+        try {
+            Notification::route('mail', [$user->email => $user->name])
+                ->notify(new UserCredentialsNotification($user, $temporaryPassword));
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghantar e-mel kelayakan pengguna.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Akaun dicipta, tetapi e-mel gagal dihantar. Sila salin kata laluan sementara di bawah dan berikan kepada pengguna.',
+                'temp_password' => $temporaryPassword,
+                'email' => $user->email,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akaun dicipta dan kata laluan sementara telah dihantar ke e-mel.',
+            'temp_password' => $temporaryPassword,
+            'email' => $user->email,
+        ]);
+    }
+
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         if ($user->id === auth()->id() && isset($request->validated()['role']) && (int) $request->validated()['role'] !== User::ROLE_ADMIN) {
@@ -89,6 +140,48 @@ final class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Pengguna telah dikemas kini.',
+        ]);
+    }
+
+    public function resetPassword(User $user): JsonResponse
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak boleh menetapkan semula kata laluan akaun sendiri. Sila gunakan halaman profil.',
+            ], 422);
+        }
+
+        $temporaryPassword = Str::password(12);
+
+        $user->update([
+            'password' => $temporaryPassword,
+            'must_change_password' => true,
+        ]);
+
+        try {
+            Notification::route('mail', [$user->email => $user->name])
+                ->notify(new UserCredentialsNotification($user, $temporaryPassword, isReset: true));
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghantar e-mel tetapan semula kata laluan pengguna.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kata laluan ditetapkan semula, tetapi e-mel gagal dihantar. Sila salin kata laluan sementara di bawah dan berikan kepada pengguna.',
+                'temp_password' => $temporaryPassword,
+                'email' => $user->email,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kata laluan sementara baharu telah dihantar ke e-mel pengguna.',
+            'temp_password' => $temporaryPassword,
+            'email' => $user->email,
         ]);
     }
 

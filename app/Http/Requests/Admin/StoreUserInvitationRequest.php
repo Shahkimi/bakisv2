@@ -29,6 +29,7 @@ final class StoreUserInvitationRequest extends FormRequest
                 Rule::unique('user_invitations', 'email'),
             ],
             'role' => ['required', 'integer', Rule::in([User::ROLE_USER, User::ROLE_ADMIN])],
+            'mode' => ['required', Rule::in(['invite', 'direct'])],
         ];
     }
 
@@ -42,6 +43,8 @@ final class StoreUserInvitationRequest extends FormRequest
             'email.unique' => 'E-mel ini sudah digunakan atau jemputan sedang menunggu.',
             'role.required' => 'Peranan wajib dipilih.',
             'role.in' => 'Peranan tidak sah.',
+            'mode.required' => 'Kaedah pendaftaran wajib dipilih.',
+            'mode.in' => 'Kaedah pendaftaran tidak sah.',
         ];
     }
 }

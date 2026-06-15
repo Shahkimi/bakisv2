@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\PerlembagaanController;
 use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YuranController;
+use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -68,6 +69,9 @@ Route::get('/dashboard/tidak-aktif', [DashboardController::class, 'tidakAktif'])
     ->name('dashboard.tidak-aktif');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/password/change', [ForcePasswordChangeController::class, 'show'])->name('password.change.show');
+    Route::put('/password/change', [ForcePasswordChangeController::class, 'update'])->name('password.change.update');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
@@ -122,6 +126,7 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::get('data', [UserController::class, 'getData'])->name('data');
         Route::post('/', [UserController::class, 'store'])->name('store');
         Route::put('user/{user}', [UserController::class, 'update'])->name('user.update');
+        Route::post('user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
         Route::delete('user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
         Route::delete('jemputan/{invitation}', [UserController::class, 'destroyInvitation'])->name('invitation.destroy');
         Route::post('jemputan/{invitation}/hantar', [UserController::class, 'resendInvitation'])->name('invitation.resend');

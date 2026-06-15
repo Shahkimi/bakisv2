@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role.admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'role.user' => \App\Http\Middleware\EnsureUserIsRegularUser::class,
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePasswordChanged::class);
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
