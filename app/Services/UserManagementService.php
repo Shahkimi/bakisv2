@@ -46,7 +46,7 @@ final readonly class UserManagementService
      */
     private function queryUsers(?string $search): Collection
     {
-        $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'must_change_password', 'created_at']);
+        $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'must_change_password', 'is_active', 'created_at']);
 
         if ($search !== null && $search !== '') {
             $term = '%'.addcslashes($search, '%_\\').'%';
@@ -106,7 +106,10 @@ final readonly class UserManagementService
     {
         $verified = $user->email_verified_at !== null;
 
-        if ($user->must_change_password) {
+        if (! $user->is_active) {
+            $statusLabel = 'Dinyahaktif';
+            $statusClass = 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+        } elseif ($user->must_change_password) {
             $statusLabel = 'Kata laluan sementara';
             $statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
         } elseif ($verified) {
@@ -144,6 +147,7 @@ final readonly class UserManagementService
                 'email' => $user->email,
                 'no_kp' => $noKpRaw ?? '',
                 'role' => $user->role,
+                'is_active' => $user->is_active,
             ],
         ];
     }

@@ -184,6 +184,24 @@ final class UserController extends Controller
         ]);
     }
 
+    public function toggleActive(User $user): JsonResponse
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak boleh menyahaktifkan akaun sendiri.',
+            ], 422);
+        }
+
+        $user->update(['is_active' => ! $user->is_active]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->is_active ? 'Akaun telah diaktifkan.' : 'Akaun telah dinyahaktifkan.',
+            'is_active' => $user->is_active,
+        ]);
+    }
+
     public function destroy(User $user): JsonResponse
     {
         if ($user->id === auth()->id()) {

@@ -31,6 +31,7 @@ class User extends Authenticatable implements CanResetPasswordContract
         'password',
         'role',
         'must_change_password',
+        'is_active',
     ];
 
     public const ROLE_USER = 0;
@@ -52,6 +53,11 @@ class User extends Authenticatable implements CanResetPasswordContract
         return $this->role === $role;
     }
 
+    public function isActive(): bool
+    {
+        return $this->is_active !== false;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -64,6 +70,7 @@ class User extends Authenticatable implements CanResetPasswordContract
             'password' => 'hashed',
             'role' => 'integer',
             'must_change_password' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 }

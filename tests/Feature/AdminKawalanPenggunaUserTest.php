@@ -64,4 +64,68 @@ final class AdminKawalanPenggunaUserTest extends TestCase
             ])
             ->assertStatus(422);
     }
+
+    public function test_admin_can_disable_and_reenable_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $target = User::factory()->create([
+            'email' => 'disable-me@example.test',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.kawalan.pengguna.user.toggle-active', $target))
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'is_active' => false,
+            ]);
+
+        $target->refresh();
+        $this->assertFalse($target->is_active);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.kawalan.pengguna.user.toggle-active', $target))
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'is_active' => true,
+            ]);
+
+        $target->refresh();
+        $this->assertTrue($target->is_active);
+    }
+
+    public function test_admin_cannot_disable_own_account(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.kawalan.pengguna.user.toggle-active', $admin))
+            ->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Tidak boleh menyahaktifkan akaun sendiri.',
+            ]);
+
+        $admin->refresh();
+        $this->assertTrue($admin->is_active);
+    }
+
+    public function test_disabled_user_cannot_log_in(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'disabled@example.test',
+            'is_active' => false,
+        ]);
+
+        $this->post(route('login'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])
+            ->assertSessionHasErrors('email')
+            ->assertRedirect();
+
+        $this->assertGuest();
+    }
 }

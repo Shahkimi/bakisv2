@@ -149,6 +149,8 @@ $(document).ready(function() {
         const iconTrash = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
         const iconResend = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>';
         const iconKey = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>';
+        const iconBan = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>';
+        const iconEnable = '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
         if (a.row_type === 'user') {
             const id = a.id;
             const isSelf = id === window.penggunaCurrentUserId;
@@ -156,12 +158,20 @@ $(document).ready(function() {
             const email = escapeAttr(a.email);
             const noKp = escapeAttr(a.no_kp || '');
             const role = a.role === 1 ? '1' : '0';
+            const isActive = a.is_active !== false;
             let btns = '<div class="flex flex-wrap items-center gap-1.5">' +
                 '<button type="button" class="btn-edit-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" ' +
                 'title="Edit pengguna" aria-label="Edit pengguna" data-id="' + id + '" data-name="' + name + '" data-email="' + email + '" data-no-kp="' + noKp + '" data-role="' + role + '">' + iconEdit + '</button>';
             if (!isSelf) {
                 btns += '<button type="button" class="btn-reset-password inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Tetap semula kata laluan" aria-label="Tetap semula kata laluan" data-id="' + id + '" data-name="' + name + '">' + iconKey + '</button>';
+                if (isActive) {
+                    btns += '<button type="button" class="btn-toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition shadow-sm hover:shadow" ' +
+                        'title="Nyahaktifkan akaun" aria-label="Nyahaktifkan akaun" data-id="' + id + '" data-name="' + name + '" data-active="1">' + iconBan + '</button>';
+                } else {
+                    btns += '<button type="button" class="btn-toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition shadow-sm hover:shadow" ' +
+                        'title="Aktifkan akaun" aria-label="Aktifkan akaun" data-id="' + id + '" data-name="' + name + '" data-active="0">' + iconEnable + '</button>';
+                }
                 btns += '<button type="button" class="btn-delete-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Padam pengguna" aria-label="Padam pengguna" data-id="' + id + '" data-name="' + name + '">' + iconTrash + '</button>';
             }
@@ -499,6 +509,43 @@ $(document).ready(function() {
                     showTempPasswordDialog(data.email, data.temp_password, data.message, 'Kata laluan ditetapkan semula');
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menetapkan semula kata laluan.' });
+                }
+            })
+            .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });
+        });
+    });
+
+    $(document).on('click', '.btn-toggle-active', function() {
+        const id = $(this).data('id');
+        const nama = $(this).data('name');
+        const isActive = String($(this).data('active')) === '1';
+        Swal.fire({
+            title: isActive ? 'Nyahaktifkan akaun?' : 'Aktifkan akaun?',
+            text: isActive ? 'Nyahaktifkan "' + nama + '"? Pengguna tidak boleh log masuk.' : 'Aktifkan semula "' + nama + '"?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isActive ? '#f97316' : '#10b981',
+            confirmButtonText: isActive ? 'Ya, nyahaktifkan' : 'Ya, aktifkan',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            fetch(@json(url('admin/kawalan/pengguna/user')).replace(/\/$/, '') + '/' + id + '/toggle-active', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ '_token': csrfToken }).toString()
+            })
+            .then(parseJsonResponse)
+            .then(function({ ok, data }) {
+                if (ok && data.success) {
+                    Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
+                    table.ajax.reload(null, false);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
             })
             .catch(function() { Swal.fire({ icon: 'error', title: 'Ralat', text: 'Ralat rangkaian.' }); });

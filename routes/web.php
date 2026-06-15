@@ -30,6 +30,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SemakController;
 use App\Http\Controllers\User\KutipanController as UserKutipanController;
 use App\Models\Yuran;
+use App\Services\CommitteeMemberService;
+use App\Services\PerlembagaanService;
+use App\Services\ProgramService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -43,9 +46,9 @@ Route::get('/', function () {
         ->orderBy('jenis_yuran', 'desc')
         ->get(['jenis_yuran', 'jumlah', 'tempoh_tahun', 'is_active', 'is_show']);
 
-    $committee = app(\App\Services\CommitteeMemberService::class)->listOrdered(onlyActive: true);
-    $programs = app(\App\Services\ProgramService::class)->listForPublic();
-    $perlembagaans = app(\App\Services\PerlembagaanService::class)->listForPublic();
+    $committee = app(CommitteeMemberService::class)->listOrdered(onlyActive: true);
+    $programs = app(ProgramService::class)->listForPublic();
+    $perlembagaans = app(PerlembagaanService::class)->listForPublic();
 
     return view('welcome', compact('yurans', 'committee', 'programs', 'perlembagaans'));
 });
@@ -127,6 +130,7 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/', [UserController::class, 'store'])->name('store');
         Route::put('user/{user}', [UserController::class, 'update'])->name('user.update');
         Route::post('user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
+        Route::post('user/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('user.toggle-active');
         Route::delete('user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
         Route::delete('jemputan/{invitation}', [UserController::class, 'destroyInvitation'])->name('invitation.destroy');
         Route::post('jemputan/{invitation}/hantar', [UserController::class, 'resendInvitation'])->name('invitation.resend');
