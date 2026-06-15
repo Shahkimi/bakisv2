@@ -331,10 +331,10 @@ $(document).ready(function() {
         });
     });
 
-    function showTempPasswordDialog(email, password, message) {
+    function showTempPasswordDialog(email, password, message, title) {
         Swal.fire({
             icon: 'success',
-            title: 'Akaun dicipta',
+            title: title || 'Akaun dicipta',
             html: `
                 <div class="pengguna-edit-swal text-left">
                     <p style="font-size:0.875rem;color:#4b5563;margin:0 0 0.75rem;">${escapeHtmlText(message || 'Berikan kata laluan sementara ini kepada pengguna.')}</p>
@@ -496,7 +496,7 @@ $(document).ready(function() {
             .then(function({ ok, data }) {
                 if (ok && data.success && data.temp_password) {
                     table.ajax.reload(null, false);
-                    showTempPasswordDialog(data.email, data.temp_password, data.message);
+                    showTempPasswordDialog(data.email, data.temp_password, data.message, 'Kata laluan ditetapkan semula');
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menetapkan semula kata laluan.' });
                 }
