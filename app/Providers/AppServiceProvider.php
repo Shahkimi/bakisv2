@@ -33,7 +33,15 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::none();
             }
 
-            return Limit::perMinutes(10, 3)->by($request->ip());
+            // Turnstile already verifies every public semak submission, so when it is
+            // active there is no need to rate limit — verified users can check freely.
+            // When an admin disables Turnstile, fall back to an IP limit so the no_kp
+            // lookup is never left open to scripted enumeration.
+            if (app(TurnstileSettingService::class)->isActive()) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(20)->by($request->ip());
         });
 
         Payment::observe(PaymentObserver::class);
