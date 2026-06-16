@@ -17,6 +17,10 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     @endif
 
+    @if (! empty($turnstileEnabled))
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    @endif
+
     <style>
         :root {
             --ink: #181513;
@@ -227,6 +231,15 @@
                     <label for="password_confirmation">Sahkan kata laluan</label>
                     <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required>
                 </div>
+
+                @if (! empty($turnstileEnabled))
+                    <div class="field">
+                        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                        @error('cf-turnstile-response')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
 
                 <button type="submit" class="submit" id="submitBtn">
                     <span id="buttonText">Simpan kata laluan</span>

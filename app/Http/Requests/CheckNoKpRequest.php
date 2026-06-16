@@ -18,6 +18,7 @@ class CheckNoKpRequest extends FormRequest
     {
         return [
             'no_kp' => ['required', 'string', 'digits:12'],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
         ];
     }
 
@@ -27,6 +28,7 @@ class CheckNoKpRequest extends FormRequest
         return [
             'no_kp.required' => 'No. KP wajib diisi.',
             'no_kp.digits' => 'No. KP mesti tepat 12 digit.',
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 }

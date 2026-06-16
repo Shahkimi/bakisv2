@@ -125,6 +125,16 @@
                             </p>
                         @enderror
                     </div>
+                    @if (! empty($turnstileEnabled))
+                        <div>
+                            <div style="display:flex; justify-content:center; min-height:65px;">
+                                <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                            </div>
+                            @error('cf-turnstile-response')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
                     <button type="submit" id="lookup-submit-btn" class="hidden xl:flex w-full min-h-[52px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-orange-600/25 transition hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-4 focus:ring-orange-500/30 disabled:opacity-60 disabled:pointer-events-none">
                         <span class="lookup-btn-label">Semak status</span>
                     </button>
@@ -311,6 +321,17 @@
                                 <textarea name="catatan" id="catatan" rows="3" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-3 text-base sm:text-sm text-slate-900 dark:text-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15">{{ old('catatan') }}</textarea>
                             </div>
                         </div>
+
+                        @if (! empty($turnstileEnabled))
+                            <div>
+                                <div style="display:flex; justify-content:center; min-height:65px;">
+                                    <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                                </div>
+                                @error('cf-turnstile-response')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
 
                         <button type="submit" id="register-submit-btn" class="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-teal-600/25 transition hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-teal-500/30 disabled:opacity-60 disabled:pointer-events-none">
                             Hantar pendaftaran
@@ -766,6 +787,9 @@
 @endpush
 
 @push('scripts')
+@if (! empty($turnstileEnabled))
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+@endif
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>

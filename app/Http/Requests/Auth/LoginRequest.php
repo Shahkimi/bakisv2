@@ -24,6 +24,15 @@ final class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 

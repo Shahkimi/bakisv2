@@ -17,6 +17,10 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     @endif
 
+    @if (! empty($turnstileEnabled))
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
+    @endif
+
     <style>
         :root {
             --ink: #181513;
@@ -233,26 +237,48 @@
         }
 
         .submit {
-            margin-top: 1rem;
+            margin-top: 1.25rem;
             width: 100%;
             border: none;
             border-radius: 12px;
-            padding: 0.82rem;
+            padding: 0.88rem 1rem;
             color: #fff;
-            background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
             font-size: 0.95rem;
             font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: filter .2s ease;
+            box-shadow: 0 4px 14px rgba(125, 53, 6, 0.35);
+            transition: box-shadow .2s ease, transform .15s ease, filter .2s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.55rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .submit:hover { filter: brightness(1.03); }
-        .submit:disabled { opacity: 0.75; cursor: wait; }
+        .submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .submit:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(125, 53, 6, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .submit:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(125, 53, 6, 0.3);
+        }
+
+        .submit:disabled { opacity: 0.70; cursor: wait; transform: none; }
+
+        .submit-icon { flex-shrink: 0; width: 17px; height: 17px; }
 
         .spinner {
             display: none;
@@ -262,9 +288,11 @@
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin .8s linear infinite;
+            flex-shrink: 0;
         }
 
         .submit.is-loading .spinner { display: inline-block; }
+        .submit.is-loading .submit-icon { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .auth-panels-shell {
@@ -436,9 +464,23 @@
                         Ingat saya
                     </label>
 
+                    @if (! empty($turnstileEnabled))
+                        <div class="field">
+                            <div style="display:flex; justify-content:center; min-height:65px;">
+                                <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                            </div>
+                            @error('cf-turnstile-response')
+                                <p class="field-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
                     <button type="submit" class="submit" id="submitBtn">
-                        <span id="buttonText">Log Masuk</span>
+                        <svg class="submit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
                         <span class="spinner" id="loadingSpinner"></span>
+                        <span id="buttonText">Log Masuk</span>
                     </button>
                 </form>
             </div>
@@ -467,9 +509,23 @@
                         @enderror
                     </div>
 
+                    @if (! empty($turnstileEnabled))
+                        <div class="field">
+                            <div style="display:flex; justify-content:center; min-height:65px;">
+                                <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                            </div>
+                            @error('cf-turnstile-response')
+                                <p class="field-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
+
                     <button type="submit" class="submit" id="forgotSubmitBtn">
-                        <span id="forgotButtonText">Hantar pautan reset</span>
+                        <svg class="submit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
                         <span class="spinner" id="forgotSpinner"></span>
+                        <span id="forgotButtonText">Hantar pautan reset</span>
                     </button>
                 </form>
             </div>
@@ -479,20 +535,26 @@
     </section>
 
     <script>
+        @if (! empty($turnstileEnabled))
+        // Re-sync shell height once Turnstile iframes finish rendering.
+        window.onTurnstileLoad = function () {
+            const el = document.querySelector('[x-data]')?.__x;
+            if (el) { el.$data.syncAuthShellHeight(); }
+        };
+        @endif
+
         document.getElementById('loginForm')?.addEventListener('submit', function () {
             const button = document.getElementById('submitBtn');
-            const text = document.getElementById('buttonText');
             button.disabled = true;
             button.classList.add('is-loading');
-            text.textContent = 'Sedang Log Masuk...';
+            document.getElementById('buttonText').textContent = 'Sedang Log Masuk…';
         });
 
         document.getElementById('forgotForm')?.addEventListener('submit', function () {
             const button = document.getElementById('forgotSubmitBtn');
-            const text = document.getElementById('forgotButtonText');
             button.disabled = true;
             button.classList.add('is-loading');
-            text.textContent = 'Menghantar...';
+            document.getElementById('forgotButtonText').textContent = 'Menghantar…';
         });
     </script>
 </body>

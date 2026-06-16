@@ -37,6 +37,15 @@ class RenewalPaymentRequest extends FormRequest
                 'max:5120',
                 new SecureFileUpload,
             ],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 

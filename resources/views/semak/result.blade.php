@@ -540,6 +540,17 @@
                                 @enderror
                             </div>
 
+                            @if (! empty($turnstileEnabled))
+                                <div class="mb-4">
+                                    <div style="display:flex; justify-content:center; min-height:65px;">
+                                        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                                    </div>
+                                    @error('cf-turnstile-response')
+                                        <p class="mt-2 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
+
                             {{-- Submit --}}
                             <button type="submit" id="submitBtn"
                                 class="w-full min-h-[52px] flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-sm shadow-md shadow-teal-500/20 hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -586,6 +597,9 @@
 </div>
 
 @push('scripts')
+@if (! empty($turnstileEnabled))
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+@endif
 <script>
     function showSemakToast(message, variant) {
         const root = document.getElementById('semak-toast-root');

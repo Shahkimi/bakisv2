@@ -35,6 +35,7 @@ final class ForgotPasswordByKpRequest extends FormRequest
     {
         return [
             'no_kp' => ['required', 'string', 'size:12', 'regex:/^\d{12}$/'],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
         ];
     }
 
@@ -47,6 +48,7 @@ final class ForgotPasswordByKpRequest extends FormRequest
             'no_kp.required' => 'No. KP wajib diisi.',
             'no_kp.size' => 'No. KP mesti tepat 12 digit.',
             'no_kp.regex' => 'No. KP hanya boleh mengandungi nombor (12 digit).',
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 }

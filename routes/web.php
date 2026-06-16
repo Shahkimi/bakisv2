@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\CommitteeMemberController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\Kawalan\FaviconController;
+use App\Http\Controllers\Admin\Kawalan\TurnstileController;
 use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\MemberReceiptController;
@@ -182,6 +183,10 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
         Route::delete('/', [FaviconController::class, 'destroy'])->name('destroy');
         Route::post('logo', [FaviconController::class, 'storeLogo'])->name('logo.store');
         Route::delete('logo', [FaviconController::class, 'destroyLogo'])->name('logo.destroy');
+    });
+    Route::prefix('kawalan/keselamatan')->name('kawalan.keselamatan.')->group(function () {
+        Route::get('/', [TurnstileController::class, 'index'])->name('index');
+        Route::post('/', [TurnstileController::class, 'update'])->name('update');
     });
     Route::prefix('kawalan/ajk')->name('kawalan.ajk.')->group(function () {
         Route::get('/', [CommitteeMemberController::class, 'index'])->name('index');

@@ -33,6 +33,7 @@ class RegisterMemberRequest extends FormRequest
             'gambar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'catatan' => ['nullable', 'string'],
             'bukti_bayaran' => ['required', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
         ];
     }
 
@@ -42,6 +43,7 @@ class RegisterMemberRequest extends FormRequest
         return [
             'no_kp.unique' => 'No. KP ini sudah berdaftar.',
             'no_kp.digits' => 'No. KP mesti tepat 12 digit.',
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 }

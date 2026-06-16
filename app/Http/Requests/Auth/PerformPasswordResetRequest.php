@@ -24,6 +24,7 @@ final class PerformPasswordResetRequest extends FormRequest
             'token' => ['required', 'string'],
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
         ];
     }
 
@@ -35,6 +36,7 @@ final class PerformPasswordResetRequest extends FormRequest
         return [
             'password.required' => 'Kata laluan baharu wajib diisi.',
             'password.confirmed' => 'Pengesahan kata laluan tidak sepadan.',
+            'cf-turnstile-response.required' => 'Sila lengkapkan pengesahan keselamatan.',
         ];
     }
 }
