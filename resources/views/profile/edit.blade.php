@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @if (session('success'))
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     Swal.fire({

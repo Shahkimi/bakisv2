@@ -102,7 +102,7 @@
 
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/styles/choices.min.css" />
 <style>
     /* Choices.js Tailwind-ish skin (no jQuery needed) */
     .choices { margin-bottom: 0 !important; }
@@ -310,7 +310,7 @@
 
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/scripts/choices.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const selectEl = document.getElementById('cari_ahli');

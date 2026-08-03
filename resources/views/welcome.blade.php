@@ -7,11 +7,7 @@
     @include('partials.favicon-links')
     <title>BAKIS — Portal Keahlian Warga Hospital Sultanah Bahiyah</title>
     @include('partials.landing-seo-meta')
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css'])
-    @else
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@4.0.0/dist/tailwind.min.css" rel="stylesheet">
-    @endif
+    @vite(['resources/css/app.css'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -101,14 +97,6 @@
             border-radius: 999px;
         }
 
-        /* ── Mobile: restore normal scrolling (mirrors prior behavior) ── */
-        @media (max-width: 720px) {
-            html, body { overflow: auto; height: auto; }
-            .vp-main { overflow: visible; flex: none; }
-            .vp-hero { flex: none; min-height: auto; }
-            .vp-panel, .vp-side { overflow-y: visible; min-height: auto; }
-        }
-
         @media (prefers-reduced-motion: reduce) {
             .pulse-line { animation: none; stroke-dashoffset: 0; }
             .pulse-node { animation: none; opacity: 1; }
@@ -119,12 +107,12 @@
     </style>
 </head>
 
-<body class="m-0 h-screen overflow-hidden flex flex-col text-[var(--ink)] max-[720px]:h-auto max-[720px]:overflow-auto">
+<body class="m-0 min-h-screen overflow-auto flex flex-col text-[var(--ink)] lg:h-screen lg:overflow-hidden">
     @php
         $brandLogoUrl = app(\App\Services\SiteSettingService::class)->logoPublicUrl();
     @endphp
 
-    <header class="w-[min(1180px,calc(100%-2rem))] mx-auto flex items-center justify-between gap-4 py-4 shrink-0">
+    <header class="w-[min(1180px,calc(100%-2rem))] mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 shrink-0">
         <div class="flex items-center gap-3">
             @if ($brandLogoUrl)
                 <img src="{{ $brandLogoUrl }}" alt="BAKIS"
@@ -140,17 +128,17 @@
         </div>
         <nav class="flex items-center gap-2.5">
             <a href="/login"
-                class="inline-flex items-center rounded-full px-4 py-2.5 text-sm font-semibold text-[var(--ink)] bg-white/80 border border-[var(--line)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]">Log Masuk</a>
+                class="inline-flex items-center whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold text-[var(--ink)] bg-white/80 border border-[var(--line)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--emerald)]">Log Masuk</a>
             <a href="/semak"
-                class="inline-flex items-center rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brass)]"
+                class="inline-flex items-center whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brass)]"
                 style="background: linear-gradient(135deg, var(--brass), var(--brass-deep));">Semak Status Ahli</a>
         </nav>
     </header>
 
-    <main class="vp-main w-[min(1180px,calc(100%-2rem))] mx-auto flex-1 min-h-0 overflow-hidden flex flex-col">
-        <section class="vp-hero grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 pt-5 flex-1 min-h-0 items-stretch">
+    <main class="w-[min(1180px,calc(100%-2rem))] mx-auto flex flex-col lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+        <section class="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5 pt-5 items-stretch lg:flex-1 lg:min-h-0">
 
-            <article class="vp-panel rise self-start max-h-full relative overflow-hidden overflow-y-auto rounded-[26px] bg-[var(--surface)] border border-[var(--line)] shadow-[0_20px_45px_rgba(11,61,51,0.12)] p-8">
+            <article class="rise self-start relative rounded-[26px] bg-[var(--surface)] border border-[var(--line)] shadow-[0_20px_45px_rgba(11,61,51,0.12)] p-8 lg:max-h-full lg:overflow-hidden lg:overflow-y-auto">
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--paper)] px-3 py-1.5 text-[0.78rem] font-bold text-[var(--emerald)]">
                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--brass)]"></span>Portal Rasmi Keahlian
                 </span>
@@ -213,7 +201,7 @@
                 </div>
             </article>
 
-            <aside class="vp-side rise-delay grid gap-3 overflow-y-auto min-h-0 content-start">
+            <aside class="rise-delay grid gap-3 content-start lg:overflow-y-auto lg:min-h-0">
                 @if ($committee->isNotEmpty())
                     <div class="rounded-2xl border border-[var(--line)] bg-[var(--surface)] overflow-hidden shadow-[0_2px_20px_rgba(11,61,51,0.08)]"
                         id="ajk-carousel" data-count="{{ $committee->count() }}">
@@ -412,7 +400,7 @@
         </section>
     </main>
 
-    <footer class="w-[min(1180px,calc(100%-2rem))] mx-auto border-t border-[var(--line)] pt-2.5 pb-3 text-[0.86rem] text-[var(--muted)] flex justify-between gap-4 flex-wrap shrink-0 max-[720px]:pb-8">
+    <footer class="w-[min(1180px,calc(100%-2rem))] mx-auto border-t border-[var(--line)] pt-2.5 pb-8 lg:pb-3 text-[0.86rem] text-[var(--muted)] flex justify-between gap-4 flex-wrap shrink-0">
         <span>&copy; {{ date('Y') }} BAKIS — Badan Kebajikan Islam, Hospital Sultanah Bahiyah.</span>
         <span>Dibina untuk warga, program, dan kebajikan komuniti.</span>
     </footer>

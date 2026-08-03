@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.favicon-links')
     <title>Kehadiran Direkod — {{ $acara->nama_acara }}</title>
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@4.0.0/dist/tailwind.min.css" rel="stylesheet">
-    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
         .animate-pop { animation: pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) both; }

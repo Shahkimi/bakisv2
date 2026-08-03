@@ -37,20 +37,24 @@ final class SecurityHeaders
         $cdns = 'https://code.jquery.com https://cdn.jsdelivr.net https://cdn.datatables.net';
 
         // Allow Vite's dev server / HMR websocket only in local development.
-        $scriptExtra = '';
-        $connectExtra = '';
+        $vite = '';
+        $viteSocket = '';
         if (app()->environment('local')) {
-            $scriptExtra = ' http://localhost:5173 http://127.0.0.1:5173';
-            $connectExtra = ' http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173';
+            $origins = $this->viteDevServerOrigins();
+            $vite = ' '.implode(' ', $origins);
+            $viteSocket = ' '.implode(' ', array_map(
+                static fn (string $origin): string => (string) preg_replace('#^http#', 'ws', $origin),
+                $origins
+            ));
         }
 
         $directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cloudflare} {$cdns}{$scriptExtra}",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.datatables.net",
-            "font-src 'self' https://fonts.gstatic.com data:",
-            "img-src 'self' data: blob:",
-            "connect-src 'self' {$cloudflare}{$connectExtra}",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' {$cloudflare} {$cdns}{$vite}",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net https://cdn.datatables.net{$vite}",
+            "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:{$vite}",
+            "img-src 'self' data: blob:{$vite}",
+            "connect-src 'self' {$cloudflare}{$vite}{$viteSocket}",
             "frame-src {$cloudflare}",
             "frame-ancestors 'self'",
             "base-uri 'self'",
@@ -58,5 +62,30 @@ final class SecurityHeaders
         ];
 
         return implode('; ', $directives);
+    }
+
+    /**
+     * Origins the Vite dev server may be reached on.
+     *
+     * The hot file holds the origin Vite actually bound to, which is
+     * http://[::1]:5173 when it resolves the loopback host to IPv6. Guessing
+     * localhost/127.0.0.1 is not enough — the emitted asset URLs must match.
+     *
+     * @return list<string>
+     */
+    private function viteDevServerOrigins(): array
+    {
+        $origins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
+        $hotFile = public_path('hot');
+        if (is_file($hotFile)) {
+            $hot = trim((string) file_get_contents($hotFile));
+
+            if ($hot !== '' && ! in_array($hot, $origins, true)) {
+                $origins[] = $hot;
+            }
+        }
+
+        return $origins;
     }
 }

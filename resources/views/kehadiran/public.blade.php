@@ -7,11 +7,7 @@
     @include('partials.favicon-links')
     <title>Kehadiran — {{ $acara->nama_acara }}</title>
     @include('partials.acara-social-meta', ['acara' => $acara, 'indexable' => true])
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@4.0.0/dist/tailwind.min.css" rel="stylesheet">
-    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
     <div class="w-full max-w-md">

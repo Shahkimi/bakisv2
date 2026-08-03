@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @include('partials.favicon-links')
     <title>Jemputan tamat — {{ config('app.name') }}</title>
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@4.0.0/dist/tailwind.min.css" rel="stylesheet">
-    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
     <div class="max-w-md text-center bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-8">

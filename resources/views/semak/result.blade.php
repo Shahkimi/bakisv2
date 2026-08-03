@@ -658,17 +658,6 @@
         });
     }
 
-    function copyText(text, btn) {
-        navigator.clipboard.writeText(text).then(() => {
-            showSemakToast('No. akaun disalin ke papan keratan.', 'success');
-            const original = btn.innerHTML;
-            btn.innerHTML = `<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>`;
-            setTimeout(() => { btn.innerHTML = original; }, 1800);
-        }).catch(() => {
-            showSemakToast('Tidak dapat menyalin. Cuba semula.', 'error');
-        });
-    }
-
     // QR preview modal
     const qrPreviewModal    = document.getElementById('qrPreviewModal');
     const qrPreviewImage    = document.getElementById('qrPreviewImage');
