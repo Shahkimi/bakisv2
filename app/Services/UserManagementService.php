@@ -12,12 +12,26 @@ use Illuminate\Support\Collection;
 
 final readonly class UserManagementService
 {
+    /**
+     * @return array{totalUsers:int,totalAdmins:int,totalInactive:int,pendingInvitations:int}
+     */
+    public function getSummaryCounts(): array
+    {
+        return [
+            'totalUsers' => User::count(),
+            'totalAdmins' => User::where('role', User::ROLE_ADMIN)->count(),
+            'totalInactive' => User::where('is_active', false)->count(),
+            'pendingInvitations' => UserInvitation::query()->where('expires_at', '>', now())->count(),
+        ];
+    }
+
     public function getDataTableData(Request $request): JsonResponse
     {
         $search = $request->input('search.value');
+        $filter = $this->normalizeFilter($request->input('filter'));
 
-        $userRows = $this->queryUsers($search)->map(fn (User $user) => $this->formatUserRow($user));
-        $invitationRows = $this->queryInvitations($search)->map(fn (UserInvitation $invitation) => $this->formatInvitationRow($invitation));
+        $userRows = $this->queryUsers($search, $filter)->map(fn (User $user) => $this->formatUserRow($user));
+        $invitationRows = $this->queryInvitations($search, $filter)->map(fn (UserInvitation $invitation) => $this->formatInvitationRow($invitation));
 
         /** @var Collection<int, array<string, mixed>> $merged */
         $merged = $userRows->concat($invitationRows);
@@ -42,11 +56,30 @@ final readonly class UserManagementService
     }
 
     /**
+     * Filter chips on the Kawalan Pengguna page double as quick views into the
+     * user/invitation lists; anything not in this whitelist behaves like 'all'.
+     */
+    private function normalizeFilter(mixed $filter): string
+    {
+        return in_array($filter, ['admin', 'invitations', 'inactive'], true) ? $filter : 'all';
+    }
+
+    /**
      * @return Collection<int, User>
      */
-    private function queryUsers(?string $search): Collection
+    private function queryUsers(?string $search, string $filter): Collection
     {
+        if ($filter === 'invitations') {
+            return collect();
+        }
+
         $query = User::query()->select(['id', 'name', 'email', 'no_kp', 'role', 'email_verified_at', 'must_change_password', 'is_active', 'created_at']);
+
+        if ($filter === 'admin') {
+            $query->where('role', User::ROLE_ADMIN);
+        } elseif ($filter === 'inactive') {
+            $query->where('is_active', false);
+        }
 
         if ($search !== null && $search !== '') {
             $term = '%'.addcslashes($search, '%_\\').'%';
@@ -63,9 +96,17 @@ final readonly class UserManagementService
     /**
      * @return Collection<int, UserInvitation>
      */
-    private function queryInvitations(?string $search): Collection
+    private function queryInvitations(?string $search, string $filter): Collection
     {
+        if ($filter === 'inactive') {
+            return collect();
+        }
+
         $query = UserInvitation::query()->select(['id', 'name', 'email', 'role', 'expires_at', 'created_at']);
+
+        if ($filter === 'admin') {
+            $query->where('role', UserInvitation::ROLE_ADMIN);
+        }
 
         if ($search !== null && $search !== '') {
             $term = '%'.addcslashes($search, '%_\\').'%';
@@ -84,7 +125,7 @@ final readonly class UserManagementService
      */
     private function applyOrdering(Collection $rows, int $orderColumn, string $orderDir): Collection
     {
-        $columns = ['id', 'name', 'email', 'no_kp', 'role', 'status', 'actions'];
+        $columns = ['id', 'name', 'role', 'actions'];
         $key = $columns[$orderColumn] ?? 'name';
         $desc = $orderDir === 'desc';
 
@@ -92,7 +133,7 @@ final readonly class UserManagementService
             return $rows->sortBy('sort_ts', SORT_REGULAR, $desc)->values();
         }
 
-        if (in_array($key, ['name', 'email', 'no_kp', 'role', 'status'], true)) {
+        if (in_array($key, ['name', 'role'], true)) {
             return $rows->sortBy($key, SORT_NATURAL | SORT_FLAG_CASE, $desc)->values();
         }
 

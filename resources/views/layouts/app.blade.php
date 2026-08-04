@@ -282,7 +282,10 @@
                 const label = collapsed
                     ? collapseButton.getAttribute('data-label-expand')
                     : collapseButton.getAttribute('data-label-collapse');
-                if (label) collapseButton.setAttribute('aria-label', label);
+                if (label) {
+                    collapseButton.setAttribute('aria-label', label);
+                    collapseButton.setAttribute('title', label);
+                }
             }
 
             function setSidebarCollapsed(collapsed) {

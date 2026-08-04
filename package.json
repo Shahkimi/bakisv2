@@ -3,11 +3,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && node tools/check-legacy-css.mjs",
         "dev": "vite"
     },
     "devDependencies": {
-        "@csstools/postcss-cascade-layers": "^6.0.0",
         "@csstools/postcss-oklab-function": "^5.0.7",
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",

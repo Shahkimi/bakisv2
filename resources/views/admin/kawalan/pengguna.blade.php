@@ -29,21 +29,68 @@
         </div>
     </div>
 
+    {{-- Summary tiles: also double as quick filters for the table below --}}
+    <div class="mb-6 grid grid-cols-2 lg:grid-cols-4 gap-4" id="pengguna-filter-tiles" role="group" aria-label="Tapis mengikut kategori">
+        <button type="button" class="filter-tile is-active" data-filter="all" aria-pressed="true">
+            <span class="filter-tile-icon bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </span>
+            <span class="filter-tile-body">
+                <span class="filter-tile-label">Jumlah Pengguna</span>
+                <span class="filter-tile-value" data-count="total-users">{{ number_format($totalUsers) }}</span>
+            </span>
+        </button>
+        <button type="button" class="filter-tile" data-filter="admin" aria-pressed="false">
+            <span class="filter-tile-icon bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </span>
+            <span class="filter-tile-body">
+                <span class="filter-tile-label">Admin</span>
+                <span class="filter-tile-value" data-count="total-admins">{{ number_format($totalAdmins) }}</span>
+            </span>
+        </button>
+        <button type="button" class="filter-tile" data-filter="invitations" aria-pressed="false">
+            <span class="filter-tile-icon bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+            </span>
+            <span class="filter-tile-body">
+                <span class="filter-tile-label">Menunggu Jemputan</span>
+                <span class="filter-tile-value" data-count="pending-invitations">{{ number_format($pendingInvitations) }}</span>
+            </span>
+        </button>
+        <button type="button" class="filter-tile" data-filter="inactive" aria-pressed="false">
+            <span class="filter-tile-icon bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+            </span>
+            <span class="filter-tile-body">
+                <span class="filter-tile-label">Tidak Aktif</span>
+                <span class="filter-tile-value" data-count="total-inactive">{{ number_format($totalInactive) }}</span>
+            </span>
+        </button>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-gray-100 dark:border-gray-700 overflow-hidden p-6 transform transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+        <div class="overflow-x-auto">
         <table id="pengguna-table" class="display" style="width:100%">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Nama</th>
-                    <th>E-mel</th>
-                    <th>No. KP</th>
-                    <th>Peranan</th>
-                    <th>Status</th>
+                    <th>Peranan &amp; Status</th>
                     <th>Tindakan</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+        </div>
     </div>
 </div>
 @endsection
@@ -59,11 +106,12 @@ table.dataTable tbody tr:hover { background-color: #f9fafb; box-shadow: 0 4px 6p
 .dark table.dataTable tbody tr { background-color: #1f2937; border-bottom-color: #374151; }
 .dark table.dataTable tbody tr:hover { background-color: #374151; }
 table.dataTable tbody td { padding: 1rem; vertical-align: middle; color: #111827; font-size: 0.875rem; }
+#pengguna-table tbody td { vertical-align: top; }
 .dark table.dataTable tbody td { color: #f3f4f6; }
 .dataTables_wrapper .dataTables_filter { margin-bottom: 1rem; }
-.dataTables_wrapper .dataTables_filter input { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-left: 0.5rem; outline: none; transition: all 0.2s; background: #fff; color: #111827; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.dataTables_wrapper .dataTables_filter input { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem 0.5rem 2.25rem; margin-left: 0.5rem; outline: none; transition: all 0.2s; background-color: #fff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.35 4.35a7.5 7.5 0 0012.3 12.3z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 0.65rem center; background-size: 1rem; color: #111827; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); min-width: 220px; }
 .dataTables_wrapper .dataTables_filter input:focus { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2); }
-.dark .dataTables_wrapper .dataTables_filter input { border-color: #4b5563; background: #374151; color: #f3f4f6; }
+.dark .dataTables_wrapper .dataTables_filter input { border-color: #4b5563; background-color: #374151; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.35 4.35a7.5 7.5 0 0012.3 12.3z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 0.65rem center; background-size: 1rem; color: #f3f4f6; }
 .dataTables_wrapper .dataTables_length { margin-bottom: 1rem; color: #6b7280; }
 .dataTables_wrapper .dataTables_length select { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.375rem 2rem 0.375rem 0.75rem; outline: none; background: #fff; color: #111827; margin: 0 0.25rem; }
 .dark .dataTables_wrapper .dataTables_length select { border-color: #4b5563; background: #374151; color: #f3f4f6; }
@@ -78,6 +126,31 @@ table.dataTable tbody td { padding: 1rem; vertical-align: middle; color: #111827
 .dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background: #4b5563; color: #fff !important; }
 .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: #7c3aed; color: #fff !important; border-color: #6d28d9; }
 table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc { background-image: none !important; position: relative; padding-right: 1.5rem !important; cursor: pointer; }
+
+/* Summary tiles / quick filters */
+.filter-tile { display: flex; align-items: center; gap: 0.875rem; text-align: left; padding: 1.1rem 1.15rem; border-radius: 0.9rem; background: #fff; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; font: inherit; }
+.filter-tile:hover { border-color: #c7d2fe; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); transform: translateY(-1px); }
+.filter-tile:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+.filter-tile.is-active { border-color: #818cf8; background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.15); }
+.dark .filter-tile { background: #1f2937; border-color: #374151; }
+.dark .filter-tile:hover { border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); }
+.dark .filter-tile.is-active { border-color: #6366f1; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, #1f2937 100%); }
+.filter-tile-icon { width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.filter-tile-icon svg { width: 1.4rem; height: 1.4rem; }
+.filter-tile-body { min-width: 0; display: flex; flex-direction: column; }
+.filter-tile-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dark .filter-tile-label { color: #64748b; }
+.filter-tile-value { font-size: 1.5rem; font-weight: 800; color: #111827; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.dark .filter-tile-value { color: #f3f4f6; }
+
+/* Processing overlay. Must not force `display` (even with !important it beats
+   the inline style="display:none" DataTables sets via jQuery once loading
+   finishes, leaving the spinner stuck on screen) — only override the visuals
+   and let DataTables' own show/hide toggle keep working. */
+.dataTables_processing { background: rgba(255, 255, 255, 0.85) !important; border-radius: 0.75rem; font-weight: 600; color: #4f46e5 !important; }
+.dark .dataTables_processing { background: rgba(31, 41, 55, 0.85) !important; color: #a5b4fc !important; }
+.dataTables_processing::before { content: ''; display: inline-block; vertical-align: middle; margin-right: 0.5rem; width: 1.1rem; height: 1.1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: pengguna-spin 0.7s linear infinite; }
+@keyframes pengguna-spin { to { transform: rotate(360deg); } }
 .pengguna-edit-swal.swal2-popup { border-radius: 1rem; padding: 0; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
 .pengguna-edit-swal .swal2-title { padding: 1.25rem 1.5rem 0.5rem; font-size: 1.25rem; }
 .pengguna-edit-swal .swal2-html-container { margin: 0; padding: 0 1.5rem 1.5rem; text-align: left; }
@@ -136,11 +209,41 @@ $(document).ready(function() {
         });
     }
 
-    function renderNoKpCell(data) {
-        if (data == null || data === '') {
-            return '<span class="text-gray-400 dark:text-gray-500">—</span>';
-        }
-        return escapeHtmlText(data);
+    const AVATAR_PALETTE = [
+        'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
+        'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+        'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+        'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+        'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+    ];
+
+    function initialsFor(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return '?';
+        const first = parts[0].charAt(0);
+        const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+        return (first + last).toUpperCase();
+    }
+
+    function avatarClassFor(seed) {
+        let hash = 0;
+        const s = String(seed || '');
+        for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+        return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+    }
+
+    function renderNameCell(row) {
+        return '<div class="flex items-center gap-3">' +
+            '<div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ' + avatarClassFor(row.email || row.name) + '">' + escapeHtmlText(initialsFor(row.name)) + '</div>' +
+            '<div class="min-w-0">' +
+            '<div class="font-medium text-gray-900 dark:text-white truncate">' + row.name + '</div>' +
+            '<div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">' + row.email + '</div>' +
+            '</div></div>';
+    }
+
+    function renderRoleCell(row) {
+        return '<div class="flex flex-col items-start gap-1.5">' + row.role_badge + row.status_badge + '</div>';
     }
 
     function renderActions(row) {
@@ -159,20 +262,20 @@ $(document).ready(function() {
             const noKp = escapeAttr(a.no_kp || '');
             const role = a.role === 1 ? '1' : '0';
             const isActive = a.is_active !== false;
-            let btns = '<div class="flex flex-wrap items-center gap-1.5">' +
-                '<button type="button" class="btn-edit-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" ' +
+            let btns = '<div class="flex flex-nowrap items-center gap-1.5">' +
+                '<button type="button" class="btn-edit-user inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" ' +
                 'title="Edit pengguna" aria-label="Edit pengguna" data-id="' + id + '" data-name="' + name + '" data-email="' + email + '" data-no-kp="' + noKp + '" data-role="' + role + '">' + iconEdit + '</button>';
             if (!isSelf) {
-                btns += '<button type="button" class="btn-reset-password inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition shadow-sm hover:shadow" ' +
+                btns += '<button type="button" class="btn-reset-password inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Tetap semula kata laluan" aria-label="Tetap semula kata laluan" data-id="' + id + '" data-name="' + name + '">' + iconKey + '</button>';
                 if (isActive) {
-                    btns += '<button type="button" class="btn-toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition shadow-sm hover:shadow" ' +
+                    btns += '<button type="button" class="btn-toggle-active inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/50 transition shadow-sm hover:shadow" ' +
                         'title="Nyahaktifkan akaun" aria-label="Nyahaktifkan akaun" data-id="' + id + '" data-name="' + name + '" data-active="1">' + iconBan + '</button>';
                 } else {
-                    btns += '<button type="button" class="btn-toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition shadow-sm hover:shadow" ' +
+                    btns += '<button type="button" class="btn-toggle-active inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition shadow-sm hover:shadow" ' +
                         'title="Aktifkan akaun" aria-label="Aktifkan akaun" data-id="' + id + '" data-name="' + name + '" data-active="0">' + iconEnable + '</button>';
                 }
-                btns += '<button type="button" class="btn-delete-user inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" ' +
+                btns += '<button type="button" class="btn-delete-user inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" ' +
                     'title="Padam pengguna" aria-label="Padam pengguna" data-id="' + id + '" data-name="' + name + '">' + iconTrash + '</button>';
             }
             btns += '</div>';
@@ -180,29 +283,60 @@ $(document).ready(function() {
         }
         const id = a.id;
         const expired = a.expired;
-        let html = '<div class="flex flex-wrap items-center gap-1.5">';
+        let html = '<div class="flex flex-nowrap items-center gap-1.5">';
         if (!expired) {
-            html += '<button type="button" class="btn-resend-invite inline-flex items-center justify-center w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 hover:bg-sky-200 dark:hover:bg-sky-800/40 transition shadow-sm hover:shadow" title="Hantar semula jemputan" aria-label="Hantar semula jemputan" data-id="' + id + '">' + iconResend + '</button>';
+            html += '<button type="button" class="btn-resend-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 hover:bg-sky-200 dark:hover:bg-sky-800/40 transition shadow-sm hover:shadow" title="Hantar semula jemputan" aria-label="Hantar semula jemputan" data-id="' + id + '">' + iconResend + '</button>';
         }
-        html += '<button type="button" class="btn-delete-invite inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Buang jemputan" aria-label="Buang jemputan" data-id="' + id + '">' + iconTrash + '</button></div>';
+        html += '<button type="button" class="btn-delete-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Buang jemputan" aria-label="Buang jemputan" data-id="' + id + '">' + iconTrash + '</button></div>';
         return html;
     }
+
+    let activeFilter = 'all';
+
+    function refreshSummary() {
+        fetch('{{ route("admin.kawalan.pengguna.summary") }}', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+            if (!data) return;
+            const map = {
+                'total-users': data.totalUsers,
+                'total-admins': data.totalAdmins,
+                'pending-invitations': data.pendingInvitations,
+                'total-inactive': data.totalInactive
+            };
+            Object.keys(map).forEach(function(key) {
+                const el = document.querySelector('[data-count="' + key + '"]');
+                if (el) el.textContent = new Intl.NumberFormat('ms-MY').format(map[key]);
+            });
+        })
+        .catch(function() {});
+    }
+
+    $('#pengguna-filter-tiles .filter-tile').on('click', function() {
+        const $btn = $(this);
+        const filter = $btn.data('filter');
+        if (filter === activeFilter) return;
+        activeFilter = filter;
+        $('#pengguna-filter-tiles .filter-tile').removeClass('is-active').attr('aria-pressed', 'false');
+        $btn.addClass('is-active').attr('aria-pressed', 'true');
+        table.ajax.reload();
+    });
 
     const table = $('#pengguna-table').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
             url: '{{ route("admin.kawalan.pengguna.data") }}',
-            type: 'GET'
+            type: 'GET',
+            data: function(d) { d.filter = activeFilter; }
         },
         columns: [
             { data: 'id_display', name: 'id', width: '90px' },
-            { data: 'name', name: 'name' },
-            { data: 'email', name: 'email' },
-            { data: 'no_kp', name: 'no_kp', width: '120px', render: function(d) { return renderNoKpCell(d); } },
-            { data: 'role_badge', name: 'role', orderable: true, searchable: false },
-            { data: 'status_badge', name: 'status', orderable: true, searchable: false },
-            { data: 'actions', name: 'actions', orderable: false, searchable: false, render: function(d, t, row) { return renderActions(row); } }
+            { data: 'name', name: 'name', render: function(d, t, row) { return renderNameCell(row); } },
+            { data: 'role', name: 'role', orderable: true, searchable: false, render: function(d, t, row) { return renderRoleCell(row); } },
+            { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '1%', render: function(d, t, row) { return renderActions(row); } }
         ],
         order: [[1, 'asc']],
         pageLength: 5,
@@ -327,6 +461,7 @@ $(document).ready(function() {
             .then(function({ ok, data }) {
                 if (ok && data.success) {
                     table.ajax.reload(null, false);
+                    refreshSummary();
                     if (mode === 'direct' && data.temp_password) {
                         showTempPasswordDialog(data.email, data.temp_password, data.message);
                     } else {
@@ -466,6 +601,7 @@ $(document).ready(function() {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Dikemas kini.', timer: 2000, showConfirmButton: false });
                     table.ajax.reload(null, false);
+                    refreshSummary();
                 } else {
                     let msg = data.message || 'Gagal menyimpan.';
                     if (data.errors) {
@@ -544,6 +680,7 @@ $(document).ready(function() {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
                     table.ajax.reload(null, false);
+                    refreshSummary();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
@@ -580,6 +717,7 @@ $(document).ready(function() {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
                     table.ajax.reload(null, false);
+                    refreshSummary();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
@@ -614,6 +752,7 @@ $(document).ready(function() {
                 if (ok && data.success) {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message, timer: 2000, showConfirmButton: false });
                     table.ajax.reload(null, false);
+                    refreshSummary();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal.' });
                 }
@@ -639,6 +778,7 @@ $(document).ready(function() {
             if (ok && data.success) {
                 Swal.fire({ icon: 'success', title: 'Dihantar', text: data.message, timer: 2200, showConfirmButton: false });
                 table.ajax.reload(null, false);
+                refreshSummary();
             } else {
                 Swal.fire({ icon: 'error', title: 'Ralat', text: data.message || 'Gagal menghantar semula jemputan.' });
             }

@@ -16,14 +16,15 @@
         {{-- Button row: close (mobile) or collapse (desktop), right-aligned --}}
         <div class="relative z-10 flex justify-end px-3 pt-3">
             <button id="closeSidebar"
-                    class="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-[#0B3D33] hover:bg-[#eef6f2] transition-all duration-200"
+                    class="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-[#0B3D33] hover:bg-[#eef6f2] active:scale-90 transition-all duration-200"
                     aria-label="Tutup bar sisi">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
             <button id="collapseSidebar"
-                    class="sidebar-collapse-btn hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-[#0E7A66] hover:bg-[#eef6f2] transition-all duration-200"
+                    class="sidebar-collapse-btn hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-[#0E7A66] hover:bg-[#eef6f2] active:scale-90 transition-all duration-200"
+                    title="Lipat bar sisi"
                     aria-label="Lipat bar sisi"
                     aria-expanded="true"
                     data-label-collapse="Lipat bar sisi"
@@ -34,11 +35,14 @@
             </button>
         </div>
 
-        {{-- Logo --}}
+        {{-- Logo — clickable, navigates to the dashboard --}}
         <div class="flex flex-col items-center pb-5 px-4 sm:px-6">
+        <a href="{{ route('dashboard') }}"
+           class="sidebar-brand-link group flex flex-col items-center px-3 py-2 rounded-2xl transition-all duration-200 hover:bg-[#eef6f2]/70 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0E7A66]/40 focus-visible:ring-offset-2"
+           aria-label="Pergi ke papan pemuka {{ config('app.name', 'Laravel') }}">
         <div class="sidebar-logo relative z-10 mb-3">
             @if ($brandLogoUrl)
-                <div class="sidebar-logo-frame p-1.5 rounded-2xl bg-white shadow-[0_10px_30px_-12px_rgba(11,61,51,0.35)] ring-1 ring-emerald-100 transition-all duration-300">
+                <div class="sidebar-logo-frame p-1.5 rounded-2xl bg-white shadow-[0_10px_30px_-12px_rgba(11,61,51,0.35)] ring-1 ring-emerald-100 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_14px_34px_-12px_rgba(11,61,51,0.45)]">
                     <img
                         src="{{ $brandLogoUrl }}"
                         alt="{{ config('app.name') }}"
@@ -46,7 +50,7 @@
                     >
                 </div>
             @else
-                <div class="sidebar-logo-frame w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-[0_10px_30px_-12px_rgba(11,61,51,0.5)] ring-1 ring-emerald-100 transition-all duration-300">
+                <div class="sidebar-logo-frame w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-[0_10px_30px_-12px_rgba(11,61,51,0.5)] ring-1 ring-emerald-100 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_14px_34px_-12px_rgba(11,61,51,0.55)]">
                     <svg class="sidebar-logo-img w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -55,12 +59,13 @@
         </div>
 
         {{-- App name + subtitle --}}
-        <span class="sidebar-label relative z-10 text-base font-bold text-[#0B3D33] text-center leading-tight px-6 truncate max-w-full">
+        <span class="sidebar-label relative z-10 text-base font-bold text-[#0B3D33] text-center leading-tight px-6 truncate max-w-full transition-colors duration-200 group-hover:text-[#0E7A66]">
             {{ config('app.name', 'Laravel') }}
         </span>
         <span class="sidebar-app-name relative z-10 mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0E7A66]/70">
             Sistem Keahlian
         </span>
+        </a>
         </div>{{-- end logo/name wrapper --}}
     </div>
 
@@ -339,6 +344,13 @@
         /* Flip the collapse chevron to point outward (expand affordance) */
         html.sidebar-collapsed #sidebar .sidebar-collapse-icon { transform: rotate(180deg); }
 
+        /* On the rail the close button is gone (mobile-only), so the button
+           row holds just the collapse toggle — center it under the logo
+           instead of leaving it stranded against the right edge. */
+        html.sidebar-collapsed #sidebar .sidebar-header > div:first-child + div {
+            justify-content: center;
+        }
+
         /* Kawalan submenu has no room on the rail */
         html.sidebar-collapsed #sidebar .kawalan-submenu { display: none; }
 
@@ -355,6 +367,9 @@
         #sidebar,
         #mainContent,
         #sidebar .nav-icon,
-        #sidebar .sidebar-collapse-icon { transition: none !important; }
+        #sidebar .sidebar-collapse-icon,
+        #sidebar .sidebar-collapse-btn,
+        #sidebar .sidebar-brand-link,
+        #sidebar .sidebar-logo-frame { transition: none !important; }
     }
 </style>

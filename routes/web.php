@@ -128,6 +128,7 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
     Route::prefix('kawalan/pengguna')->name('kawalan.pengguna.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('data', [UserController::class, 'getData'])->name('data');
+        Route::get('summary', [UserController::class, 'summary'])->name('summary');
         Route::post('/', [UserController::class, 'store'])->name('store');
         Route::put('user/{user}', [UserController::class, 'update'])->name('user.update');
         Route::post('user/{user}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');

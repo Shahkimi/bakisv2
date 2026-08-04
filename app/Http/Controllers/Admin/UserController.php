@@ -28,7 +28,7 @@ final class UserController extends Controller
 
     public function index(): View
     {
-        return view('admin.kawalan.pengguna');
+        return view('admin.kawalan.pengguna', $this->userManagementService->getSummaryCounts());
     }
 
     public function getData(Request $request): JsonResponse
@@ -38,6 +38,11 @@ final class UserController extends Controller
         }
 
         abort(400, 'Invalid request');
+    }
+
+    public function summary(): JsonResponse
+    {
+        return response()->json($this->userManagementService->getSummaryCounts());
     }
 
     public function store(StoreUserInvitationRequest $request): JsonResponse
