@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\ResolvesPanel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Pembayaran\RejectPaymentRequest;
+use App\Http\Requests\Admin\Pembayaran\RequestWaiverRequest;
+use App\Http\Requests\Admin\Pembayaran\WaivePaymentRequest;
 use App\Models\Jabatan;
 use App\Models\Payment;
 use App\Services\MemberService;
@@ -86,14 +88,24 @@ final class PembayaranController extends Controller
 
     public function getPendingCount(Request $request): JsonResponse
     {
-        $query = Payment::query()->where('status', Payment::STATUS_PENDING);
-
         $jabatanFilter = $request->input('jabatan_filter');
+
+        $query = Payment::query()->where('status', Payment::STATUS_PENDING);
         if ($jabatanFilter !== null && $jabatanFilter !== '') {
             $query->whereHas('member', fn (Builder $q) => $q->where('jabatan_id', (int) $jabatanFilter));
         }
 
-        return response()->json(['count' => $query->count()]);
+        $waiverRequestsQuery = Payment::query()
+            ->where('status', Payment::STATUS_APPROVED)
+            ->whereNotNull('waiver_requested_at');
+        if ($jabatanFilter !== null && $jabatanFilter !== '') {
+            $waiverRequestsQuery->whereHas('member', fn (Builder $q) => $q->where('jabatan_id', (int) $jabatanFilter));
+        }
+
+        return response()->json([
+            'count' => $query->count(),
+            'waiver_requests' => $waiverRequestsQuery->count(),
+        ]);
     }
 
     public function approve(Payment $payment): RedirectResponse
@@ -124,5 +136,64 @@ final class PembayaranController extends Controller
 
         return redirect()->to($this->panelRoute('pembayaran.index'))
             ->with('success', 'Pembayaran telah ditolak.');
+    }
+
+    public function requestWaiver(RequestWaiverRequest $request, Payment $payment): JsonResponse
+    {
+        if ($payment->status !== Payment::STATUS_APPROVED || $payment->hasPendingWaiverRequest()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembayaran ini tidak boleh dimohon batal.',
+            ], 422);
+        }
+
+        $this->paymentService->requestWaiver(
+            payment: $payment,
+            reason: $request->validated()['waiver_reason'],
+            requestedById: auth()->id(),
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permohonan pembatalan telah dihantar.',
+        ]);
+    }
+
+    public function waive(WaivePaymentRequest $request, Payment $payment): JsonResponse
+    {
+        if ($payment->status !== Payment::STATUS_APPROVED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pembayaran yang disahkan boleh dibatalkan.',
+            ], 422);
+        }
+
+        $this->memberService->waivePayment(
+            payment: $payment,
+            reason: $request->validated()['waiver_reason'] ?? null,
+            waivedById: auth()->id(),
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pembayaran telah dibatalkan.',
+        ]);
+    }
+
+    public function declineWaiver(Payment $payment): JsonResponse
+    {
+        if ($payment->status !== Payment::STATUS_APPROVED || ! $payment->hasPendingWaiverRequest()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tiada permohonan pembatalan untuk pembayaran ini.',
+            ], 422);
+        }
+
+        $this->paymentService->declineWaiverRequest($payment);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permohonan pembatalan telah ditolak. Pembayaran kekal disahkan.',
+        ]);
     }
 }

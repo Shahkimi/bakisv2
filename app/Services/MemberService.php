@@ -44,6 +44,7 @@ final readonly class MemberService
                     ->orWhere('tahun_tamat', '>=', $graceThreshold);
             })
             ->orderByDesc('tahun_bayar')
+            ->orderByDesc('id')
             ->first();
 
         if ($paymentThisYear) {
@@ -52,6 +53,9 @@ final readonly class MemberService
             }
             if ($paymentThisYear->status === Payment::STATUS_PENDING) {
                 return ['status' => 'pending', 'member' => $member, 'payment' => $paymentThisYear];
+            }
+            if ($paymentThisYear->status === Payment::STATUS_WAIVED) {
+                return ['status' => 'expired', 'member' => $member, 'payment' => null];
             }
 
             return ['status' => 'rejected', 'member' => $member, 'payment' => $paymentThisYear];
@@ -265,6 +269,26 @@ final readonly class MemberService
         }
     }
 
+    public function waivePayment(Payment $payment, ?string $reason, int $waivedById): void
+    {
+        DB::transaction(function () use ($payment, $reason, $waivedById) {
+            $payment->update([
+                'status' => Payment::STATUS_WAIVED,
+                'waived_by' => $waivedById,
+                'waived_at' => now(),
+                'waiver_reason' => $reason ?? $payment->waiver_reason,
+            ]);
+
+            $member = $payment->member;
+            if ($member->memberStatus?->code === 'aktif' && ! $member->isAktifThisYear()) {
+                $tidakAktifStatus = MemberStatus::where('code', 'tidak_aktif')->first();
+                $member->update([
+                    'member_status_id' => $tidakAktifStatus?->id ?? $member->member_status_id,
+                ]);
+            }
+        });
+    }
+
     public function submitRenewalPayment(string $noKp, array $data): Member
     {
         $noKp = preg_replace('/\D/', '', $noKp);
@@ -367,7 +391,7 @@ final readonly class MemberService
 
     private function generateNoAhli(): string
     {
-        $yy     = date('y');
+        $yy = date('y');
         $prefix = 'BKS-'.$yy;
 
         $last = Member::where('no_ahli', 'like', $prefix.'%')

@@ -501,30 +501,39 @@
             history.forEach((row) => {
                 const status = row.status;
                 const statusLabel = status === 'approved' ? 'Disahkan'
-                    : status === 'pending' ? 'Menunggu' : 'Ditolak';
+                    : status === 'pending' ? 'Menunggu'
+                        : status === 'waived' ? 'Dibatalkan' : 'Ditolak';
 
                 const statusBadge = status === 'approved'
                     ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 ring-emerald-200 dark:ring-emerald-600'
                     : status === 'pending'
                         ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 ring-amber-200 dark:ring-amber-600'
-                        : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-200 dark:ring-red-600';
+                        : status === 'waived'
+                            ? 'bg-slate-50 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300 ring-slate-200 dark:ring-slate-600'
+                            : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-red-200 dark:ring-red-600';
 
                 const stripColor = status === 'approved'
                     ? 'bg-emerald-400'
                     : status === 'pending'
-                        ? 'bg-amber-400' : 'bg-red-400';
+                        ? 'bg-amber-400'
+                        : status === 'waived'
+                            ? 'bg-slate-400' : 'bg-red-400';
 
                 const iconBg = status === 'approved'
                     ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
                     : status === 'pending'
                         ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'
-                        : 'bg-red-100 dark:bg-red-900/40 text-red-500 dark:text-red-400';
+                        : status === 'waived'
+                            ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400'
+                            : 'bg-red-100 dark:bg-red-900/40 text-red-500 dark:text-red-400';
 
                 const statusIcon = status === 'approved'
                     ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
                     : status === 'pending'
                         ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
-                        : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+                        : status === 'waived'
+                            ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3a9 9 0 100 18 9 9 0 000-18zM5.636 5.636l12.728 12.728"/></svg>`
+                            : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
 
                 const tahunBayar = Number(row.tahunbayar);
                 const coverageStart = row.tahunmula != null && row.tahunmula !== ''

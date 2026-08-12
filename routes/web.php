@@ -124,6 +124,8 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
     Route::get('pembayaran/{payment}/bukti', [PembayaranController::class, 'bukti'])->name('pembayaran.bukti');
     Route::post('pembayaran/{payment}/approve', [PembayaranController::class, 'approve'])->name('pembayaran.approve');
     Route::post('pembayaran/{payment}/reject', [PembayaranController::class, 'reject'])->name('pembayaran.reject');
+    Route::post('pembayaran/{payment}/waive', [PembayaranController::class, 'waive'])->name('pembayaran.waive');
+    Route::post('pembayaran/{payment}/decline-waiver', [PembayaranController::class, 'declineWaiver'])->name('pembayaran.decline-waiver');
 
     Route::prefix('kawalan/pengguna')->name('kawalan.pengguna.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
@@ -234,6 +236,7 @@ Route::middleware(['auth', 'role.user'])->prefix('user')->name('user.')->group(f
     Route::get('pembayaran/{payment}/bukti', [PembayaranController::class, 'bukti'])->name('pembayaran.bukti');
     Route::post('pembayaran/{payment}/approve', [PembayaranController::class, 'approve'])->name('pembayaran.approve');
     Route::post('pembayaran/{payment}/reject', [PembayaranController::class, 'reject'])->name('pembayaran.reject');
+    Route::post('pembayaran/{payment}/request-waiver', [PembayaranController::class, 'requestWaiver'])->name('pembayaran.request-waiver');
 });
 
 Route::get('/api/postcode/{code}', [PostcodeController::class, 'lookup'])

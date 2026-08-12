@@ -34,10 +34,11 @@
             <div class="inline-flex items-center rounded-xl bg-gray-100 dark:bg-gray-700/60 p-1 gap-0.5" id="statusPillGroup">
                 @php
                     $pills = [
-                        'pending'  => ['label'=>'Menunggu', 'color'=>'amber'],
-                        'approved' => ['label'=>'Disahkan', 'color'=>'green'],
-                        'rejected' => ['label'=>'Ditolak',  'color'=>'red'],
-                        'all'      => ['label'=>'Semua',    'color'=>'indigo'],
+                        'pending'  => ['label'=>'Menunggu',   'color'=>'amber'],
+                        'approved' => ['label'=>'Disahkan',   'color'=>'green'],
+                        'rejected' => ['label'=>'Ditolak',    'color'=>'red'],
+                        'waived'   => ['label'=>'Dibatalkan', 'color'=>'slate'],
+                        'all'      => ['label'=>'Semua',      'color'=>'indigo'],
                     ];
                 @endphp
                 @foreach($pills as $val => $cfg)
@@ -53,6 +54,7 @@
                                     {{ $cfg['color'] === 'amber' ? 'bg-amber-400' : '' }}
                                     {{ $cfg['color'] === 'green' ? 'bg-green-400' : '' }}
                                     {{ $cfg['color'] === 'red'   ? 'bg-red-400' : '' }}
+                                    {{ $cfg['color'] === 'slate' ? 'bg-slate-400' : '' }}
                                 "></span>
                             @endif
                             {{ $cfg['label'] }}
@@ -387,6 +389,8 @@ $(document).ready(function () {
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>' },
             rejected: { bg:'bg-red-50 dark:bg-red-900/30',       text:'text-red-700 dark:text-red-300',       label:'Ditolak',
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' },
+            waived:   { bg:'bg-slate-100 dark:bg-slate-700/40',  text:'text-slate-600 dark:text-slate-300',   label:'Dibatalkan',
+                icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 3.5a6.5 6.5 0 00-6.5 6.5c0 1.499.51 2.878 1.365 3.975l9.11-9.11A6.474 6.474 0 0010 3.5zm5.135 2.525l-9.11 9.11A6.5 6.5 0 0015.135 6.025z" clip-rule="evenodd"/></svg>' },
         };
         const s = map[status] || map.rejected;
         return `<span class="inline-flex items-center gap-1.5 rounded-full ${s.bg} ${s.text} px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10">${s.icon}${s.label}</span>`;
@@ -439,6 +443,20 @@ $(document).ready(function () {
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 Tolak
             </button>`);
+        } else if (row.status === 'approved') {
+            if (row.waiver_requested) {
+                parts.push(`<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Menunggu kelulusan batal
+                </span>`);
+            } else {
+                const requestWaiverUrl = '/user/pembayaran/' + row.id + '/request-waiver';
+                parts.push(`<button type="button" data-request-url="${requestWaiverUrl}"
+                    class="js-request-waiver-btn inline-flex items-center gap-1.5 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 active:scale-95 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 transition-all">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>
+                    Mohon Batal
+                </button>`);
+            }
         }
         if (parts.length === 0) return '<span class="text-xs text-gray-300 dark:text-gray-600">—</span>';
         return `<div class="flex flex-wrap items-center justify-center gap-1.5">${parts.join('')}</div>`;
@@ -629,6 +647,44 @@ $(document).ready(function () {
                     return;
                 }
                 Swal.fire({ icon:'error', title:'Ralat', text:'Gagal menolak pembayaran.' });
+            }).catch(() => {
+                Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
+            });
+        });
+    });
+
+    $(document).on('click', '.js-request-waiver-btn', function () {
+        const requestUrl = $(this).data('request-url');
+        Swal.fire({
+            title: 'Mohon Batal Pembayaran',
+            input: 'textarea',
+            inputLabel: 'Sebab permohonan',
+            inputPlaceholder: 'Nyatakan sebab permohonan pembatalan...',
+            inputValidator: (value) => {
+                if (!value) return 'Sila nyatakan sebab permohonan pembatalan.';
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Hantar Permohonan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d97706',
+            customClass: { popup: 'rounded-2xl' }
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            const formData = new URLSearchParams();
+            formData.append('_token', csrfToken);
+            formData.append('waiver_reason', result.value);
+            fetch(requestUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+                body: formData.toString()
+            }).then(res => res.json().then(data => ({ ok: res.ok, data })))
+              .then(({ ok, data }) => {
+                if (ok && data.success) {
+                    Swal.fire({ icon:'success', title:'Berjaya', text: data.message || 'Permohonan pembatalan telah dihantar.', timer:2000, showConfirmButton:false });
+                    table?.ajax.reload(null, false);
+                    return;
+                }
+                Swal.fire({ icon:'error', title:'Ralat', text: data.message || 'Gagal menghantar permohonan pembatalan.' });
             }).catch(() => {
                 Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
             });

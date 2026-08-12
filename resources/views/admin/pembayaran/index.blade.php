@@ -56,10 +56,11 @@
             <div class="inline-flex items-center rounded-xl bg-gray-100 dark:bg-gray-700/60 p-1 gap-0.5" id="statusPillGroup">
                 @php
                     $pills = [
-                        'pending'  => ['label'=>'Menunggu', 'color'=>'amber'],
-                        'approved' => ['label'=>'Disahkan', 'color'=>'green'],
-                        'rejected' => ['label'=>'Ditolak',  'color'=>'red'],
-                        'all'      => ['label'=>'Semua',    'color'=>'indigo'],
+                        'pending'  => ['label'=>'Menunggu',  'color'=>'amber'],
+                        'approved' => ['label'=>'Disahkan',  'color'=>'green'],
+                        'rejected' => ['label'=>'Ditolak',   'color'=>'red'],
+                        'waived'   => ['label'=>'Dibatalkan','color'=>'slate'],
+                        'all'      => ['label'=>'Semua',     'color'=>'indigo'],
                     ];
                 @endphp
                 @foreach($pills as $val => $cfg)
@@ -75,12 +76,18 @@
                                     {{ $cfg['color'] === 'amber' ? 'bg-amber-400' : '' }}
                                     {{ $cfg['color'] === 'green' ? 'bg-green-400' : '' }}
                                     {{ $cfg['color'] === 'red'   ? 'bg-red-400' : '' }}
+                                    {{ $cfg['color'] === 'slate' ? 'bg-slate-400' : '' }}
                                 "></span>
                             @endif
                             {{ $cfg['label'] }}
                             @if($val === 'pending')
                                 <span id="pendingCountBadge" class="hidden ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold transition-all duration-200">
                                     <span class="pending-count"></span>
+                                </span>
+                            @endif
+                            @if($val === 'approved')
+                                <span id="waiverRequestCountBadge" class="hidden ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold transition-all duration-200" title="Permohonan pembatalan menunggu">
+                                    <span class="waiver-request-count"></span>
                                 </span>
                             @endif
                         </span>
@@ -409,6 +416,8 @@ $(document).ready(function () {
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>' },
             rejected: { bg:'bg-red-50 dark:bg-red-900/30',       text:'text-red-700 dark:text-red-300',       label:'Ditolak',
                 icon:'<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' },
+            waived:   { bg:'bg-slate-100 dark:bg-slate-700/40',  text:'text-slate-600 dark:text-slate-300',   label:'Dibatalkan',
+                icon:'<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3a9 9 0 100 18 9 9 0 000-18zM5.636 5.636l12.728 12.728"/></svg>' },
         };
         const s = map[status] || map.rejected;
         return `<span class="inline-flex items-center gap-1.5 rounded-full ${s.bg} ${s.text} px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ring-current/10">${s.icon}${s.label}</span>`;
@@ -461,6 +470,36 @@ $(document).ready(function () {
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 Tolak
             </button>`);
+        } else if (row.status === 'approved' && !row.waiver_requested) {
+            const waiveUrl = '/admin/pembayaran/' + row.id + '/waive';
+            parts.push(`<button type="button" data-mode="direct" data-waive-url="${waiveUrl}"
+                class="js-waive-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 active:scale-95 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3a9 9 0 100 18 9 9 0 000-18zM5.636 5.636l12.728 12.728"/></svg>
+                Batalkan
+            </button>`);
+        } else if (row.status === 'approved' && row.waiver_requested) {
+            const waiveUrl = '/admin/pembayaran/' + row.id + '/waive';
+            const declineUrl = '/admin/pembayaran/' + row.id + '/decline-waiver';
+            const requester = row.waiver_requested_by || '–';
+            const reason = row.waiver_reason || '–';
+            const infoText = `Mohon batal: ${requester} — ${reason}`;
+            parts.push(`<div class="w-full text-center text-[11px] leading-snug text-amber-600 dark:text-amber-400 truncate" title="${escapeHtml(infoText)}">${escapeHtml(infoText)}</div>`);
+            parts.push(`<button type="button" data-mode="request" data-waive-url="${waiveUrl}" data-reason="${escapeHtml(row.waiver_reason || '')}" data-requester="${escapeHtml(requester)}"
+                class="js-waive-btn inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-emerald-500/30 transition-all">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                Lulus Batal
+            </button>
+            <button type="button" data-decline-url="${declineUrl}"
+                class="js-decline-waiver-btn inline-flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 active:scale-95 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 transition-all">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                Tolak Mohon
+            </button>`);
+        } else if (row.status === 'waived') {
+            const waivedBy = row.waived_by || '–';
+            const waivedAt = row.waived_at || '–';
+            const reasonSuffix = row.waiver_reason ? ` — ${row.waiver_reason}` : '';
+            const auditText = `Dibatalkan oleh ${waivedBy} · ${waivedAt}${reasonSuffix}`;
+            parts.push(`<div class="w-full text-center text-[11px] leading-snug text-gray-400 dark:text-gray-500 truncate" title="${escapeHtml(auditText)}">${escapeHtml(auditText)}</div>`);
         }
         if (parts.length === 0) return '<span class="text-xs text-gray-300 dark:text-gray-600">—</span>';
         return `<div class="flex flex-wrap items-center justify-center gap-1.5">${parts.join('')}</div>`;
@@ -539,18 +578,28 @@ $(document).ready(function () {
                 const container = document.getElementById('pendingCountBadge');
                 const badge = document.querySelector('.pending-count');
 
-                if (!container || !badge) {
-                    return;
+                if (container && badge) {
+                    if (data.count === 0) {
+                        container.classList.add('hidden');
+                        badge.textContent = '';
+                    } else {
+                        container.classList.remove('hidden');
+                        badge.textContent = data.count;
+                    }
                 }
 
-                if (data.count === 0) {
-                    container.classList.add('hidden');
-                    badge.textContent = '';
-                    return;
-                }
+                const waiverContainer = document.getElementById('waiverRequestCountBadge');
+                const waiverBadge = document.querySelector('.waiver-request-count');
 
-                container.classList.remove('hidden');
-                badge.textContent = data.count;
+                if (waiverContainer && waiverBadge) {
+                    if (!data.waiver_requests) {
+                        waiverContainer.classList.add('hidden');
+                        waiverBadge.textContent = '';
+                    } else {
+                        waiverContainer.classList.remove('hidden');
+                        waiverBadge.textContent = data.waiver_requests;
+                    }
+                }
             })
             .catch(err => console.error('Failed to fetch pending count:', err));
     }
@@ -651,6 +700,105 @@ $(document).ready(function () {
                     return;
                 }
                 Swal.fire({ icon:'error', title:'Ralat', text:'Gagal menolak pembayaran.' });
+            }).catch(() => {
+                Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
+            });
+        });
+    });
+
+    // ── Waive / Decline waiver ────────────────────────────────────────
+    function submitWaiveRequest(waiveUrl, reason) {
+        const formData = new URLSearchParams();
+        formData.append('_token', csrfToken);
+        if (reason) formData.append('waiver_reason', reason);
+        fetch(waiveUrl, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        }).then(res => res.json().then(data => ({ ok: res.ok, data }))).then(({ ok, data }) => {
+            if (ok && data.success) {
+                Swal.fire({ icon:'success', title:'Berjaya', text: data.message || 'Pembayaran telah dibatalkan.', timer:2000, showConfirmButton:false });
+                table?.ajax.reload(null, false);
+                updatePendingCount();
+                return;
+            }
+            Swal.fire({ icon:'error', title:'Ralat', text: data.message || 'Gagal membatalkan pembayaran.' });
+        }).catch(() => {
+            Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
+        });
+    }
+
+    $(document).on('click', '.js-waive-btn', function () {
+        const waiveUrl = $(this).data('waive-url');
+        const mode = $(this).data('mode');
+
+        if (mode === 'request') {
+            const requester = $(this).data('requester') || '–';
+            const reason = $(this).data('reason') || '–';
+            Swal.fire({
+                title: 'Lulus Permohonan Pembatalan',
+                html: `<div class="text-left text-sm text-gray-600 dark:text-gray-300">
+                        <p><strong>Dimohon oleh:</strong> ${escapeHtml(requester)}</p>
+                        <p class="mt-1"><strong>Sebab:</strong> ${escapeHtml(reason)}</p>
+                       </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Lulus Batal',
+                cancelButtonText: 'Tutup',
+                confirmButtonColor: '#059669',
+                customClass: { popup: 'rounded-2xl' }
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                submitWaiveRequest(waiveUrl, null);
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Batalkan Pembayaran',
+            input: 'textarea',
+            inputLabel: 'Sebab pembatalan',
+            inputPlaceholder: 'Nyatakan sebab pembatalan...',
+            showCancelButton: true,
+            confirmButtonText: 'Batalkan',
+            cancelButtonText: 'Tutup',
+            confirmButtonColor: '#dc2626',
+            customClass: { popup: 'rounded-2xl' },
+            inputValidator: (value) => {
+                if (!value) return 'Sila nyatakan sebab pembatalan.';
+            }
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            submitWaiveRequest(waiveUrl, result.value);
+        });
+    });
+
+    $(document).on('click', '.js-decline-waiver-btn', function () {
+        const declineUrl = $(this).data('decline-url');
+        Swal.fire({
+            title: 'Tolak Permohonan',
+            text: 'Tolak permohonan pembatalan? Pembayaran akan kekal disahkan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Tolak Permohonan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc2626',
+            customClass: { popup: 'rounded-2xl' }
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            const formData = new URLSearchParams();
+            formData.append('_token', csrfToken);
+            fetch(declineUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            }).then(res => res.json().then(data => ({ ok: res.ok, data }))).then(({ ok, data }) => {
+                if (ok && data.success) {
+                    Swal.fire({ icon:'success', title:'Berjaya', text: data.message || 'Permohonan telah ditolak.', timer:2000, showConfirmButton:false });
+                    table?.ajax.reload(null, false);
+                    updatePendingCount();
+                    return;
+                }
+                Swal.fire({ icon:'error', title:'Ralat', text: data.message || 'Gagal menolak permohonan.' });
             }).catch(() => {
                 Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
             });

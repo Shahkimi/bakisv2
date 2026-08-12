@@ -139,7 +139,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
-                    <div class="kawalan-submenu mt-1 ml-4 pl-5 border-l border-[#e6efe9] space-y-0.5">
+                    <div class="kawalan-submenu mt-1 ml-4 pl-5 border-l border-[#e6efe9] space-y-0.5">                        
+                        <a href="{{ route('admin.kawalan.ajk.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.ajk.*') ? 'is-active' : '' }}">
+                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6-2a3 3 0 10-2.83-4M5 11a3 3 0 11.83-5.83" />
+                            </svg>
+                            <span class="truncate">Ahli Jawatankuasa</span>
+                        </a>
                         <a href="{{ route('admin.kawalan.perlembagaan.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.perlembagaan.*') ? 'is-active' : '' }}">
                             <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -222,12 +228,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                             <span class="truncate">Turnstile</span>
-                        </a>
-                        <a href="{{ route('admin.kawalan.ajk.index') }}" class="nav-item relative flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 {{ request()->routeIs('admin.kawalan.ajk.*') ? 'is-active' : '' }}">
-                            <svg class="nav-icon w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6-2a3 3 0 10-2.83-4M5 11a3 3 0 11.83-5.83" />
-                            </svg>
-                            <span class="truncate">Ahli Jawatankuasa</span>
                         </a>
                     </div>
                 </details>

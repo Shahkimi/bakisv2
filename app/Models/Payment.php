@@ -15,6 +15,8 @@ class Payment extends Model
 
     public const STATUS_REJECTED = 'rejected';
 
+    public const STATUS_WAIVED = 'waived';
+
     protected $fillable = [
         'member_id',
         'yuran_id',
@@ -27,6 +29,11 @@ class Payment extends Model
         'approved_by',
         'approved_at',
         'catatan_admin',
+        'waiver_requested_by',
+        'waiver_requested_at',
+        'waiver_reason',
+        'waived_by',
+        'waived_at',
     ];
 
     protected function casts(): array
@@ -36,6 +43,8 @@ class Payment extends Model
             'tahun_mula' => 'integer',
             'tahun_tamat' => 'integer',
             'approved_at' => 'datetime',
+            'waiver_requested_at' => 'datetime',
+            'waived_at' => 'datetime',
         ];
     }
 
@@ -80,5 +89,20 @@ class Payment extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function waiverRequestedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'waiver_requested_by');
+    }
+
+    public function waivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'waived_by');
+    }
+
+    public function hasPendingWaiverRequest(): bool
+    {
+        return $this->status === self::STATUS_APPROVED && $this->waiver_requested_at !== null;
     }
 }

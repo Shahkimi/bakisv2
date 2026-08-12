@@ -44,12 +44,30 @@ final readonly class PaymentService
         ]);
     }
 
+    public function requestWaiver(Payment $payment, string $reason, int $requestedById): void
+    {
+        $payment->update([
+            'waiver_requested_by' => $requestedById,
+            'waiver_requested_at' => now(),
+            'waiver_reason' => $reason,
+        ]);
+    }
+
+    public function declineWaiverRequest(Payment $payment): void
+    {
+        $payment->update([
+            'waiver_requested_by' => null,
+            'waiver_requested_at' => null,
+            'waiver_reason' => null,
+        ]);
+    }
+
     public function getDataTableData(Request $request): JsonResponse
     {
         $statusFilter = $this->normalizeStatusFilter($request->string('status')->toString() ?: null);
 
         $query = Payment::query()
-            ->with(['member', 'yuran'])
+            ->with(['member', 'yuran', 'waiverRequestedBy:id,name', 'waivedBy:id,name'])
             ->select([
                 'id',
                 'member_id',
@@ -58,6 +76,11 @@ final readonly class PaymentService
                 'no_resit_sistem',
                 'bukti_bayaran',
                 'status',
+                'waiver_requested_by',
+                'waiver_requested_at',
+                'waiver_reason',
+                'waived_by',
+                'waived_at',
             ]);
 
         if ($statusFilter !== 'all') {
@@ -170,6 +193,12 @@ final readonly class PaymentService
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
+            'waiver_requested' => $payment->hasPendingWaiverRequest(),
+            'waiver_requested_at' => $payment->waiver_requested_at?->format('d/m/Y H:i'),
+            'waiver_requested_by' => $payment->waiverRequestedBy?->name,
+            'waiver_reason' => $payment->waiver_reason,
+            'waived_at' => $payment->waived_at?->format('d/m/Y H:i'),
+            'waived_by' => $payment->waivedBy?->name,
         ];
     }
 
@@ -181,7 +210,7 @@ final readonly class PaymentService
             return 'all';
         }
 
-        $allowed = ['pending', 'approved', 'rejected'];
+        $allowed = ['pending', 'approved', 'rejected', 'waived'];
         if (! in_array($statusFilter, $allowed, true)) {
             return 'pending';
         }
