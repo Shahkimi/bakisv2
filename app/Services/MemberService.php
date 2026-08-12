@@ -246,6 +246,12 @@ final readonly class MemberService
             ]);
         });
 
+        Log::info('Pembayaran disahkan.', [
+            'payment_id' => $payment->id,
+            'member_id' => $payment->member_id,
+            'approved_by' => auth()->id(),
+        ]);
+
         $payment->refresh()->load(['member.jabatan', 'member.jawatan', 'member.memberStatus', 'yuran']);
         $member = $payment->member;
 

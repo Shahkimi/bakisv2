@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\CommitteeMemberController;
 use App\Http\Controllers\Admin\JabatanController;
 use App\Http\Controllers\Admin\JawatanController;
 use App\Http\Controllers\Admin\Kawalan\FaviconController;
+use App\Http\Controllers\Admin\Kawalan\MailSettingController;
 use App\Http\Controllers\Admin\Kawalan\TurnstileController;
 use App\Http\Controllers\Admin\KutipanController as AdminKutipanController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
@@ -190,6 +191,11 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->name('admin.')->grou
     Route::prefix('kawalan/keselamatan')->name('kawalan.keselamatan.')->group(function () {
         Route::get('/', [TurnstileController::class, 'index'])->name('index');
         Route::post('/', [TurnstileController::class, 'update'])->name('update');
+    });
+    Route::prefix('kawalan/emel')->name('kawalan.emel.')->group(function () {
+        Route::get('/', [MailSettingController::class, 'index'])->name('index');
+        Route::post('/', [MailSettingController::class, 'update'])->name('update');
+        Route::post('test', [MailSettingController::class, 'test'])->name('test');
     });
     Route::prefix('kawalan/ajk')->name('kawalan.ajk.')->group(function () {
         Route::get('/', [CommitteeMemberController::class, 'index'])->name('index');

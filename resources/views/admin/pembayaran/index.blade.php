@@ -472,6 +472,10 @@ $(document).ready(function () {
             </button>`);
         } else if (row.status === 'approved' && !row.waiver_requested) {
             const waiveUrl = '/admin/pembayaran/' + row.id + '/waive';
+            const approvedBy = row.approved_by || '–';
+            const approvedAt = row.approved_at || '–';
+            const approvedText = `Disahkan oleh ${approvedBy} · ${approvedAt}`;
+            parts.push(`<div class="w-full text-center text-[11px] leading-snug text-gray-400 dark:text-gray-500 truncate" title="${escapeHtml(approvedText)}">${escapeHtml(approvedText)}</div>`);
             parts.push(`<button type="button" data-mode="direct" data-waive-url="${waiveUrl}"
                 class="js-waive-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/60 active:scale-95 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all">
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3a9 9 0 100 18 9 9 0 000-18zM5.636 5.636l12.728 12.728"/></svg>
@@ -483,6 +487,10 @@ $(document).ready(function () {
             const requester = row.waiver_requested_by || '–';
             const reason = row.waiver_reason || '–';
             const infoText = `Mohon batal: ${requester} — ${reason}`;
+            const approvedBy = row.approved_by || '–';
+            const approvedAt = row.approved_at || '–';
+            const approvedText = `Disahkan oleh ${approvedBy} · ${approvedAt}`;
+            parts.push(`<div class="w-full text-center text-[11px] leading-snug text-gray-400 dark:text-gray-500 truncate" title="${escapeHtml(approvedText)}">${escapeHtml(approvedText)}</div>`);
             parts.push(`<div class="w-full text-center text-[11px] leading-snug text-amber-600 dark:text-amber-400 truncate" title="${escapeHtml(infoText)}">${escapeHtml(infoText)}</div>`);
             parts.push(`<button type="button" data-mode="request" data-waive-url="${waiveUrl}" data-reason="${escapeHtml(row.waiver_reason || '')}" data-requester="${escapeHtml(requester)}"
                 class="js-waive-btn inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-emerald-500/30 transition-all">
@@ -494,6 +502,12 @@ $(document).ready(function () {
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 Tolak Mohon
             </button>`);
+        } else if (row.status === 'rejected') {
+            const rejectedBy = row.approved_by || '–';
+            const rejectedAt = row.approved_at || '–';
+            const reasonSuffix = row.catatan_admin ? ` — ${row.catatan_admin}` : '';
+            const rejectedText = `Ditolak oleh ${rejectedBy} · ${rejectedAt}${reasonSuffix}`;
+            parts.push(`<div class="w-full text-center text-[11px] leading-snug text-gray-400 dark:text-gray-500 truncate" title="${escapeHtml(rejectedText)}">${escapeHtml(rejectedText)}</div>`);
         } else if (row.status === 'waived') {
             const waivedBy = row.waived_by || '–';
             const waivedAt = row.waived_at || '–';

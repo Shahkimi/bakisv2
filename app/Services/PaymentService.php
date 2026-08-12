@@ -67,7 +67,7 @@ final readonly class PaymentService
         $statusFilter = $this->normalizeStatusFilter($request->string('status')->toString() ?: null);
 
         $query = Payment::query()
-            ->with(['member', 'yuran', 'waiverRequestedBy:id,name', 'waivedBy:id,name'])
+            ->with(['member', 'yuran', 'waiverRequestedBy:id,name', 'waivedBy:id,name', 'approvedBy:id,name'])
             ->select([
                 'id',
                 'member_id',
@@ -76,6 +76,9 @@ final readonly class PaymentService
                 'no_resit_sistem',
                 'bukti_bayaran',
                 'status',
+                'approved_by',
+                'approved_at',
+                'catatan_admin',
                 'waiver_requested_by',
                 'waiver_requested_at',
                 'waiver_reason',
@@ -193,6 +196,9 @@ final readonly class PaymentService
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
+            'approved_by' => $payment->approvedBy?->name,
+            'approved_at' => $payment->approved_at?->format('d/m/Y H:i'),
+            'catatan_admin' => $payment->catatan_admin,
             'waiver_requested' => $payment->hasPendingWaiverRequest(),
             'waiver_requested_at' => $payment->waiver_requested_at?->format('d/m/Y H:i'),
             'waiver_requested_by' => $payment->waiverRequestedBy?->name,

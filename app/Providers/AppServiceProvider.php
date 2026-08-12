@@ -6,9 +6,13 @@ namespace App\Providers;
 
 use App\Models\Payment;
 use App\Observers\PaymentObserver;
+use App\Services\MailSettingService;
 use App\Services\TurnstileSettingService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -20,7 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Singleton so the test-email bypass flag survives from the controller
+        // through to the MessageSending listener within the same request.
+        $this->app->singleton(MailSettingService::class);
     }
 
     /**
@@ -28,6 +34,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Apply admin-configured SMTP relay settings over the .env defaults.
+        // Guarded: on a fresh install the `settings` table may not be migrated yet.
+        rescue(fn () => app(MailSettingService::class)->applyRuntimeConfig(), report: false);
+
+        // Master kill-switch: when email is disabled, silently skip every outgoing
+        // mail (notifications, password resets) instead of attempting delivery.
+        Event::listen(MessageSending::class, function (): ?bool {
+            $mailSetting = app(MailSettingService::class);
+
+            if ($mailSetting->enabled() || $mailSetting->consumeSendBypass()) {
+                return null;
+            }
+
+            Log::info('E-mel dimatikan: penghantaran e-mel dilangkau.');
+
+            return false;
+        });
+
         RateLimiter::for('semak', function (Request $request) {
             if (app()->isLocal()) {
                 return Limit::none();
