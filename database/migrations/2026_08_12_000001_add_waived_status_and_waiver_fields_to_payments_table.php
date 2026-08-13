@@ -11,13 +11,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->foreignId('waiver_requested_by')->nullable()->after('catatan_admin')->constrained('users');
-            $table->timestamp('waiver_requested_at')->nullable()->after('waiver_requested_by');
-            $table->text('waiver_reason')->nullable()->after('waiver_requested_at');
-            $table->foreignId('waived_by')->nullable()->after('waiver_reason')->constrained('users');
-            $table->timestamp('waived_at')->nullable()->after('waived_by');
-        });
+        if (! Schema::hasColumn('payments', 'waiver_requested_by')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->foreignId('waiver_requested_by')->nullable()->after('catatan_admin')->constrained('users');
+                $table->timestamp('waiver_requested_at')->nullable()->after('waiver_requested_by');
+                $table->text('waiver_reason')->nullable()->after('waiver_requested_at');
+                $table->foreignId('waived_by')->nullable()->after('waiver_reason')->constrained('users');
+                $table->timestamp('waived_at')->nullable()->after('waived_by');
+            });
+        }
 
         if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE `payments` MODIFY `status` ENUM('pending','approved','rejected','waived') NOT NULL DEFAULT 'pending'");
