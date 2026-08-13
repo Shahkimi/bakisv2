@@ -8,7 +8,8 @@
     $member      = $result['member'] ?? null;
     $payment     = $result['payment'] ?? null;
     $checkedNoKp = $checkedNoKp ?? ($member->no_kp ?? null);
-    $showPayment = in_array($status, ['expired', 'rejected'], true);
+    $needsRenewal = (bool) ($result['needs_renewal'] ?? false);
+    $showPayment = in_array($status, ['expired', 'rejected'], true) || ($status === 'active' && $needsRenewal);
 
     $config = match($status) {
         'active' => [
@@ -23,6 +24,9 @@
             'dot'        => 'bg-emerald-500',
             'accentBar'  => 'from-emerald-400 to-emerald-600',
             'stepBg'     => 'bg-emerald-600',
+            'noticeBox'  => 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-950/25',
+            'noticeLabel'=> 'text-emerald-800 dark:text-emerald-300',
+            'noticeSub'  => 'text-emerald-700/80 dark:text-emerald-400/80',
         ],
         'pending' => [
             'title'      => 'Sedang Disemak',
@@ -36,6 +40,9 @@
             'dot'        => 'bg-amber-500',
             'accentBar'  => 'from-amber-400 to-amber-600',
             'stepBg'     => 'bg-amber-600',
+            'noticeBox'  => 'border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/25',
+            'noticeLabel'=> 'text-amber-800 dark:text-amber-300',
+            'noticeSub'  => 'text-amber-700/80 dark:text-amber-400/80',
         ],
         'rejected' => [
             'title'      => 'Permohonan Ditolak',
@@ -49,6 +56,9 @@
             'dot'        => 'bg-red-500',
             'accentBar'  => 'from-red-400 to-red-600',
             'stepBg'     => 'bg-red-600',
+            'noticeBox'  => 'border-red-200 dark:border-red-800/60 bg-red-50/70 dark:bg-red-950/25',
+            'noticeLabel'=> 'text-red-800 dark:text-red-300',
+            'noticeSub'  => 'text-red-700/80 dark:text-red-400/80',
         ],
         'expired' => [
             'title'      => 'Belum Diperbaharui',
@@ -62,6 +72,9 @@
             'dot'        => 'bg-orange-500',
             'accentBar'  => 'from-orange-400 to-orange-600',
             'stepBg'     => 'bg-orange-600',
+            'noticeBox'  => 'border-orange-200 dark:border-orange-800/60 bg-orange-50/70 dark:bg-orange-950/25',
+            'noticeLabel'=> 'text-orange-800 dark:text-orange-300',
+            'noticeSub'  => 'text-orange-700/80 dark:text-orange-400/80',
         ],
         default => [
             'title'      => 'Tiada Rekod Ditemui',
@@ -75,8 +88,26 @@
             'dot'        => 'bg-slate-400',
             'accentBar'  => 'from-slate-400 to-slate-500',
             'stepBg'     => 'bg-slate-500',
+            'noticeBox'  => 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40',
+            'noticeLabel'=> 'text-slate-700 dark:text-slate-300',
+            'noticeSub'  => 'text-slate-500 dark:text-slate-400',
         ],
     };
+
+    if ($status === 'active' && $needsRenewal) {
+        $config['summary']    = 'Keahlian anda masih aktif dalam tempoh penangguhan, tetapi bayaran tahun semasa belum dibuat.';
+        $config['nextStep']   = 'Sila buat bayaran pembaharuan untuk tahun '.date('Y').' bagi mengekalkan status keahlian anda.';
+        $config['badge']      = 'bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
+        $config['titleClass'] = 'text-amber-900 dark:text-amber-100';
+        $config['textClass']  = 'text-amber-700 dark:text-amber-300';
+        $config['iconBg']     = 'bg-amber-500';
+        $config['dot']        = 'bg-amber-500';
+        $config['accentBar']  = 'from-amber-400 to-amber-600';
+        $config['stepBg']     = 'bg-amber-600';
+        $config['noticeBox']  = 'border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/25';
+        $config['noticeLabel']= 'text-amber-800 dark:text-amber-300';
+        $config['noticeSub']  = 'text-amber-700/80 dark:text-amber-400/80';
+    }
 
     $memberPhotoUrl = $member && ! empty($member->gambar)
         ? asset('storage/members/photos/'.$member->gambar)
@@ -90,57 +121,15 @@
 <div class="min-h-screen bg-slate-50 dark:bg-slate-950 py-6 sm:py-10 px-4 sm:px-6">
     <div class="max-w-5xl mx-auto space-y-5">
 
-        {{-- ── Status Hero ──────────────────────────────────────────────────── --}}
-        <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg shadow-slate-900/5 overflow-hidden">
-            {{-- Gradient accent bar --}}
-            <div class="h-1.5 bg-gradient-to-r {{ $config['accentBar'] }}"></div>
-            <div class="p-5 sm:p-7 flex flex-col sm:flex-row sm:items-start gap-5">
-                {{-- Icon bubble --}}
-                <div class="shrink-0 w-14 h-14 rounded-2xl {{ $config['iconBg'] }} flex items-center justify-center shadow-lg">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
-                    </svg>
-                </div>
-                {{-- Body --}}
-                <div class="flex-1 min-w-0 space-y-3">
-                    <div>
-                        <p class="text-[11px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500 mb-1.5">Keputusan Semakan</p>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h1 class="text-xl sm:text-2xl font-bold {{ $config['titleClass'] }}">{{ $config['title'] }}</h1>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $config['badge'] }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $config['dot'] }}" aria-hidden="true"></span>
-                                {{ strtoupper($status) }}
-                            </span>
-                        </div>
-                    </div>
-                    @if($checkedNoKp)
-                        <p class="text-sm text-slate-500 dark:text-slate-400">
-                            No. KP: <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">{{ $checkedNoKp }}</span>
-                        </p>
-                    @endif
-                    <p class="text-sm {{ $config['textClass'] }} leading-relaxed">{{ $config['summary'] }}</p>
-                    <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 px-4 py-3">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Langkah seterusnya</p>
-                        <p class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{{ $config['nextStep'] }}</p>
-                    </div>
-                    @if($showPayment)
-                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/30 text-sm text-slate-700 dark:text-slate-300 shadow-sm">
-                            <svg class="w-4 h-4 shrink-0 text-teal-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Yuran pembaharuan: <strong class="text-slate-900 dark:text-white">RM10.00</strong> / tahun
-                        </div>
-                    @endif
-                </div>
-                {{-- Back CTA --}}
-                <a href="{{ route('semak.index') }}"
-                   class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-200 shadow-sm w-full sm:w-auto">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
-                    </svg>
-                    Semak semula
-                </a>
-            </div>
+        {{-- Back link --}}
+        <div class="flex justify-end">
+            <a href="{{ route('semak.index') }}"
+               class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                </svg>
+                Semak semula
+            </a>
         </div>
 
         {{-- ── Content Grid ─────────────────────────────────────────────────── --}}
@@ -150,7 +139,7 @@
             <div class="space-y-4 min-w-0">
 
                 @if($member)
-                {{-- Member card --}}
+                {{-- Maklumat Ahli --}}
                 <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
                         <span class="w-1 h-4 rounded-full bg-teal-500 shrink-0"></span>
@@ -174,6 +163,10 @@
                                 <p class="font-bold text-slate-900 dark:text-slate-50 text-lg leading-tight truncate">{{ $member->nama ?? '–' }}</p>
                                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 font-mono break-all">{{ $member->no_kp ?? '–' }}</p>
                             </div>
+                            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold {{ $config['badge'] }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $config['dot'] }}" aria-hidden="true"></span>
+                                {{ strtoupper($status) }}
+                            </span>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 px-4 py-3">
@@ -198,6 +191,24 @@
                     </div>
                 </div>
                 @endif
+
+                {{-- Status notice --}}
+                <div class="rounded-xl border {{ $config['noticeBox'] }} p-3.5 space-y-2">
+                    <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider {{ $config['noticeLabel'] }}">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
+                        </svg>
+                        {{ $config['title'] }}
+                    </p>
+                    @if($checkedNoKp && ! $member)
+                        <p class="text-xs text-slate-500 dark:text-slate-400">No. KP: <span class="font-mono font-semibold">{{ $checkedNoKp }}</span></p>
+                    @endif
+                    <p class="text-xs text-slate-700 dark:text-slate-300">{{ $config['summary'] }}</p>
+                    <p class="text-[11px] {{ $config['noticeSub'] }}">{{ $config['nextStep'] }}</p>
+                    @if($showPayment)
+                        <p class="text-[11px] font-semibold {{ $config['noticeSub'] }}">Yuran pembaharuan: RM10.00 / tahun</p>
+                    @endif
+                </div>
 
                 @if($member)
                 {{-- Payment history --}}
@@ -325,7 +336,7 @@
                 <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-5" aria-label="Langkah pembaharuan">
                     <p class="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Aliran Pembaharuan</p>
                     <div class="flex items-center">
-                        @foreach([['1','Pilih Akaun'],['2','Muat Naik'],['3','Pengesahan']] as $i => $step)
+                        @foreach([['1','Pilih Tahun'],['2','Akaun Bank'],['3','Muat Naik Bukti']] as $i => $step)
                             <div class="flex items-center {{ $i < 2 ? 'flex-1 min-w-0' : '' }}">
                                 <div class="flex flex-col items-center">
                                     <div id="semak-renewal-step-dot-{{ $i }}" data-semak-step="{{ $i }}"
@@ -347,164 +358,240 @@
                     </div>
                 </div>
 
-                {{-- Bank accounts --}}
-                @if(!empty($paymentAccounts) && count($paymentAccounts) > 0)
-                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
-                        <span class="w-1 h-4 rounded-full bg-teal-500 shrink-0"></span>
-                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Akaun Pembayaran</h3>
-                    </div>
-                    <div class="p-4 space-y-2.5">
-                        <p class="text-xs text-slate-400 dark:text-slate-500 pb-1">Bank in ke akaun di bawah. Imbas QR atau salin nombor akaun.</p>
-                        @foreach($paymentAccounts as $account)
-                        <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all duration-200">
-                            @if(!empty($account->qr_image_url))
-                            <button type="button"
-                                class="js-qr-preview shrink-0 w-12 h-12 bg-white dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-600 shadow-sm hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-                                data-qr-url="{{ $account->qr_image_url }}"
-                                data-qr-account="{{ $account->account_name }}"
-                                aria-label="Lihat QR {{ $account->account_name }}">
-                                <img src="{{ $account->qr_image_url }}" alt="QR" class="w-full h-full object-contain rounded-lg"/>
-                            </button>
-                            @else
-                            <div class="shrink-0 w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800">
-                                <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                                </svg>
-                            </div>
-                            @endif
-                            <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate">{{ $account->account_name }}</p>
-                                <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">{{ $account->account_number }}</p>
-                            </div>
-                            <button type="button"
-                                class="js-copy-account shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-lg text-slate-300 dark:text-slate-600 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-all"
-                                data-account-number="{{ $account->account_number }}"
-                                title="Salin">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
-                                </svg>
-                            </button>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
+                {{-- Renewal payment (2-step: pilih tahun -> bank & bukti) --}}
+                @php
+                    $semakHasAccounts = !empty($paymentAccounts) && count($paymentAccounts) > 0;
+                    $semakCurrentYear = (int) date('Y');
+                    $semakMaxYear = $semakCurrentYear + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
+                    $semakMaxYearSlots = 1 + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
+                    $semakMaxRm = number_format(10 * $semakMaxYearSlots, 2);
+                    $semakPaidYears = collect();
+                    if ($member) {
+                        foreach ($member->payments as $semakP) {
+                            if ($semakP->status !== 'approved') continue;
+                            $semakStart = $semakP->tahun_mula ?? $semakP->tahun_bayar;
+                            $semakEnd   = $semakP->tahun_tamat ?? $semakP->tahun_mula ?? $semakP->tahun_bayar;
+                            for ($semakY = (int)$semakStart; $semakY <= (int)$semakEnd; $semakY++) {
+                                $semakPaidYears->push($semakY);
+                            }
+                        }
+                        $semakPaidYears = $semakPaidYears->unique()->sort()->values();
+                    }
+                    $semakFirstUnpaidYear = null;
+                    for ($y = $semakCurrentYear; $y <= $semakMaxYear; $y++) {
+                        if (! $semakPaidYears->contains($y)) {
+                            $semakFirstUnpaidYear = $y;
+                            break;
+                        }
+                    }
+                @endphp
+                <form method="POST" action="{{ route('semak.bayar') }}" enctype="multipart/form-data" id="paymentForm">
+                    @csrf
+                    <input type="hidden" name="no_kp" value="{{ $checkedNoKp }}">
 
-                {{-- Payment form --}}
-                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                {{-- Step 1: Year selection --}}
+                <div id="semakStep1" class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
-                            <span class="w-1 h-4 rounded-full bg-indigo-500 shrink-0"></span>
-                            <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 truncate">Hantar Bukti Bayaran</h3>
+                            <span class="w-1 h-4 rounded-full bg-teal-500 shrink-0"></span>
+                            <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Tahun Pembaharuan</h3>
                         </div>
-                        @php
-                            $semakMaxYearSlots = 1 + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
-                            $semakMaxRm = number_format(10 * $semakMaxYearSlots, 2);
-                        @endphp
                         <span class="shrink-0 text-[11px] font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 px-2.5 py-1 rounded-lg">
                             RM10 – RM{{ $semakMaxRm }}
                         </span>
                     </div>
-                    <div class="p-4 sm:p-5">
-                        <form method="POST" action="{{ route('semak.bayar') }}" enctype="multipart/form-data" class="space-y-4" id="paymentForm">
-                            @csrf
-                            <input type="hidden" name="no_kp" value="{{ $checkedNoKp }}">
-
-                            @php
-                                $semakCurrentYear = (int) date('Y');
-                                $semakMaxYear = $semakCurrentYear + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
-                                $semakPaidYears = collect();
-                                if ($member) {
-                                    foreach ($member->payments as $semakP) {
-                                        if ($semakP->status !== 'approved') continue;
-                                        $semakStart = $semakP->tahun_mula ?? $semakP->tahun_bayar;
-                                        $semakEnd   = $semakP->tahun_tamat ?? $semakP->tahun_mula ?? $semakP->tahun_bayar;
-                                        for ($semakY = (int)$semakStart; $semakY <= (int)$semakEnd; $semakY++) {
-                                            $semakPaidYears->push($semakY);
-                                        }
-                                    }
-                                    $semakPaidYears = $semakPaidYears->unique()->sort()->values();
-                                }
-                                $semakFirstUnpaidYear = null;
-                                for ($y = $semakCurrentYear; $y <= $semakMaxYear; $y++) {
-                                    if (! $semakPaidYears->contains($y)) {
-                                        $semakFirstUnpaidYear = $y;
-                                        break;
-                                    }
-                                }
-                            @endphp
-
-                            {{-- Year selection --}}
-                            <div class="space-y-2.5">
-                                <div class="flex items-start justify-between gap-2">
-                                    <div>
-                                        <p id="semakRenewalYearLegend" class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                            Tahun Pembaharuan <span class="text-red-500">*</span>
-                                        </p>
-                                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">RM10.00 setiap tahun</p>
-                                    </div>
-                                    <div class="flex gap-1.5 shrink-0">
-                                        <button type="button" id="semakSelectAllYears"
-                                            class="min-h-[36px] px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/30 text-xs font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors">
-                                            Semua
-                                        </button>
-                                        <button type="button" id="semakClearYears"
-                                            class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                            Kosong
-                                        </button>
-                                    </div>
+                    <div class="p-4 space-y-4">
+                        {{-- Year selection --}}
+                        <div class="space-y-2.5">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <p id="semakRenewalYearLegend" class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        Pilih tahun <span class="text-red-500">*</span>
+                                    </p>
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">RM10.00 setiap tahun</p>
                                 </div>
-                                <div class="rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700"
-                                    role="group" aria-labelledby="semakRenewalYearLegend" aria-describedby="semakRenewalYearsHint">
-                                    @for($year = $semakCurrentYear; $year <= $semakMaxYear; $year++)
-                                        @php $semakIsPaid = $semakPaidYears->contains($year); @endphp
-                                        <label for="semakYear{{ $year }}"
-                                            class="flex items-center gap-3 px-4 py-3.5 min-h-[52px] cursor-pointer bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:disabled]:hover:bg-transparent dark:has-[:disabled]:hover:bg-transparent">
-                                            <input type="checkbox"
-                                                name="years[]"
-                                                value="{{ $year }}"
-                                                id="semakYear{{ $year }}"
-                                                class="semak-year-checkbox h-4 w-4 rounded border-slate-300 dark:border-slate-500 text-teal-600 focus:ring-teal-500 focus:ring-offset-0 dark:bg-slate-700"
-                                                @checked(! $semakIsPaid && $year === $semakFirstUnpaidYear)
-                                                @disabled($semakIsPaid)>
-                                            <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
-                                                <div>
-                                                    <span class="block text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $year }}</span>
-                                                    @if($semakIsPaid)
-                                                        <span class="text-[11px] text-slate-400 dark:text-slate-500">Sudah dibayar</span>
-                                                    @else
-                                                        <span class="text-[11px] text-teal-600 dark:text-teal-400">RM10.00</span>
-                                                    @endif
-                                                </div>
+                                <div class="flex gap-1.5 shrink-0">
+                                    <button type="button" id="semakSelectAllYears"
+                                        class="min-h-[36px] px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/30 text-xs font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors">
+                                        Semua
+                                    </button>
+                                    <button type="button" id="semakClearYears"
+                                        class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        Kosong
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700"
+                                role="group" aria-labelledby="semakRenewalYearLegend" aria-describedby="semakRenewalYearsHint">
+                                @for($year = $semakCurrentYear; $year <= $semakMaxYear; $year++)
+                                    @php $semakIsPaid = $semakPaidYears->contains($year); @endphp
+                                    <label for="semakYear{{ $year }}"
+                                        class="flex items-center gap-3 px-4 py-3.5 min-h-[52px] cursor-pointer bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:disabled]:hover:bg-transparent dark:has-[:disabled]:hover:bg-transparent">
+                                        <input type="checkbox"
+                                            name="years[]"
+                                            value="{{ $year }}"
+                                            id="semakYear{{ $year }}"
+                                            class="semak-year-checkbox h-4 w-4 rounded border-slate-300 dark:border-slate-500 text-teal-600 focus:ring-teal-500 focus:ring-offset-0 dark:bg-slate-700"
+                                            @checked(! $semakIsPaid && $year === $semakFirstUnpaidYear)
+                                            @disabled($semakIsPaid)>
+                                        <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
+                                            <div>
+                                                <span class="block text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $year }}</span>
                                                 @if($semakIsPaid)
-                                                    <span class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
-                                                        <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                                                        LUNAS
-                                                    </span>
+                                                    <span class="text-[11px] text-slate-400 dark:text-slate-500">Sudah dibayar</span>
+                                                @else
+                                                    <span class="text-[11px] text-teal-600 dark:text-teal-400">RM10.00</span>
                                                 @endif
                                             </div>
-                                        </label>
-                                    @endfor
+                                            @if($semakIsPaid)
+                                                <span class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
+                                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
+                                                    LUNAS
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </label>
+                                @endfor
+                            </div>
+                            <p id="semakRenewalYearsHint" class="text-[11px] text-slate-400 dark:text-slate-500">Pilih sekurang-kurangnya satu tahun.</p>
+                            @error('years')
+                                <p class="text-xs text-red-500 flex items-center gap-1 mt-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Total --}}
+                        <div class="flex items-center justify-between px-4 py-3.5 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800">
+                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jumlah bayaran</span>
+                            <span class="font-bold text-teal-700 dark:text-teal-300" id="semakTotalLine">
+                                RM10 × <span id="semakYearCount">0</span> tahun = <span class="text-base">RM<span id="semakTotalPrice">0.00</span></span>
+                            </span>
+                        </div>
+
+                        <button type="button" id="semakGoStep2"
+                            class="w-full min-h-[48px] mt-1 flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm shadow-teal-500/20 transition-all">
+                            Seterusnya: Akaun Bank
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Step 2: Bank accounts --}}
+                <div id="semakStep2" class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hidden">
+                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
+                        <button type="button" id="semakGoStep1" aria-label="Kembali ke Tahun Pembaharuan"
+                            class="shrink-0 w-7 h-7 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                            </svg>
+                        </button>
+                        <span class="w-1 h-4 rounded-full bg-indigo-500 shrink-0"></span>
+                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Akaun Pembayaran</h3>
+                    </div>
+                    <div class="p-4 sm:p-5 space-y-4">
+                        @if($semakHasAccounts)
+                        <div class="space-y-2.5">
+                            <p class="text-xs text-slate-400 dark:text-slate-500">Bank in ke akaun di bawah untuk tahun yang dipilih. Imbas QR atau salin nombor akaun.</p>
+
+                        @foreach($paymentAccounts as $account)
+                        <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all duration-200 p-3 space-y-3">
+                            <div class="flex items-center gap-3">
+                                @if(!empty($account->qr_image_url))
+                                <button type="button"
+                                    class="js-qr-preview shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-600 shadow-sm hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                                    data-qr-url="{{ $account->qr_image_url }}"
+                                    data-qr-account="{{ $account->account_name }}"
+                                    aria-label="Besarkan QR {{ $account->account_name }}">
+                                    <img src="{{ $account->qr_image_url }}" alt="QR {{ $account->account_name }}" class="w-full h-full object-contain rounded-lg"/>
+                                </button>
+                                @else
+                                <div class="shrink-0 w-14 h-14 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800">
+                                    <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
+                                    </svg>
                                 </div>
-                                <p id="semakRenewalYearsHint" class="text-[11px] text-slate-400 dark:text-slate-500">Pilih sekurang-kurangnya satu tahun. Jumlah bank in mesti sepadan.</p>
-                                @error('years')
-                                    <p class="text-xs text-red-500 flex items-center gap-1 mt-1">
-                                        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
+                                @endif
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate">{{ $account->account_name }}</p>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">{{ $account->account_number }}</p>
+                                    @if(!empty($account->qr_image_url))
+                                        <p class="text-[10px] text-teal-600 dark:text-teal-400 mt-0.5">Ketik QR untuk besarkan</p>
+                                    @endif
+                                </div>
+                                <button type="button"
+                                    class="js-copy-account shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-lg text-slate-300 dark:text-slate-600 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-all"
+                                    data-account-number="{{ $account->account_number }}"
+                                    title="Salin">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+                                    </svg>
+                                </button>
                             </div>
+                            @if(!empty($account->qr_image_url))
+                            <button type="button"
+                                class="js-qr-preview w-full flex items-center justify-center rounded-xl border border-dashed border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-800 p-3 hover:border-teal-400 hover:bg-teal-50/60 dark:hover:bg-teal-900/20 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                                data-qr-url="{{ $account->qr_image_url }}"
+                                data-qr-account="{{ $account->account_name }}"
+                                aria-label="Besarkan QR {{ $account->account_name }}">
+                                <img src="{{ $account->qr_image_url }}" alt="Kod QR {{ $account->account_name }}" class="w-32 h-32 object-contain"/>
+                            </button>
+                            @endif
+                        </div>
+                        @endforeach
 
-                            {{-- Total --}}
-                            <div class="flex items-center justify-between px-4 py-3.5 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800">
-                                <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jumlah bayaran</span>
-                                <span class="font-bold text-teal-700 dark:text-teal-300" id="semakTotalLine">
-                                    RM10 × <span id="semakYearCount">0</span> tahun = <span class="text-base">RM<span id="semakTotalPrice">0.00</span></span>
-                                </span>
+                        {{-- Bank transfer reference instructions --}}
+                        <div class="rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/25 p-3.5 space-y-2">
+                            <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Penting: Isi ruangan rujukan bank
+                            </p>
+                            <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                                <p class="flex flex-wrap items-baseline gap-x-2">
+                                    <span class="shrink-0 font-bold text-amber-700 dark:text-amber-400">Rujukan 1:</span>
+                                    <span class="font-semibold">Nama Ahli</span>
+                                </p>
+                                <p class="flex flex-wrap items-baseline gap-x-2">
+                                    <span class="shrink-0 font-bold text-amber-700 dark:text-amber-400">Rujukan 2:</span>
+                                    <span class="font-semibold">Pendaftaran / Pembaharuan BAKIS</span>
+                                </p>
                             </div>
+                            <p class="text-[11px] text-amber-700/80 dark:text-amber-400/80">Rujukan ini memudahkan pentadbir mengesahkan bayaran anda dengan lebih pantas.</p>
+                        </div>
 
-                            {{-- File upload --}}
+                        </div>
+                        @else
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Tiada akaun pembayaran dikonfigurasi buat masa ini. Sila teruskan ke langkah muat naik bukti bayaran.</p>
+                        @endif
+
+                        <button type="button" id="semakGoStep3"
+                            class="w-full min-h-[48px] mt-1 flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm shadow-teal-500/20 transition-all">
+                            Seterusnya: Muat Naik Bukti
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Step 3: Upload proof --}}
+                <div id="semakStep3" class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hidden">
+                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
+                        <button type="button" id="semakGoStep2Back" aria-label="Kembali ke Akaun Pembayaran"
+                            class="shrink-0 w-7 h-7 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                            </svg>
+                        </button>
+                        <span class="w-1 h-4 rounded-full bg-indigo-500 shrink-0"></span>
+                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Muat Naik Bukti Bayaran</h3>
+                    </div>
+                    <div class="p-4 sm:p-5 space-y-4">
                             <div class="space-y-1.5">
                                 <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                     Bukti Bayaran <span class="text-red-500">*</span>
@@ -559,9 +646,9 @@
                                 </svg>
                                 Hantar Pembayaran Pembaharuan
                             </button>
-                        </form>
                     </div>
                 </div>
+                </form>
 
             </div>
             @endif
@@ -620,43 +707,60 @@
         }, 2800);
     }
 
-    function setRenewalStepState(fileChosen) {
+    function setRenewalStepState(currentStep) {
         const activeMuted = 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500';
         const activeCurrent = 'bg-teal-600 text-white ring-4 ring-teal-100 dark:ring-teal-900/60 scale-105';
         const doneStyle = 'bg-emerald-600 text-white ring-2 ring-emerald-100 dark:ring-emerald-900/60';
         const labelMuted = 'text-slate-400 dark:text-slate-500';
         const labelActive = 'text-teal-700 dark:text-teal-400';
         const labelDone = 'text-emerald-700 dark:text-emerald-400';
+
         for (let i = 0; i < 3; i++) {
             const dot = document.getElementById('semak-renewal-step-dot-' + i);
             const label = document.getElementById('semak-renewal-step-label-' + i);
             if (!dot || !label) continue;
-            dot.textContent = (fileChosen && i === 0) ? '✓' : String(i + 1);
-            dot.className = 'semak-renewal-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + activeMuted;
-            label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelMuted;
-            if (!fileChosen) {
-                if (i === 0) {
-                    dot.className = 'semak-renewal-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + activeCurrent;
-                    label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelActive;
-                }
-            } else if (i === 0) {
-                dot.className = 'semak-renewal-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + doneStyle;
-                label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelDone;
-            } else if (i === 1) {
-                dot.className = 'semak-renewal-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + activeCurrent;
-                label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelActive;
-            }
+            const state = i < currentStep ? 'done' : (i === currentStep ? 'current' : 'muted');
+            dot.textContent = state === 'done' ? '✓' : String(i + 1);
+            const dotClass = state === 'done' ? doneStyle : (state === 'current' ? activeCurrent : activeMuted);
+            const labelClass = state === 'done' ? labelDone : (state === 'current' ? labelActive : labelMuted);
+            dot.className = 'semak-renewal-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + dotClass;
+            label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelClass;
         }
+
         document.querySelectorAll('.semak-renewal-connector').forEach((line, idx) => {
-            if (fileChosen && idx === 0) {
-                line.classList.add('bg-teal-400', 'dark:bg-teal-600');
-                line.classList.remove('bg-slate-200', 'dark:bg-slate-600');
-            } else {
-                line.classList.remove('bg-teal-400', 'dark:bg-teal-600');
-                line.classList.add('bg-slate-200', 'dark:bg-slate-600');
-            }
+            const filled = idx < currentStep;
+            line.classList.toggle('bg-teal-400', filled);
+            line.classList.toggle('dark:bg-teal-600', filled);
+            line.classList.toggle('bg-slate-200', !filled);
+            line.classList.toggle('dark:bg-slate-600', !filled);
         });
     }
+
+    // Multistep: Pilih Tahun -> Akaun Bank -> Muat Naik Bukti
+    const semakSteps = [
+        document.getElementById('semakStep1'),
+        document.getElementById('semakStep2'),
+        document.getElementById('semakStep3'),
+    ];
+    let semakCurrentStepIdx = 0;
+
+    function goToSemakStep(idx) {
+        semakCurrentStepIdx = idx;
+        semakSteps.forEach((el, i) => el && el.classList.toggle('hidden', i !== idx));
+        setRenewalStepState(idx);
+        if (idx > 0 && semakSteps[idx]) semakSteps[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.getElementById('semakGoStep2')?.addEventListener('click', () => {
+        const anyYearChecked = document.querySelectorAll('input.semak-year-checkbox:checked').length > 0;
+        if (!anyYearChecked) {
+            showSemakToast('Sila pilih sekurang-kurangnya satu tahun.', 'error');
+            return;
+        }
+        goToSemakStep(1);
+    });
+    document.getElementById('semakGoStep3')?.addEventListener('click', () => goToSemakStep(2));
+    document.getElementById('semakGoStep1')?.addEventListener('click', () => goToSemakStep(0));
+    document.getElementById('semakGoStep2Back')?.addEventListener('click', () => goToSemakStep(1));
 
     // QR preview modal
     const qrPreviewModal    = document.getElementById('qrPreviewModal');
@@ -743,35 +847,34 @@
 
     if (fileInput) {
         fileInput.addEventListener('change', () => {
-            if (!fileInput.files || !fileInput.files[0]) { resetDropzoneUi(); setRenewalStepState(false); return; }
+            if (!fileInput.files || !fileInput.files[0]) { resetDropzoneUi(); return; }
             const name = fileInput.files[0].name;
             const file = fileInput.files[0];
             const maxBytes = 5120 * 1024;
             if (!/\.(jpe?g|png|pdf)$/i.test(name)) {
                 showSemakToast('Jenis fail tidak sah. Hanya JPG, PNG atau PDF.', 'error');
-                fileInput.value = ''; resetDropzoneUi(); setRenewalStepState(false); return;
+                fileInput.value = ''; resetDropzoneUi(); return;
             }
             if (/(php|phtml|phar|exe|sh|bash|bat|cmd|js|html?|svg|xml)/i.test(name)) {
                 showSemakToast('Fail yang dicurigai dikesan. Muat naik ditolak.', 'error');
-                fileInput.value = ''; resetDropzoneUi(); setRenewalStepState(false); return;
+                fileInput.value = ''; resetDropzoneUi(); return;
             }
             if (file.size > maxBytes) {
                 showSemakToast('Fail terlalu besar. Maksimum 5MB.', 'error');
-                fileInput.value = ''; resetDropzoneUi(); setRenewalStepState(false); return;
+                fileInput.value = ''; resetDropzoneUi(); return;
             }
             const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
             if (file.type && !allowedTypes.includes(file.type)) {
                 showSemakToast('Jenis fail tidak sah (MIME).', 'error');
-                fileInput.value = ''; resetDropzoneUi(); setRenewalStepState(false); return;
+                fileInput.value = ''; resetDropzoneUi(); return;
             }
             fileNameEl.textContent = name.length > 32 ? name.substring(0, 32) + '…' : name;
             dzDefault.classList.add('hidden'); dzDefault.classList.remove('flex');
             dzPreview.classList.remove('hidden'); dzPreview.classList.add('flex');
-            setRenewalStepState(true);
         });
     }
 
-    if (document.getElementById('semak-renewal-step-dot-0')) setRenewalStepState(false);
+    if (document.getElementById('semak-renewal-step-dot-0')) setRenewalStepState(semakCurrentStepIdx);
 
     // Drag & drop
     const dropzone = document.getElementById('dropzone');

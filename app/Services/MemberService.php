@@ -49,7 +49,18 @@ final readonly class MemberService
 
         if ($paymentThisYear) {
             if ($paymentThisYear->status === Payment::STATUS_APPROVED) {
-                return ['status' => 'active', 'member' => $member, 'payment' => $paymentThisYear];
+                // Coverage ended before the current year: member is only active by
+                // grace period and must still be offered the renewal form.
+                $coverageEnd = (int) ($paymentThisYear->tahun_tamat
+                    ?? $paymentThisYear->tahun_mula
+                    ?? $paymentThisYear->tahun_bayar);
+
+                return [
+                    'status' => 'active',
+                    'member' => $member,
+                    'payment' => $paymentThisYear,
+                    'needs_renewal' => $coverageEnd < $currentYear,
+                ];
             }
             if ($paymentThisYear->status === Payment::STATUS_PENDING) {
                 return ['status' => 'pending', 'member' => $member, 'payment' => $paymentThisYear];
