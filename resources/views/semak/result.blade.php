@@ -10,6 +10,7 @@
     $checkedNoKp = $checkedNoKp ?? ($member->no_kp ?? null);
     $needsRenewal = (bool) ($result['needs_renewal'] ?? false);
     $showPayment = in_array($status, ['expired', 'rejected'], true) || ($status === 'active' && $needsRenewal);
+    $showRenewalSidebar = $showPayment || $status === 'pending';
 
     $config = match($status) {
         'active' => [
@@ -133,7 +134,7 @@
         </div>
 
         {{-- ── Content Grid ─────────────────────────────────────────────────── --}}
-        <div class="{{ $showPayment ? 'grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-5 lg:items-start' : 'max-w-2xl mx-auto space-y-5' }}">
+        <div class="{{ $showRenewalSidebar ? 'grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-5 lg:items-start' : 'max-w-2xl mx-auto space-y-5' }}">
 
             {{-- Left column --}}
             <div class="space-y-4 min-w-0">
@@ -328,10 +329,11 @@
                 @endif
             </div>
 
-            {{-- ── Right column: Renewal ─────────────────────────────────────── --}}
-            @if($showPayment)
+            {{-- ── Right column: Renewal / Pending ───────────────────────────── --}}
+            @if($showRenewalSidebar)
             <div class="space-y-4 lg:sticky lg:top-6 lg:self-start">
 
+            @if($showPayment)
                 {{-- Step indicator --}}
                 <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-5" aria-label="Langkah pembaharuan">
                     <p class="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Aliran Pembaharuan</p>
@@ -649,6 +651,97 @@
                     </div>
                 </div>
                 </form>
+            @elseif($status === 'pending')
+                @php
+                    $pendingPayments = $member
+                        ? $member->payments->where('status', 'pending')->sortBy('tahun_bayar')->values()
+                        : collect();
+                    $pendingTotal = $pendingPayments->sum('jumlah');
+                @endphp
+
+                {{-- Status summary card --}}
+                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
+                        <span class="w-1 h-4 rounded-full bg-amber-500 shrink-0"></span>
+                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Status Pembayaran</h3>
+                    </div>
+                    <div class="p-5 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-sm text-amber-900 dark:text-amber-100">Menunggu Kelulusan Admin</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">Bukti bayaran anda telah diterima. Semakan biasanya mengambil masa beberapa hari bekerja.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Pending payments detail --}}
+                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
+                        <span class="w-1 h-4 rounded-full bg-amber-500 shrink-0"></span>
+                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Bayaran Menunggu Pengesahan</h3>
+                    </div>
+
+                    @if($pendingPayments->isEmpty())
+                        <div class="py-10 flex flex-col items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-slate-300 dark:text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium text-slate-400 dark:text-slate-500 px-4 text-center">Tiada butiran bayaran menunggu ditemui.</p>
+                        </div>
+                    @else
+                        <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            @foreach($pendingPayments as $pp)
+                            <div class="p-4 space-y-1.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $pp->tahun_bayar }}</span>
+                                        <span class="text-xs text-slate-400 dark:text-slate-500 truncate">
+                                            {{ $pp->jenis === 'pendaftaran_baru' ? 'Pendaftaran Baru' : ($pp->jenis === 'pembaharuan' ? 'Pembaharuan' : ($pp->yuran?->jenis_yuran ?? '–')) }}
+                                        </span>
+                                    </div>
+                                    <span class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>
+                                        Menunggu
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500">
+                                        Dihantar {{ optional($pp->created_at)->format('d/m/Y') }} &middot; Bukti bayaran diterima
+                                    </p>
+                                    <span class="font-mono text-sm font-semibold text-slate-700 dark:text-slate-300 shrink-0">RM {{ number_format($pp->jumlah, 2) }}</span>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <div class="flex items-center justify-between px-4 py-3.5 m-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jumlah menunggu pengesahan</span>
+                            <span class="font-bold text-amber-700 dark:text-amber-300 text-base">RM {{ number_format($pendingTotal, 2) }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- What happens next --}}
+                <div class="rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/25 p-3.5 space-y-2">
+                    <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
+                        </svg>
+                        Apa Seterusnya?
+                    </p>
+                    <ul class="space-y-1 text-xs text-slate-700 dark:text-slate-300 list-disc list-inside">
+                        <li>Admin akan menyemak bukti bayaran yang dihantar.</li>
+                        <li>Status akan bertukar ke <span class="font-semibold text-emerald-700 dark:text-emerald-400">AKTIF</span> sebaik sahaja diluluskan.</li>
+                        <li>Semak semula halaman ini selepas beberapa hari untuk status terkini.</li>
+                    </ul>
+                </div>
+            @endif
 
             </div>
             @endif
