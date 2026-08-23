@@ -446,4 +446,37 @@ final class AdminKutipanTest extends TestCase
 
         Notification::assertSentOnDemand(KutipanPaymentConfirmedNotification::class);
     }
+
+    public function test_collect_reports_email_disabled_notice_when_mail_not_operational(): void
+    {
+        Notification::fake();
+        config(['mail.default' => 'log']);
+
+        $refs = $this->seedBasicReferenceData();
+        $member = $this->makeRenewalMember($refs, 'AHLI E-MEL DIMATIKAN', '900101011298');
+        $member->update(['email' => 'pegawai-dimatikan@example.com']);
+
+        $user = $this->makeUser();
+        $this->actingAs($user);
+
+        $currentYear = (int) now()->year;
+        $year1 = max(2020, $currentYear - 2);
+        $years = [$year1];
+
+        $payload = [
+            'member_id' => $member->id,
+            'yuran_id' => $refs['pembaharuanYuran10']->id,
+            'years' => $years,
+        ];
+
+        $response = $this->post(route('admin.kutipan.collect-multi-year'), $payload, [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('email_notice', KutipanService::EMAIL_NOTICE_DISABLED);
+
+        Notification::assertNothingSent();
+    }
 }

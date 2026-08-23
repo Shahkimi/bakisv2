@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Notification;
 final readonly class MemberService
 {
     public function __construct(
-        private FileUploadService $fileUploadService
+        private FileUploadService $fileUploadService,
+        private MailSettingService $mailSettingService,
     ) {}
 
     public function checkMemberStatus(string $noKp): array
@@ -266,7 +267,12 @@ final readonly class MemberService
         $payment->refresh()->load(['member.jabatan', 'member.jawatan', 'member.memberStatus', 'yuran']);
         $member = $payment->member;
 
-        if (filled($member->email)) {
+        if (! $this->mailSettingService->isOperational()) {
+            Log::info('E-mel tidak beroperasi: e-mel resit kelulusan pembayaran dilangkau.', [
+                'member_id' => $member->id,
+                'payment_id' => $payment->id,
+            ]);
+        } elseif (filled($member->email)) {
             try {
                 $email = strtolower(trim((string) $member->email));
                 Notification::route('mail', [$email => $member->nama])
@@ -352,23 +358,30 @@ final readonly class MemberService
         });
 
         if ($firstPayment !== null) {
-            $firstPayment->refresh()->load(['member', 'yuran']);
-
-            $staffEmails = $this->collectSemakStaffReviewerEmails($member);
-            if ($staffEmails === []) {
-                Log::warning('Semak renewal: tiada e-mel staff untuk notifikasi bukti pembayaran.', [
+            if (! $this->mailSettingService->isOperational()) {
+                Log::info('E-mel tidak beroperasi: notifikasi bukti pembayaran semak dilangkau.', [
                     'member_id' => $member->id,
+                    'payment_id' => $firstPayment->id,
                 ]);
             } else {
-                foreach ($staffEmails as $email) {
-                    Notification::route('mail', $email)
-                        ->notify(new PaymentProofPendingReviewNotification($firstPayment, $years));
-                }
-            }
+                $firstPayment->refresh()->load(['member', 'yuran']);
 
-            if (filled($member->email)) {
-                Notification::route('mail', [$member->email => $member->nama])
-                    ->notify(new PaymentProofUploadedNotification($firstPayment, $years));
+                $staffEmails = $this->collectSemakStaffReviewerEmails($member);
+                if ($staffEmails === []) {
+                    Log::warning('Semak renewal: tiada e-mel staff untuk notifikasi bukti pembayaran.', [
+                        'member_id' => $member->id,
+                    ]);
+                } else {
+                    foreach ($staffEmails as $email) {
+                        Notification::route('mail', $email)
+                            ->notify(new PaymentProofPendingReviewNotification($firstPayment, $years));
+                    }
+                }
+
+                if (filled($member->email)) {
+                    Notification::route('mail', [$member->email => $member->nama])
+                        ->notify(new PaymentProofUploadedNotification($firstPayment, $years));
+                }
             }
         }
 

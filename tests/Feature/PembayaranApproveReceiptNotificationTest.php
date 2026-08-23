@@ -114,4 +114,22 @@ final class PembayaranApproveReceiptNotificationTest extends TestCase
 
         Notification::assertNothingSent();
     }
+
+    public function test_receipt_email_skipped_when_mail_not_operational(): void
+    {
+        Notification::fake();
+        config(['mail.default' => 'log']);
+
+        $admin = User::factory()->admin()->create();
+        ['payment' => $payment] = $this->seedPendingPaymentForMemberWithEmail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.pembayaran.approve', $payment))
+            ->assertRedirect(route('admin.pembayaran.index'));
+
+        $payment->refresh();
+        $this->assertSame(Payment::STATUS_APPROVED, $payment->status);
+
+        Notification::assertNothingSent();
+    }
 }

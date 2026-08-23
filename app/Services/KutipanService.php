@@ -28,9 +28,12 @@ final readonly class KutipanService
 
     public const string EMAIL_NOTICE_MISSING = 'Pegawai tidak mempunyai e-mel. Pengesahan pembayaran tidak dapat dihantar.';
 
+    public const string EMAIL_NOTICE_DISABLED = 'E-mel sistem dimatikan atau belum dikonfigurasi. Pengesahan pembayaran tidak dihantar melalui e-mel.';
+
     public function __construct(
         private MemberService $memberService,
         private FileUploadService $fileUploadService,
+        private MailSettingService $mailSettingService,
     ) {}
 
     /**
@@ -495,6 +498,10 @@ final readonly class KutipanService
      */
     private function dispatchKutipanConfirmationMail(Member $member, string $receiptNo, array $detailLines): string
     {
+        if (! $this->mailSettingService->isOperational()) {
+            return self::EMAIL_NOTICE_DISABLED;
+        }
+
         $member->refresh();
 
         if (! filled($member->email)) {

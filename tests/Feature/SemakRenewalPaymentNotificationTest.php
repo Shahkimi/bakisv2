@@ -178,4 +178,44 @@ final class SemakRenewalPaymentNotificationTest extends TestCase
             $this->assertSame($proofPaths[0], $payment->bukti_bayaran);
         }
     }
+
+    public function test_renewal_notifications_skipped_when_mail_not_operational(): void
+    {
+        Notification::fake();
+        config(['mail.default' => 'log']);
+
+        $refs = $this->seedRefs();
+
+        User::factory()->admin()->create([
+            'email' => 'admin-notify@example.test',
+        ]);
+
+        Member::create([
+            'jabatan_id' => $refs['jabatan']->id,
+            'jawatan_id' => $refs['jawatan']->id,
+            'member_status_id' => $refs['status']->id,
+            'nama' => 'AHLI TANPA E-MEL SISTEM',
+            'no_kp' => '900101011241',
+            'email' => 'member@example.test',
+            'jantina' => 'L',
+            'tarikh_daftar' => now()->toDateString(),
+        ]);
+
+        $file = FileTestHelper::createValidPdf(1, 'bukti.pdf');
+
+        $this->post(route('semak.bayar'), [
+            'no_kp' => '900101011241',
+            'years' => [(int) date('Y')],
+            'bukti_bayaran' => $file,
+        ])->assertRedirect();
+
+        $member = Member::query()->where('no_kp', '900101011241')->first();
+        $this->assertNotNull($member);
+        $this->assertDatabaseHas('payments', [
+            'member_id' => $member->id,
+            'status' => Payment::STATUS_PENDING,
+        ]);
+
+        Notification::assertNothingSent();
+    }
 }

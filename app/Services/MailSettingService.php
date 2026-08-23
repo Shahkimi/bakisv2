@@ -50,6 +50,49 @@ final class MailSettingService
         );
     }
 
+    /**
+     * Whether email is both switched on and actually deliverable somewhere a
+     * recipient can read it. Combines the admin toggle with {@see isConfigured()}.
+     */
+    public function isOperational(): bool
+    {
+        return $this->enabled() && $this->isConfigured();
+    }
+
+    /**
+     * Whether a real mail transport is in place, independent of the on/off
+     * toggle. An admin-saved host always counts. Otherwise falls back to the
+     * `.env` mailer: `log` is treated as unconfigured (a fresh install ships
+     * `MAIL_MAILER=log`, which delivers nowhere a recipient can read), a
+     * placeholder `smtp` host (Laravel's default `127.0.0.1`) is treated as
+     * unconfigured, and any other deliberately chosen transport (`array` used
+     * in tests, `ses`, `sendmail`, a real smtp host, etc.) counts as configured.
+     *
+     * Note: a local Mailpit-style setup using `MAIL_HOST=127.0.0.1` will read
+     * as unconfigured — use `localhost` instead, or save the host on the
+     * admin settings page.
+     */
+    public function isConfigured(): bool
+    {
+        if ($this->hasStoredHost()) {
+            return true;
+        }
+
+        $mailer = (string) config('mail.default');
+
+        if ($mailer === 'log') {
+            return false;
+        }
+
+        if ($mailer === 'smtp') {
+            $host = (string) config('mail.mailers.smtp.host', '');
+
+            return $host !== '' && $host !== '127.0.0.1';
+        }
+
+        return true;
+    }
+
     public function host(): string
     {
         return $this->stringSetting(self::HOST_KEY, (string) config('mail.mailers.smtp.host', ''));

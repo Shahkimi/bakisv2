@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Services\MailSettingService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -103,5 +104,49 @@ final class KpPasswordResetTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Tetapkan semula kata laluan', false);
+    }
+
+    public function test_forgot_by_kp_blocked_when_mail_not_operational(): void
+    {
+        Notification::fake();
+
+        config(['mail.default' => 'log']);
+
+        $kp = '800101145022';
+        User::factory()->create([
+            'no_kp' => $kp,
+            'email' => 'member@test.example',
+        ]);
+
+        $response = $this->post(route('password.forgot-by-kp'), [
+            'no_kp' => $kp,
+        ]);
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors('mail');
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_login_page_hides_forgot_tab_when_mail_not_operational(): void
+    {
+        config(['mail.default' => 'log']);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertDontSee('Lupa kata laluan');
+    }
+
+    public function test_login_page_shows_forgot_tab_by_default(): void
+    {
+        app(MailSettingService::class)->update([
+            'is_enabled' => true,
+            'host' => null, 'port' => null, 'scheme' => null, 'username' => null,
+            'password' => null, 'from_address' => null, 'from_name' => null,
+        ]);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Lupa kata laluan');
     }
 }

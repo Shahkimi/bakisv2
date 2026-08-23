@@ -9,7 +9,10 @@ use App\Models\User;
 use App\Services\MailSettingService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mime\Email;
 use Tests\TestCase;
 
 final class AdminMailSettingTest extends TestCase
@@ -179,5 +182,57 @@ final class AdminMailSettingTest extends TestCase
             ->assertJson(['success' => true]);
 
         $this->assertCount(1, $transport->messages());
+    }
+
+    public function test_not_operational_when_default_mailer_is_log_and_no_stored_host(): void
+    {
+        config(['mail.default' => 'log']);
+
+        $this->assertFalse(app(MailSettingService::class)->isConfigured());
+        $this->assertFalse(app(MailSettingService::class)->isOperational());
+    }
+
+    public function test_not_operational_when_smtp_host_is_placeholder(): void
+    {
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1']);
+
+        $this->assertFalse(app(MailSettingService::class)->isConfigured());
+    }
+
+    public function test_operational_with_real_env_smtp_host(): void
+    {
+        config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'relay.example.test']);
+
+        app(MailSettingService::class)->update([
+            'is_enabled' => true,
+            'host' => null, 'port' => null, 'scheme' => null, 'username' => null,
+            'password' => null, 'from_address' => null, 'from_name' => null,
+        ]);
+
+        $this->assertTrue(app(MailSettingService::class)->isConfigured());
+        $this->assertTrue(app(MailSettingService::class)->isOperational());
+    }
+
+    public function test_operational_when_host_stored(): void
+    {
+        config(['mail.default' => 'log']);
+
+        app(MailSettingService::class)->update([
+            'is_enabled' => true,
+            'host' => 'relay.example.test', 'port' => 587, 'scheme' => 'auto', 'username' => null,
+            'password' => null, 'from_address' => 'noreply@example.test', 'from_name' => null,
+        ]);
+
+        $this->assertTrue(app(MailSettingService::class)->isConfigured());
+        $this->assertTrue(app(MailSettingService::class)->isOperational());
+    }
+
+    public function test_unconfigured_mail_suppresses_delivery(): void
+    {
+        config(['mail.default' => 'log']);
+
+        $result = Event::until(new MessageSending(new Email));
+
+        $this->assertFalse($result);
     }
 }

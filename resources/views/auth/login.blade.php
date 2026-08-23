@@ -363,7 +363,7 @@
 </head>
 <body>
     <section class="card" x-data="{
-        tab: '{{ old('no_kp') ? 'forgot' : 'login' }}',
+        tab: '{{ ($mailOperational && old('no_kp')) ? 'forgot' : 'login' }}',
         authPanelShellHeight: 0,
         shellReflowTimer: null,
         init() {
@@ -413,6 +413,7 @@
                 <div class="error-box">{{ $errors->first() }}</div>
             @endif
 
+            @if ($mailOperational)
             <div class="tabs" role="tablist" aria-label="Pilih mod">
                 <button type="button" id="tab-login" role="tab" :aria-selected="tab === 'login'" aria-controls="panel-login"
                     class="tab-btn"
@@ -423,6 +424,7 @@
                     :class="{ 'is-active': tab === 'forgot' }"
                     @click="tab = 'forgot'; $nextTick(() => $refs.noKpInput?.focus())">Lupa kata laluan</button>
             </div>
+            @endif
 
             <div
                 class="auth-panels-shell"
@@ -485,6 +487,7 @@
                 </form>
             </div>
 
+            @if ($mailOperational)
             <div id="panel-forgot" role="tabpanel" aria-labelledby="tab-forgot" class="auth-panel"
                 x-ref="panelForgot"
                 :class="{ 'auth-panel--stack': tab === 'forgot' }"
@@ -529,6 +532,7 @@
                     </button>
                 </form>
             </div>
+            @endif
             </div>
             </div>
         </div>

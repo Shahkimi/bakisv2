@@ -182,6 +182,7 @@ table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTa
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
 <script>
 window.penggunaCurrentUserId = {{ auth()->id() }};
+window.penggunaMailOperational = @json($mailOperational);
 $(document).ready(function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -285,7 +286,11 @@ $(document).ready(function() {
         const expired = a.expired;
         let html = '<div class="flex flex-nowrap items-center gap-1.5">';
         if (!expired) {
-            html += '<button type="button" class="btn-resend-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 hover:bg-sky-200 dark:hover:bg-sky-800/40 transition shadow-sm hover:shadow" title="Hantar semula jemputan" aria-label="Hantar semula jemputan" data-id="' + id + '">' + iconResend + '</button>';
+            if (window.penggunaMailOperational) {
+                html += '<button type="button" class="btn-resend-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 hover:bg-sky-200 dark:hover:bg-sky-800/40 transition shadow-sm hover:shadow" title="Hantar semula jemputan" aria-label="Hantar semula jemputan" data-id="' + id + '">' + iconResend + '</button>';
+            } else {
+                html += '<button type="button" class="btn-resend-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-300 opacity-50 cursor-not-allowed transition shadow-sm" title="E-mel sistem dimatikan atau belum dikonfigurasi — tidak dapat menghantar semula jemputan" aria-label="Hantar semula jemputan (tidak tersedia)" data-id="' + id + '" disabled>' + iconResend + '</button>';
+            }
         }
         html += '<button type="button" class="btn-delete-invite inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Buang jemputan" aria-label="Buang jemputan" data-id="' + id + '">' + iconTrash + '</button></div>';
         return html;
@@ -369,16 +374,19 @@ $(document).ready(function() {
                     <div class="field">
                         <label>Kaedah pendaftaran</label>
                         <div class="mode-seg">
-                            <div class="mode-opt active" data-mode="invite" role="button" tabindex="0">
+                            <div class="mode-opt{{ $mailOperational ? ' active' : ' opacity-50 cursor-not-allowed' }}" data-mode="invite" role="button" tabindex="0">
                                 Hantar pautan jemputan
                                 <small>Pengguna tetapkan kata laluan sendiri</small>
                             </div>
-                            <div class="mode-opt" data-mode="direct" role="button" tabindex="0">
+                            <div class="mode-opt{{ $mailOperational ? '' : ' active' }}" data-mode="direct" role="button" tabindex="0">
                                 Cipta + kata laluan sementara
                                 <small>Akaun terus aktif, tukar semasa log masuk</small>
                             </div>
                         </div>
-                        <input type="hidden" id="swal-mode" name="mode" value="invite" />
+                        <input type="hidden" id="swal-mode" name="mode" value="{{ $mailOperational ? 'invite' : 'direct' }}" />
+                        @unless ($mailOperational)
+                            <p class="text-xs text-amber-600 mt-1">E-mel sistem dimatikan atau belum dikonfigurasi — jemputan e-mel tidak tersedia. Hanya kaedah kata laluan sementara boleh digunakan.</p>
+                        @endunless
                     </div>
                     <div class="field">
                         <label for="swal-name">Nama</label>
@@ -401,7 +409,7 @@ $(document).ready(function() {
                 </form>
             `,
             showCancelButton: true,
-            confirmButtonText: 'Hantar jemputan',
+            confirmButtonText: @json($mailOperational ? 'Hantar jemputan' : 'Cipta akaun'),
             cancelButtonText: 'Batal',
             confirmButtonColor: '#7c3aed',
             width: '460px',
@@ -419,6 +427,7 @@ $(document).ready(function() {
                 const opts = document.querySelectorAll('.mode-opt');
                 const confirmBtn = Swal.getConfirmButton();
                 function selectMode(mode) {
+                    if (mode === 'invite' && !window.penggunaMailOperational) return;
                     modeInput.value = mode;
                     opts.forEach(function(o) { o.classList.toggle('active', o.getAttribute('data-mode') === mode); });
                     if (confirmBtn) confirmBtn.textContent = mode === 'direct' ? 'Cipta akaun' : 'Hantar jemputan';

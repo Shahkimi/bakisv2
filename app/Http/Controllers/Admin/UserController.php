@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\UserInvitation;
 use App\Notifications\UserCredentialsNotification;
 use App\Notifications\UserInvitationNotification;
+use App\Services\MailSettingService;
 use App\Services\UserManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ use Illuminate\View\View;
 final class UserController extends Controller
 {
     public function __construct(
-        private readonly UserManagementService $userManagementService
+        private readonly UserManagementService $userManagementService,
+        private readonly MailSettingService $mailSetting,
     ) {}
 
     public function index(): View
@@ -51,6 +53,13 @@ final class UserController extends Controller
 
         if ($data['mode'] === 'direct') {
             return $this->storeDirectUser($data);
+        }
+
+        if (! $this->mailSetting->isOperational()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jemputan tidak dapat dihantar: e-mel sistem dimatikan atau belum dikonfigurasi. Sila gunakan kaedah "Cipta + kata laluan sementara".',
+            ], 422);
         }
 
         $invitation = DB::transaction(function () use ($data): UserInvitation {
@@ -103,6 +112,15 @@ final class UserController extends Controller
                 'must_change_password' => true,
             ]);
         });
+
+        if (! $this->mailSetting->isOperational()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Akaun dicipta. E-mel sistem dimatikan atau belum dikonfigurasi — sila salin kata laluan sementara di bawah dan berikan kepada pengguna.',
+                'temp_password' => $temporaryPassword,
+                'email' => $user->email,
+            ]);
+        }
 
         try {
             Notification::route('mail', [$user->email => $user->name])
@@ -162,6 +180,15 @@ final class UserController extends Controller
             'password' => $temporaryPassword,
             'must_change_password' => true,
         ]);
+
+        if (! $this->mailSetting->isOperational()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kata laluan ditetapkan semula. E-mel sistem dimatikan atau belum dikonfigurasi — sila salin kata laluan sementara di bawah dan berikan kepada pengguna.',
+                'temp_password' => $temporaryPassword,
+                'email' => $user->email,
+            ]);
+        }
 
         try {
             Notification::route('mail', [$user->email => $user->name])
@@ -236,6 +263,13 @@ final class UserController extends Controller
 
     public function resendInvitation(UserInvitation $invitation): JsonResponse
     {
+        if (! $this->mailSetting->isOperational()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jemputan tidak dapat dihantar semula: e-mel sistem dimatikan atau belum dikonfigurasi.',
+            ], 422);
+        }
+
         $invitation->update([
             'token' => Str::random(64),
             'expires_at' => now()->addHours(24),

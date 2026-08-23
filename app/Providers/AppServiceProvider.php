@@ -43,11 +43,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(MessageSending::class, function (): ?bool {
             $mailSetting = app(MailSettingService::class);
 
-            if ($mailSetting->enabled() || $mailSetting->consumeSendBypass()) {
+            if ($mailSetting->isOperational() || $mailSetting->consumeSendBypass()) {
                 return null;
             }
 
-            Log::info('E-mel dimatikan: penghantaran e-mel dilangkau.');
+            Log::info($mailSetting->enabled()
+                ? 'E-mel belum dikonfigurasi: penghantaran e-mel dilangkau.'
+                : 'E-mel dimatikan: penghantaran e-mel dilangkau.');
 
             return false;
         });
@@ -79,6 +81,14 @@ class AppServiceProvider extends ServiceProvider
                     'turnstileEnabled' => $turnstile->isActive(),
                     'turnstileSiteKey' => $turnstile->siteKey(),
                 ]);
+            }
+        );
+
+        // Let email-dependent views hide/disable features that can't work right now.
+        View::composer(
+            ['auth.login', 'admin.kawalan.pengguna'],
+            function ($view): void {
+                $view->with('mailOperational', app(MailSettingService::class)->isOperational());
             }
         );
     }

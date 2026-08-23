@@ -11,6 +11,7 @@ use App\Models\MemberStatus;
 use App\Models\Payment;
 use App\Models\Yuran;
 use App\Services\FileUploadService;
+use App\Services\MailSettingService;
 use App\Services\MemberService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,7 +22,7 @@ final class AdminMemberRegistrationPaymentTest extends TestCase
 
     private function makeDependencies(): MemberService
     {
-        return new MemberService(new FileUploadService);
+        return new MemberService(new FileUploadService, new MailSettingService);
     }
 
     private function seedBasicReferenceData(): array
