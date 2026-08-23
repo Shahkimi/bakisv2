@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Member;
 use App\Models\Payment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -109,6 +110,77 @@ final readonly class PaymentService
             'recordsFiltered' => $filteredRecords,
             'data' => $data->map(fn (Payment $payment) => $this->formatRow($payment)),
         ]);
+    }
+
+    /**
+     * Public-safe DataTables payload for one member's own payment history
+     * (the "Sejarah Pembayaran" table on the /semak result page). Unlike
+     * {@see getDataTableData()} this is scoped to a single member and never
+     * exposes admin-only fields (catatan_admin, waiver details, approver
+     * names) — the caller has already proven ownership via `no_kp` before
+     * this is reached (see SemakController::paymentsData()).
+     */
+    public function getMemberPaymentsDataTable(Member $member, Request $request, ?string $checkedNoKp): JsonResponse
+    {
+        $query = Payment::query()
+            ->where('member_id', $member->id)
+            ->with('yuran:id,jenis_yuran,jumlah')
+            ->select(['id', 'member_id', 'yuran_id', 'tahun_bayar', 'status']);
+
+        $totalRecords = (clone $query)->count();
+        $filteredRecords = $totalRecords;
+
+        $this->applyMemberPaymentsOrdering($query, $request);
+        $data = $this->getPaginatedData($query, $request);
+
+        return response()->json([
+            'draw' => $request->integer('draw'),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data->map(fn (Payment $payment) => $this->formatMemberPaymentRow($payment, $checkedNoKp)),
+        ]);
+    }
+
+    private function applyMemberPaymentsOrdering(Builder $query, Request $request): void
+    {
+        $order = $request->input('order.0');
+        if (! $order || ! isset($order['column'], $order['dir'])) {
+            $query->orderByDesc('tahun_bayar')->orderByDesc('id');
+
+            return;
+        }
+
+        $columnIndex = (int) $order['column'];
+        $dir = $order['dir'] === 'asc' ? 'asc' : 'desc';
+
+        // Jumlah/Jenis are accessors derived from the `yuran` relation, not real
+        // columns, so only Tahun and Status (both marked orderable client-side)
+        // can be ordered at the database level.
+        $columns = [0 => 'tahun_bayar', 3 => 'status'];
+        $column = $columns[$columnIndex] ?? 'tahun_bayar';
+
+        $query->orderBy($column, $dir)->orderBy('id', $dir);
+    }
+
+    private function formatMemberPaymentRow(Payment $payment, ?string $checkedNoKp): array
+    {
+        $jenisLabel = match ($payment->jenis) {
+            'pendaftaran_baru' => 'Pendaftaran Baru',
+            'pembaharuan' => 'Pembaharuan',
+            default => $payment->yuran?->jenis_yuran ?? '–',
+        };
+
+        $receiptUrl = $payment->status === Payment::STATUS_APPROVED && filled($checkedNoKp)
+            ? route('semak.payments.receipt', $payment).'?'.http_build_query(['no_kp' => $checkedNoKp])
+            : null;
+
+        return [
+            'tahun_bayar' => $payment->tahun_bayar,
+            'jumlah_formatted' => 'RM '.number_format((float) $payment->jumlah, 2),
+            'jenis_label' => $jenisLabel,
+            'status' => $payment->status,
+            'receipt_url' => $receiptUrl,
+        ];
     }
 
     private function applySearch(Builder $query, Request $request): void

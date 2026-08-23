@@ -11,6 +11,13 @@
     $needsRenewal = (bool) ($result['needs_renewal'] ?? false);
     $showPayment = in_array($status, ['expired', 'rejected'], true) || ($status === 'active' && $needsRenewal);
     $showRenewalSidebar = $showPayment || $status === 'pending';
+    // Fully paid & up to date — no renewal step needed: 2-column layout (officer info | payment history).
+    $showBentoSuccess = (bool) $member && ! $showRenewalSidebar;
+    $contentGridClass = match(true) {
+        $showRenewalSidebar => 'grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-5 lg:items-start',
+        $showBentoSuccess => 'grid grid-cols-1 xl:grid-cols-5 gap-5 lg:gap-6 lg:items-start',
+        default => 'max-w-2xl mx-auto space-y-5',
+    };
 
     $config = match($status) {
         'active' => [
@@ -120,7 +127,7 @@
 
 {{-- Page --}}
 <div class="min-h-screen bg-slate-50 dark:bg-slate-950 py-6 sm:py-10 px-4 sm:px-6">
-    <div class="max-w-5xl mx-auto space-y-5">
+    <div class="{{ $showBentoSuccess ? 'max-w-6xl mx-auto space-y-5' : 'max-w-5xl mx-auto space-y-5' }}">
 
         {{-- Back link --}}
         <div class="flex justify-end">
@@ -134,198 +141,39 @@
         </div>
 
         {{-- ── Content Grid ─────────────────────────────────────────────────── --}}
-        <div class="{{ $showRenewalSidebar ? 'grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px] gap-5 lg:items-start' : 'max-w-2xl mx-auto space-y-5' }}">
+        <div class="{{ $contentGridClass }}">
+
+            @if($showBentoSuccess)
+                {{-- ── 2-column layout: officer info | payment history ──────────── --}}
+                <div class="semak-form-enter xl:col-span-2 min-w-0">
+                    @include('semak.partials.member-info-card')
+                </div>
+                <div class="semak-form-enter xl:col-span-3 min-w-0" style="animation-delay:.08s">
+                    @include('semak.partials.payment-history-card')
+                </div>
+            @else
 
             {{-- Left column --}}
             <div class="space-y-4 min-w-0">
 
                 @if($member)
-                {{-- Maklumat Ahli --}}
-                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
-                        <span class="w-1 h-4 rounded-full bg-teal-500 shrink-0"></span>
-                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Maklumat Ahli</h3>
+                    @include('semak.partials.member-info-card')
+                    @include('semak.partials.payment-history-card')
+                @else
+                    {{-- No. KP not found — bare notice, no member/payment data to show --}}
+                    <div class="rounded-xl border {{ $config['noticeBox'] }} p-3.5 space-y-2">
+                        <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider {{ $config['noticeLabel'] }}">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
+                            </svg>
+                            {{ $config['title'] }}
+                        </p>
+                        @if($checkedNoKp)
+                            <p class="text-xs text-slate-500 dark:text-slate-400">No. KP: <span class="font-mono font-semibold">{{ $checkedNoKp }}</span></p>
+                        @endif
+                        <p class="text-xs text-slate-700 dark:text-slate-300">{{ $config['summary'] }}</p>
+                        <p class="text-[11px] {{ $config['noticeSub'] }}">{{ $config['nextStep'] }}</p>
                     </div>
-                    <div class="p-5 sm:p-6">
-                        @php $memberInitial = strtoupper(mb_substr($member->nama ?? 'A', 0, 1)); @endphp
-                        <div class="flex items-center gap-4 pb-5 mb-5 border-b border-slate-100 dark:border-slate-700/60">
-                            <div class="relative h-16 w-16 shrink-0">
-                                @if($memberPhotoUrl)
-                                    <img src="{{ $memberPhotoUrl }}" alt="" width="64" height="64"
-                                         class="member-avatar-photo h-16 w-16 rounded-2xl object-cover shadow ring-2 ring-white dark:ring-slate-700"
-                                         onerror="this.classList.add('hidden'); document.getElementById('member-avatar-fallback-{{ $member->id ?? 'x' }}')?.classList.remove('hidden');">
-                                @endif
-                                <div id="member-avatar-fallback-{{ $member->id ?? 'x' }}"
-                                     class="{{ $memberPhotoUrl ? 'hidden' : '' }} h-16 w-16 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow ring-2 ring-white dark:ring-slate-700">
-                                    <span class="text-white font-bold text-xl" aria-hidden="true">{{ $memberInitial }}</span>
-                                </div>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="font-bold text-slate-900 dark:text-slate-50 text-lg leading-tight truncate">{{ $member->nama ?? '–' }}</p>
-                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 font-mono break-all">{{ $member->no_kp ?? '–' }}</p>
-                            </div>
-                            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold {{ $config['badge'] }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $config['dot'] }}" aria-hidden="true"></span>
-                                {{ strtoupper($status) }}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 px-4 py-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">No. Ahli</p>
-                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 font-mono">{{ $member->no_ahli ?? '–' }}</p>
-                            </div>
-                            <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 px-4 py-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Status Rekod</p>
-                                @php
-                                    $recordStatus = strtolower((string) ($member->status ?? ''));
-                                    $recordBadge = match($recordStatus) {
-                                        'active', 'aktif' => 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
-                                        'expired'         => 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
-                                        default           => 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600',
-                                    };
-                                @endphp
-                                <span class="inline-flex text-[11px] font-bold px-2.5 py-0.5 rounded-lg border {{ $recordBadge }}">
-                                    {{ strtoupper($member->status ?? '–') }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Status notice --}}
-                <div class="rounded-xl border {{ $config['noticeBox'] }} p-3.5 space-y-2">
-                    <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider {{ $config['noticeLabel'] }}">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $config['icon'] }}"/>
-                        </svg>
-                        {{ $config['title'] }}
-                    </p>
-                    @if($checkedNoKp && ! $member)
-                        <p class="text-xs text-slate-500 dark:text-slate-400">No. KP: <span class="font-mono font-semibold">{{ $checkedNoKp }}</span></p>
-                    @endif
-                    <p class="text-xs text-slate-700 dark:text-slate-300">{{ $config['summary'] }}</p>
-                    <p class="text-[11px] {{ $config['noticeSub'] }}">{{ $config['nextStep'] }}</p>
-                    @if($showPayment)
-                        <p class="text-[11px] font-semibold {{ $config['noticeSub'] }}">Yuran pembaharuan: RM10.00 / tahun</p>
-                    @endif
-                </div>
-
-                @if($member)
-                {{-- Payment history --}}
-                <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center gap-2.5">
-                        <span class="w-1 h-4 rounded-full bg-indigo-500 shrink-0"></span>
-                        <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Sejarah Pembayaran</h3>
-                    </div>
-                    @if(empty($member->payments) || $member->payments->isEmpty())
-                        <div class="py-12 flex flex-col items-center gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-slate-300 dark:text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                                </svg>
-                            </div>
-                            <p class="text-sm font-medium text-slate-400 dark:text-slate-500">Tiada rekod pembayaran.</p>
-                        </div>
-                    @else
-                        {{-- Desktop table --}}
-                        <div class="hidden sm:block overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="bg-slate-50/70 dark:bg-slate-900/30">
-                                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Tahun</th>
-                                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Jumlah</th>
-                                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Jenis</th>
-                                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Status</th>
-                                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Resit</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                    @foreach($member->payments->sortByDesc('tahun_bayar') as $p)
-                                    <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/20 transition-colors">
-                                        <td class="px-5 py-4 font-bold text-slate-800 dark:text-slate-200">{{ $p->tahun_bayar }}</td>
-                                        <td class="px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300">RM {{ number_format($p->jumlah, 2) }}</td>
-                                        <td class="px-5 py-4 text-slate-500 dark:text-slate-400">
-                                            {{ $p->jenis === 'pendaftaran_baru' ? 'Pendaftaran Baru' : ($p->jenis === 'pembaharuan' ? 'Pembaharuan' : ($p->yuran?->jenis_yuran ?? '–')) }}
-                                        </td>
-                                        <td class="px-5 py-4">
-                                            @if($p->status === 'approved')
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800">
-                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                                                    Disahkan
-                                                </span>
-                                            @elseif($p->status === 'pending')
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
-                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>
-                                                    Menunggu
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800">
-                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
-                                                    Ditolak
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-5 py-4">
-                                            @if($p->status === 'approved' && filled($checkedNoKp))
-                                                <a href="{{ route('semak.payments.receipt', $p) }}?{{ http_build_query(['no_kp' => $checkedNoKp]) }}"
-                                                   class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors no-underline"
-                                                   aria-label="Muat turun resit PDF">
-                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                                                    PDF
-                                                </a>
-                                            @else
-                                                <span class="text-slate-200 dark:text-slate-600">—</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        {{-- Mobile list --}}
-                        <div class="block sm:hidden divide-y divide-slate-100 dark:divide-slate-700/50">
-                            @foreach($member->payments->sortByDesc('tahun_bayar') as $p)
-                            <div class="p-4 space-y-2.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    <div>
-                                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $p->tahun_bayar }}</span>
-                                        <span class="ml-2 font-mono text-sm text-slate-500 dark:text-slate-400">RM {{ number_format($p->jumlah, 2) }}</span>
-                                    </div>
-                                    @if($p->status === 'approved')
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                                            Disahkan
-                                        </span>
-                                    @elseif($p->status === 'pending')
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>
-                                            Menunggu
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
-                                            Ditolak
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs text-slate-400 dark:text-slate-500">
-                                        {{ $p->jenis === 'pendaftaran_baru' ? 'Pendaftaran Baru' : ($p->jenis === 'pembaharuan' ? 'Pembaharuan' : ($p->yuran?->jenis_yuran ?? '–')) }}
-                                    </span>
-                                    @if($p->status === 'approved' && filled($checkedNoKp))
-                                        <a href="{{ route('semak.payments.receipt', $p) }}?{{ http_build_query(['no_kp' => $checkedNoKp]) }}"
-                                           class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800 no-underline">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                                            PDF
-                                        </a>
-                                    @endif
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
                 @endif
             </div>
 
@@ -745,6 +593,7 @@
 
             </div>
             @endif
+            @endif
         </div>
     </div>
 </div>
@@ -776,10 +625,117 @@
     </div>
 </div>
 
+@push('styles')
+<link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet" />
+<style>
+/* ── Sejarah Pembayaran DataTable — reskinned to match the card UI ── */
+#semak-payments-table_wrapper { font-size: .8125rem; }
+
+#semak-payments-table_wrapper .dataTables_length { padding: .75rem 1.25rem 0; }
+#semak-payments-table_wrapper .dataTables_length label {
+    display: inline-flex; align-items: center; gap: .5rem; margin: 0;
+    color: #64748b; font-weight: 500; font-size: .6875rem; text-transform: uppercase; letter-spacing: .04em;
+}
+.dark #semak-payments-table_wrapper .dataTables_length label { color: #94a3b8; }
+#semak-payments-table_wrapper .dataTables_length select {
+    border: 1.5px solid #e2e8f0; border-radius: .5rem; padding: .3rem 1.75rem .3rem .625rem;
+    background: #fff; color: #1e293b; font-size: .8125rem; font-weight: 600; cursor: pointer; outline: none;
+    transition: border-color .15s, box-shadow .15s; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.19l3.71-3.96a.75.75 0 111.1 1.02l-4.25 4.5a.75.75 0 01-1.1 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .5rem center; background-size: 1rem;
+}
+#semak-payments-table_wrapper .dataTables_length select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+.dark #semak-payments-table_wrapper .dataTables_length select { background-color: #1e293b; border-color: #475569; color: #e2e8f0; }
+
+table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !important; margin: 0 !important; }
+#semak-payments-table thead th {
+    position: relative; padding: .875rem 1.25rem !important; border: 0 !important; cursor: pointer; user-select: none;
+    transition: color .15s;
+}
+#semak-payments-table thead th.sorting_disabled { cursor: default; }
+#semak-payments-table thead th:not(.sorting_disabled):hover { color: #4f46e5; }
+.dark #semak-payments-table thead th:not(.sorting_disabled):hover { color: #818cf8; }
+#semak-payments-table thead th.sorting:after,
+#semak-payments-table thead th.sorting_asc:after,
+#semak-payments-table thead th.sorting_desc:after {
+    content: '⇅'; position: absolute; right: .625rem; top: 50%; transform: translateY(-50%);
+    font-size: .7rem; opacity: .35; transition: opacity .15s;
+}
+#semak-payments-table thead th.sorting_asc:after { content: '↑'; opacity: 1; color: #4f46e5; }
+#semak-payments-table thead th.sorting_desc:after { content: '↓'; opacity: 1; color: #4f46e5; }
+.dark #semak-payments-table thead th.sorting_asc:after,
+.dark #semak-payments-table thead th.sorting_desc:after { color: #818cf8; }
+
+#semak-payments-table tbody tr { transition: background-color .12s; }
+#semak-payments-table tbody tr:hover { background: #f8fafc; }
+.dark #semak-payments-table tbody tr:hover { background: rgba(51,65,85,.35); }
+#semak-payments-table tbody td { border-top: 1px solid #f1f5f9 !important; }
+.dark #semak-payments-table tbody td { border-top-color: #334155 !important; }
+#semak-payments-table tbody tr.odd,
+#semak-payments-table tbody tr.even { background: transparent; }
+
+#semak-payments-table_wrapper .dataTables_info {
+    padding: .875rem 1.25rem; color: #94a3b8; font-size: .75rem;
+}
+.dark #semak-payments-table_wrapper .dataTables_info { color: #64748b; }
+#semak-payments-table_wrapper .dataTables_paginate {
+    padding: .75rem 1.25rem; display: flex !important; align-items: center; gap: .25rem;
+}
+#semak-payments-table_wrapper .dataTables_paginate .paginate_button {
+    display: inline-flex !important; align-items: center; justify-content: center;
+    min-width: 1.875rem; height: 1.875rem; padding: 0 .5rem; margin: 0 !important; border-radius: .5rem;
+    border: 1px solid transparent !important; color: #64748b; font-size: .75rem; font-weight: 600; cursor: pointer;
+    transition: all .15s; background: transparent !important;
+}
+#semak-payments-table_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) { background: #eef2ff !important; color: #4338ca; }
+#semak-payments-table_wrapper .dataTables_paginate .paginate_button.current {
+    background: #4f46e5 !important; color: #fff !important; box-shadow: 0 1px 3px rgba(79,70,229,.35);
+}
+#semak-payments-table_wrapper .dataTables_paginate .paginate_button.disabled { opacity: .35; cursor: not-allowed; }
+.dark #semak-payments-table_wrapper .dataTables_paginate .paginate_button { color: #94a3b8; }
+.dark #semak-payments-table_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) { background: rgba(99,102,241,.18) !important; color: #a5b4fc; }
+.dark #semak-payments-table_wrapper .dataTables_paginate .paginate_button.current { background: #6366f1 !important; }
+
+#semak-payments-table_wrapper .dataTables_processing {
+    background: rgba(255,255,255,.94) !important; border-radius: .75rem; box-shadow: 0 4px 16px rgba(15,23,42,.08);
+    color: #4f46e5 !important; font-weight: 600; padding: .5rem 1rem !important; border: 0 !important;
+}
+.dark #semak-payments-table_wrapper .dataTables_processing { background: rgba(30,41,59,.94) !important; color: #a5b4fc !important; }
+
+#semak-payments-mobile > div { transition: background-color .12s; }
+#semak-payments-mobile > div:active { background: #f8fafc; }
+.dark #semak-payments-mobile > div:active { background: rgba(51,65,85,.35); }
+
+/* ── Entrance animation — same convention as semak/index.blade.php ── */
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes semak-form-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .semak-form-enter { animation: semak-form-rise .45s cubic-bezier(.16,1,.3,1) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .semak-form-enter { animation: none !important; }
+}
+
+/* Inline copy button (e.g. No. KP) */
+.js-copy-value.copy-inline {
+    display: inline-flex; align-items: center; gap: .3rem; cursor: pointer;
+    border-radius: .375rem; padding: .0625rem .25rem; margin: -.0625rem -.25rem;
+    transition: background-color .15s ease;
+}
+.js-copy-value.copy-inline:hover { background: rgba(20,184,166,.1); }
+.dark .js-copy-value.copy-inline:hover { background: rgba(45,212,191,.12); }
+.js-copy-value.copy-inline:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(20,184,166,.5); }
+.js-copy-value.copy-inline .js-copy-icon { opacity: .45; transition: opacity .15s ease; }
+.js-copy-value.copy-inline:hover .js-copy-icon,
+.js-copy-value.copy-inline:focus-visible .js-copy-icon { opacity: 1; }
+</style>
+@endpush
+
 @push('scripts')
 @if (! empty($turnstileEnabled))
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 @endif
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script>
     function showSemakToast(message, variant) {
         const root = document.getElementById('semak-toast-root');
@@ -900,6 +856,30 @@
                 navigator.clipboard.writeText(number).then(succeed).catch(() => fallbackCopy(number, succeed));
             } else {
                 fallbackCopy(number, succeed);
+            }
+        });
+    });
+
+    // Generic "click to copy" for member identifiers (No. Ahli / No. KP) — reuses the same
+    // clipboard + fallback + toast mechanics as the bank account copy button above.
+    document.querySelectorAll('.js-copy-value').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const value = btn.dataset.copyValue;
+            const label = btn.dataset.copyLabel || 'Nilai';
+            if (!value) return;
+            const iconEl = btn.querySelector('.js-copy-icon');
+            const originalIcon = iconEl ? iconEl.innerHTML : '';
+            const succeed = () => {
+                showSemakToast(label + ' disalin ke papan keratan.', 'success');
+                if (iconEl) {
+                    iconEl.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>`;
+                    setTimeout(() => { iconEl.innerHTML = originalIcon; }, 1800);
+                }
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(value).then(succeed).catch(() => fallbackCopy(value, succeed));
+            } else {
+                fallbackCopy(value, succeed);
             }
         });
     });
@@ -1034,6 +1014,105 @@
                 Menghantar...`;
         });
     }
+</script>
+<script>
+(function () {
+    var tableEl = document.getElementById('semak-payments-table');
+    if (!tableEl || typeof jQuery === 'undefined') return;
+
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    var statusBadges = {
+        approved: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>Disahkan</span>',
+        pending: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/></svg>Menunggu</span>',
+        rejected: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>Ditolak</span>',
+    };
+
+    function statusBadge(status) {
+        return statusBadges[status] || statusBadges.rejected;
+    }
+
+    function receiptCell(row, mobile) {
+        if (!row.receipt_url) {
+            return mobile ? '' : '<span class="text-slate-200 dark:text-slate-600">—</span>';
+        }
+        var cls = mobile
+            ? 'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800 no-underline'
+            : 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors no-underline';
+        return '<a href="' + row.receipt_url + '" class="' + cls + '" aria-label="Muat turun resit PDF"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>PDF</a>';
+    }
+
+    var emptyStateHtml = '<div class="py-12 flex flex-col items-center gap-3">' +
+        '<div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">' +
+        '<svg class="w-6 h-6 text-slate-300 dark:text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>' +
+        '</div><p class="text-sm font-medium text-slate-400 dark:text-slate-500">Tiada rekod pembayaran.</p></div>';
+
+    function renderMobileList(rows) {
+        var mobileEl = document.getElementById('semak-payments-mobile');
+        if (!mobileEl) return;
+        if (!rows.length) {
+            mobileEl.innerHTML = emptyStateHtml;
+            return;
+        }
+        mobileEl.innerHTML = rows.map(function (row) {
+            return '<div class="p-4 space-y-2.5">' +
+                '<div class="flex items-center justify-between gap-2">' +
+                '<div><span class="font-bold text-slate-800 dark:text-slate-200">' + escapeHtml(row.tahun_bayar) + '</span>' +
+                '<span class="ml-2 font-mono text-sm text-slate-500 dark:text-slate-400">' + escapeHtml(row.jumlah_formatted) + '</span></div>' +
+                statusBadge(row.status) +
+                '</div>' +
+                '<div class="flex items-center justify-between gap-2">' +
+                '<span class="text-xs text-slate-400 dark:text-slate-500">' + escapeHtml(row.jenis_label) + '</span>' +
+                receiptCell(row, true) +
+                '</div></div>';
+        }).join('');
+    }
+
+    var table = jQuery(tableEl).DataTable({
+        processing: true,
+        serverSide: true,
+        searching: false,
+        ajax: {
+            url: '{{ route("semak.payments.data") }}',
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            data: function (d) { d.no_kp = '{{ $checkedNoKp }}'; }
+        },
+        columns: [
+            { data: 'tahun_bayar', className: 'px-5 py-4 font-bold text-slate-800 dark:text-slate-200' },
+            { data: 'jumlah_formatted', orderable: false, className: 'px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300' },
+            { data: 'jenis_label', orderable: false, className: 'px-5 py-4 text-slate-500 dark:text-slate-400' },
+            { data: 'status', className: 'px-5 py-4', render: function (status) { return statusBadge(status); } },
+            { data: null, orderable: false, className: 'px-5 py-4', render: function (row) { return receiptCell(row, false); } },
+        ],
+        order: [[0, 'desc']],
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25], [5, 10, 25]],
+        language: {
+            processing: 'Memuatkan…',
+            lengthMenu: 'Papar _MENU_ rekod',
+            info: 'Rekod _START_–_END_ daripada _TOTAL_',
+            infoEmpty: 'Tiada rekod',
+            infoFiltered: '',
+            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
+            emptyTable: emptyStateHtml,
+        },
+        drawCallback: function () {
+            var api = this.api();
+            renderMobileList(api.rows({ page: 'current' }).data().toArray());
+
+            // Hide pagination chrome entirely when everything already fits on one page.
+            var info = api.page.info();
+            var fitsOnePage = info.recordsTotal <= info.length;
+            var wrapper = jQuery(tableEl).closest('.dataTables_wrapper');
+            wrapper.find('.dataTables_paginate, .dataTables_length').toggle(!fitsOnePage);
+        },
+    });
+})();
 </script>
 @endpush
 

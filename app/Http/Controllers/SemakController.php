@@ -10,9 +10,12 @@ use App\Http\Requests\RenewalPaymentRequest;
 use App\Models\Jabatan;
 use App\Models\Jawatan;
 use App\Models\Payment;
+use App\Models\Member;
 use App\Models\PaymentAccount;
 use App\Services\MemberService;
 use App\Services\PaymentReceiptPdfService;
+use App\Services\PaymentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,6 +30,7 @@ class SemakController extends Controller
     public function __construct(
         private readonly MemberService $memberService,
         private readonly PaymentReceiptPdfService $paymentReceiptPdfService,
+        private readonly PaymentService $paymentService,
     ) {}
 
     public function index(Request $request): View
@@ -130,6 +134,34 @@ class SemakController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    /**
+     * Server-side DataTables payload for the "Sejarah Pembayaran" table on the
+     * public semak result page. Scoped strictly to the member matching the
+     * given `no_kp` — same proof-of-ownership requirement as
+     * {@see downloadPaymentReceipt()} — so this can never be used to browse
+     * another member's payment history.
+     */
+    public function paymentsData(Request $request): JsonResponse
+    {
+        $noKpRaw = $request->query('no_kp');
+        $noKp = is_string($noKpRaw) ? preg_replace('/\D/', '', $noKpRaw) : '';
+
+        $member = strlen((string) $noKp) === 12
+            ? Member::where('no_kp', $noKp)->first()
+            : null;
+
+        if (! $member) {
+            return response()->json([
+                'draw' => $request->integer('draw'),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+
+        return $this->paymentService->getMemberPaymentsDataTable($member, $request, $noKp);
     }
 
     public function bayar(RenewalPaymentRequest $request): RedirectResponse

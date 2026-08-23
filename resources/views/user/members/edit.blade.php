@@ -15,11 +15,7 @@
         'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
     ];
     $statusClass = $statusColors[$listStatusCode ?? 'tidak_aktif'] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
-    $memberListStatusId = $listStatusCode !== null ? $statuses->firstWhere('code', $listStatusCode)?->id : null;
-    $memberStatusSelectId = old('member_status_id');
-    if ($memberStatusSelectId === null || $memberStatusSelectId === '') {
-        $memberStatusSelectId = $memberListStatusId ?? $member->member_status_id;
-    }
+    $memberStatusSelectId = old('member_status_id', $member->member_status_id);
     if (! $statuses->contains(fn ($s) => (string) $s->id === (string) $memberStatusSelectId)) {
         $memberStatusSelectId = $member->member_status_id;
     }
@@ -182,7 +178,7 @@
                 @method('PUT')
 
                 {{-- Section 1: Maklumat Keanggotaan --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
+                <div data-section="membership" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
                      :class="openSection === 'membership' ? 'ring-2 ring-blue-500/20 shadow-lg' : 'shadow-sm'">
                     <button type="button"
                             @click="openSection = openSection === 'membership' ? '' : 'membership'"
@@ -264,7 +260,7 @@
                 </div>
 
                 {{-- Section 2: Maklumat Peribadi --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
+                <div data-section="personal" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
                      :class="openSection === 'personal' ? 'ring-2 ring-indigo-500/20 shadow-lg' : 'shadow-sm'">
                     <button type="button"
                             @click="openSection = openSection === 'personal' ? '' : 'personal'"
@@ -335,7 +331,7 @@
                 </div>
 
                 {{-- Section 3: Maklumat Alamat --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
+                <div data-section="address" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300"
                      :class="openSection === 'address' ? 'ring-2 ring-emerald-500/20 shadow-lg' : 'shadow-sm'">
                     <button type="button"
                             @click="openSection = openSection === 'address' ? '' : 'address'"
@@ -376,12 +372,16 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label for="negeri" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Negeri <span class="text-red-500">*</span></label>
+                                    <label for="negeri" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Negeri</label>
                                     <div class="relative">
-                                        <select name="negeri" id="negeri" required class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none pr-10">
+                                        @php
+                                            $negeriSemasa = (string) old('negeri', $member->negeri ?? '');
+                                        @endphp
+                                        <select name="negeri" id="negeri" class="block w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none pr-10">
                                             <option value="">Pilih Negeri</option>
                                             @foreach(['Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Perak', 'Perlis', 'Pulau Pinang', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu', 'Wilayah Persekutuan Kuala Lumpur', 'Wilayah Persekutuan Labuan', 'Wilayah Persekutuan Putrajaya'] as $negeri)
-                                                <option value="{{ $negeri }}" {{ old('negeri', $member->negeri) == $negeri ? 'selected' : '' }}>{{ $negeri }}</option>
+                                                {{-- Legacy rows store negeri in uppercase — match case-insensitively --}}
+                                                <option value="{{ $negeri }}" {{ strcasecmp($negeriSemasa, $negeri) === 0 ? 'selected' : '' }}>{{ $negeri }}</option>
                                             @endforeach
                                         </select>
                                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -642,6 +642,22 @@ $(document).ready(function() {
                 });
             });
             return false;
+        });
+
+        // Medan wajib dalam seksyen tertutup (display:none) tidak boleh difokus oleh
+        // browser semasa validasi natif, jadi submit disekat tanpa sebarang mesej.
+        // Buka seksyen berkenaan dan paparkan gelembung ralat supaya ia kelihatan.
+        form.querySelectorAll('button[type="submit"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (form.checkValidity()) return;
+                const invalid = form.querySelector(':invalid');
+                const sectionEl = invalid ? invalid.closest('[data-section]') : null;
+                const alpineRoot = form.closest('[x-data]');
+                if (sectionEl && alpineRoot && window.Alpine) {
+                    Alpine.$data(alpineRoot).openSection = sectionEl.dataset.section;
+                }
+                setTimeout(function() { form.reportValidity(); }, 350);
+            });
         });
     }
 
