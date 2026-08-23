@@ -5,6 +5,9 @@ on:
     branches:
       - new_user_role
 
+env:
+  DEPLOY_URL: https://bakishsb.kdh.moh.gov.my/deploy.php
+
 jobs:
   trigger-deploy:
     runs-on: ubuntu-latest
@@ -13,4 +16,4 @@ jobs:
         run: |
           curl --fail --show-error --silent --max-time 600 \
             -H "X-Deploy-Token: ${{ secrets.DEPLOY_TOKEN }}" \
-            "${{ secrets.DEPLOY_URL }}"
+            "$DEPLOY_URL"
