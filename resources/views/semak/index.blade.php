@@ -12,6 +12,18 @@
         'Pulau Pinang', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu',
         'Wilayah Persekutuan Kuala Lumpur', 'Wilayah Persekutuan Labuan', 'Wilayah Persekutuan Putrajaya',
     ];
+    $semakRegHasAccounts = !empty($paymentAccounts) && count($paymentAccounts) > 0;
+
+    $regStep1Fields = ['nama', 'no_kp', 'jantina', 'jabatan_id', 'jawatan_id'];
+    $regStep2Fields = ['email', 'alamat1', 'alamat2', 'poskod', 'bandar', 'negeri', 'no_tel', 'no_hp'];
+    $regStep3Fields = ['bukti_bayaran', 'cf-turnstile-response'];
+    $regInitialStep = 0;
+    if ($errors->hasAny($regStep2Fields) && ! $errors->hasAny($regStep1Fields)) {
+        $regInitialStep = 1;
+    }
+    if ($errors->hasAny($regStep3Fields) && ! $errors->hasAny(array_merge($regStep1Fields, $regStep2Fields))) {
+        $regInitialStep = 2;
+    }
 @endphp
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/40 to-stone-100 dark:from-slate-950 dark:via-gray-900 dark:to-slate-950 pb-28 xl:pb-10 py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
     <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
@@ -157,16 +169,41 @@
                         <h2 class="text-lg font-bold text-slate-900 dark:text-white">Daftar ahli baharu</h2>
                         <p class="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                             No. KP <span class="font-mono font-semibold text-teal-800 dark:text-teal-200">{{ $prefillNoKp ?: '—' }}</span> tiada dalam rekod.
-                            Lengkapkan 3 bahagian di bawah. Yuran pendaftaran <strong>RM12.00</strong>.
+                            Lengkapkan 3 langkah di bawah. Yuran pendaftaran <strong>RM12.00</strong>.
                         </p>
                     </div>
 
-                    <form id="register-member-form" action="{{ route('semak.register') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                    {{-- Step indicator --}}
+                    <div class="mb-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-5" aria-label="Langkah pendaftaran">
+                        <div class="flex items-center">
+                            @foreach([['1','Peribadi'],['2','Perhubungan'],['3','Pembayaran']] as $i => $step)
+                                <div class="flex items-center {{ $i < 2 ? 'flex-1 min-w-0' : '' }}">
+                                    <div class="flex flex-col items-center">
+                                        <div id="reg-step-dot-{{ $i }}" data-reg-step="{{ $i }}"
+                                             class="reg-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
+                                             {{ $i === $regInitialStep ? 'bg-teal-600 text-white ring-4 ring-teal-100 dark:ring-teal-900/60 scale-105' : ($i < $regInitialStep ? 'bg-emerald-600 text-white ring-2 ring-emerald-100 dark:ring-emerald-900/60' : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500') }}">
+                                            {{ $i < $regInitialStep ? '✓' : $step[0] }}
+                                        </div>
+                                        <span id="reg-step-label-{{ $i }}"
+                                              class="text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors
+                                              {{ $i === $regInitialStep ? 'text-teal-700 dark:text-teal-400' : ($i < $regInitialStep ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500') }}">
+                                            {{ $step[1] }}
+                                        </span>
+                                    </div>
+                                    @if($i < 2)
+                                    <div class="reg-step-connector flex-1 h-0.5 mx-2 mb-5 rounded-full transition-all duration-300 {{ $i < $regInitialStep ? 'bg-teal-400 dark:bg-teal-600' : 'bg-slate-200 dark:bg-slate-600' }}" data-connector-end="{{ $i }}"></div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <form id="register-member-form" action="{{ route('semak.register') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                         @csrf
                         <input type="hidden" name="no_kp" value="{{ $prefillNoKp }}">
 
-                        {{-- 1 Peribadi --}}
-                        <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 p-4 sm:p-6 space-y-4 sm:space-y-5 register-section">
+                        {{-- Step 1: Peribadi --}}
+                        <div id="regStep1" class="{{ $regInitialStep === 0 ? '' : 'hidden' }} rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 p-4 sm:p-6 space-y-4 sm:space-y-5">
                             <div class="flex items-center gap-3 pb-1 border-b border-slate-200/80 dark:border-slate-600/80">
                                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white shadow-sm">1</span>
                                 <div>
@@ -209,11 +246,25 @@
                                     @error('jawatan_id')<p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
                             </div>
+
+                            <button type="button" id="regGoStep2"
+                                class="w-full min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm shadow-teal-500/20 transition-all">
+                                Seterusnya: Perhubungan
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                                </svg>
+                            </button>
                         </div>
 
-                        {{-- 2 Perhubungan --}}
-                        <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 p-4 sm:p-6 space-y-4 sm:space-y-5 register-section">
+                        {{-- Step 2: Perhubungan --}}
+                        <div id="regStep2" class="{{ $regInitialStep === 1 ? '' : 'hidden' }} rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 p-4 sm:p-6 space-y-4 sm:space-y-5">
                             <div class="flex items-center gap-3 pb-1 border-b border-slate-200/80 dark:border-slate-600/80">
+                                <button type="button" id="regBackTo1" aria-label="Kembali ke Maklumat Peribadi"
+                                    class="shrink-0 w-8 h-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                                    </svg>
+                                </button>
                                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white shadow-sm">2</span>
                                 <div>
                                     <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Maklumat perhubungan</h3>
@@ -271,17 +322,110 @@
                                     <input type="text" name="no_hp" id="no_hp" value="{{ old('no_hp') }}" class="block w-full min-h-[48px] rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-3 text-base sm:text-sm text-slate-900 dark:text-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15">
                                 </div>
                             </div>
+
+                            <button type="button" id="regGoStep3"
+                                class="w-full min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm shadow-teal-500/20 transition-all">
+                                Seterusnya: Pembayaran
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                                </svg>
+                            </button>
                         </div>
 
-                        {{-- 3 Pembayaran & dokumen --}}
-                        <div class="rounded-2xl border-2 border-orange-200/90 dark:border-orange-900/50 bg-gradient-to-br from-orange-50/80 to-amber-50/40 dark:from-orange-950/25 dark:to-amber-950/15 p-4 sm:p-6 space-y-5 register-section">
+                        {{-- Step 3: Pembayaran --}}
+                        <div id="regStep3" class="{{ $regInitialStep === 2 ? '' : 'hidden' }} rounded-2xl border-2 border-orange-200/90 dark:border-orange-900/50 bg-gradient-to-br from-orange-50/80 to-amber-50/40 dark:from-orange-950/25 dark:to-amber-950/15 p-4 sm:p-6 space-y-5">
                             <div class="flex items-center gap-3 pb-1 border-b border-orange-200/70 dark:border-orange-900/40">
+                                <button type="button" id="regBackTo2" aria-label="Kembali ke Maklumat Perhubungan"
+                                    class="shrink-0 w-8 h-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                                    </svg>
+                                </button>
                                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-sm">3</span>
                                 <div>
-                                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Pembayaran &amp; dokumen</h3>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400">Bukti bayaran wajib — gambar profil pilihan</p>
+                                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Pembayaran</h3>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Bank in yuran pendaftaran &amp; muat naik bukti bayaran</p>
                                 </div>
                             </div>
+
+                            {{-- Payment accounts --}}
+                            <div class="space-y-2">
+                                @if($semakRegHasAccounts)
+                                <div class="space-y-2.5">
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Bank in yuran pendaftaran <strong>RM12.00</strong> ke akaun di bawah. Imbas QR atau salin nombor akaun.</p>
+
+                                @foreach($paymentAccounts as $account)
+                                <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white/70 dark:bg-slate-800/40 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all duration-200 p-3 space-y-3">
+                                    <div class="flex items-center gap-3">
+                                        @if(!empty($account->qr_image_url))
+                                        <button type="button"
+                                            class="js-qr-preview shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-600 shadow-sm hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                                            data-qr-url="{{ $account->qr_image_url }}"
+                                            data-qr-account="{{ $account->account_name }}"
+                                            aria-label="Besarkan QR {{ $account->account_name }}">
+                                            <img src="{{ $account->qr_image_url }}" alt="QR {{ $account->account_name }}" class="w-full h-full object-contain rounded-lg"/>
+                                        </button>
+                                        @else
+                                        <div class="shrink-0 w-14 h-14 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center border border-teal-100 dark:border-teal-800">
+                                            <svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
+                                            </svg>
+                                        </div>
+                                        @endif
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate">{{ $account->account_name }}</p>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{{ $account->account_number }}</p>
+                                            @if(!empty($account->qr_image_url))
+                                                <p class="text-[10px] text-teal-600 dark:text-teal-400 mt-0.5">Ketik QR untuk besarkan</p>
+                                            @endif
+                                        </div>
+                                        <button type="button"
+                                            class="js-copy-account shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-all"
+                                            data-account-number="{{ $account->account_number }}"
+                                            title="Salin">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    @if(!empty($account->qr_image_url))
+                                    <button type="button"
+                                        class="js-qr-preview w-full flex items-center justify-center rounded-xl border border-dashed border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-800 p-3 hover:border-teal-400 hover:bg-teal-50/60 dark:hover:bg-teal-900/20 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                                        data-qr-url="{{ $account->qr_image_url }}"
+                                        data-qr-account="{{ $account->account_name }}"
+                                        aria-label="Besarkan QR {{ $account->account_name }}">
+                                        <img src="{{ $account->qr_image_url }}" alt="Kod QR {{ $account->account_name }}" class="w-32 h-32 object-contain"/>
+                                    </button>
+                                    @endif
+                                </div>
+                                @endforeach
+
+                                {{-- Bank transfer reference instructions --}}
+                                <div class="rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/25 p-3.5 space-y-2">
+                                    <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Penting: Isi ruangan rujukan bank
+                                    </p>
+                                    <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                                        <p class="flex flex-wrap items-baseline gap-x-2">
+                                            <span class="shrink-0 font-bold text-amber-700 dark:text-amber-400">Rujukan 1:</span>
+                                            <span class="font-semibold">Nama Ahli</span>
+                                        </p>
+                                        <p class="flex flex-wrap items-baseline gap-x-2">
+                                            <span class="shrink-0 font-bold text-amber-700 dark:text-amber-400">Rujukan 2:</span>
+                                            <span class="font-semibold">Pendaftaran BAKIS</span>
+                                        </p>
+                                    </div>
+                                    <p class="text-[11px] text-amber-700/80 dark:text-amber-400/80">Rujukan ini memudahkan pentadbir mengesahkan bayaran anda dengan lebih pantas.</p>
+                                </div>
+                                </div>
+                                @else
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Tiada akaun pembayaran dikonfigurasi buat masa ini. Sila teruskan ke langkah muat naik bukti bayaran.</p>
+                                @endif
+                            </div>
+
                             <div class="space-y-2">
                                 <label class="block text-sm font-semibold text-slate-800 dark:text-slate-100">Bukti bayaran <span class="text-red-500">*</span> <span class="font-normal text-xs text-slate-600 dark:text-slate-400">(JPG, PNG, PDF — maks. 5MB)</span></label>
                                 <label for="bukti_bayaran" id="reg-dropzone-bukti" class="group flex flex-col items-center justify-center w-full min-h-[8rem] cursor-pointer rounded-2xl border-2 border-dashed border-orange-300/80 dark:border-orange-800/60 bg-white/80 dark:bg-slate-800/60 px-4 py-5 transition-all hover:border-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 focus-within:ring-4 focus-within:ring-orange-500/20 @error('bukti_bayaran') border-red-400 @enderror">
@@ -301,41 +445,22 @@
                                 </label>
                                 @error('bukti_bayaran')<p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             </div>
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-slate-800 dark:text-slate-100">Gambar profil <span class="font-normal text-xs text-slate-600 dark:text-slate-400">(pilihan)</span></label>
-                                <label for="gambar" id="reg-dropzone-gambar" class="group flex flex-col sm:flex-row items-center gap-4 w-full min-h-[7rem] cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/60 px-4 py-4 transition-all hover:border-teal-400 hover:bg-teal-50/30 dark:hover:bg-teal-950/20 focus-within:ring-4 focus-within:ring-teal-500/15 @error('gambar') border-red-400 @enderror">
-                                    <input type="file" name="gambar" id="gambar" accept="image/jpeg,image/png,image/jpg" class="sr-only">
-                                    <div id="reg-gambar-placeholder" class="flex flex-1 flex-col items-center justify-center text-center gap-2 py-2">
-                                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
-                                        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Muat naik gambar (JPEG/PNG)</p>
-                                    </div>
-                                    <div id="reg-gambar-preview-wrap" class="hidden shrink-0">
-                                        <img id="reg-gambar-preview" src="" alt="Pratonton gambar" class="h-24 w-24 rounded-2xl object-cover border border-slate-200 dark:border-slate-600 shadow-sm">
-                                    </div>
-                                    <p id="reg-gambar-filename" class="hidden text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left break-all flex-1"></p>
-                                </label>
-                                @error('gambar')<p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
-                            </div>
-                            <div>
-                                <label for="catatan" class="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Catatan</label>
-                                <textarea name="catatan" id="catatan" rows="3" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-3 text-base sm:text-sm text-slate-900 dark:text-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15">{{ old('catatan') }}</textarea>
-                            </div>
-                        </div>
 
-                        @if (! empty($turnstileEnabled))
-                            <div>
-                                <div style="display:flex; justify-content:center; min-height:65px;">
-                                    <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                            @if (! empty($turnstileEnabled))
+                                <div>
+                                    <div style="display:flex; justify-content:center; min-height:65px;">
+                                        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                                    </div>
+                                    @error('cf-turnstile-response')
+                                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error('cf-turnstile-response')
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        @endif
+                            @endif
 
-                        <button type="submit" id="register-submit-btn" class="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-teal-600/25 transition hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-teal-500/30 disabled:opacity-60 disabled:pointer-events-none">
-                            Hantar pendaftaran
-                        </button>
+                            <button type="submit" id="register-submit-btn" class="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-teal-600/25 transition hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-teal-500/30 disabled:opacity-60 disabled:pointer-events-none">
+                                Hantar pendaftaran
+                            </button>
+                        </div>
                     </form>
                 @else
                     <div class="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-600 bg-gradient-to-b from-slate-50/90 to-white dark:from-slate-900/40 dark:to-slate-800/30 px-6 py-10 text-center">
@@ -358,6 +483,33 @@
     <button type="submit" form="semak-lookup-form" id="lookup-sticky-submit" class="flex w-full min-h-[52px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-700 px-4 text-base font-semibold text-white shadow-lg shadow-orange-600/30 active:scale-[0.99] transition disabled:opacity-60 disabled:pointer-events-none">
         <span class="lookup-btn-label">Semak status</span>
     </button>
+</div>
+
+{{-- QR Preview Modal --}}
+<div id="qrPreviewModal" class="fixed inset-0 z-[70] hidden" aria-hidden="true">
+    <div id="qrPreviewBackdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden"
+             role="dialog" aria-modal="true" aria-labelledby="qrPreviewTitle">
+            <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <h3 id="qrPreviewTitle" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kod QR</h3>
+                    <p id="qrPreviewSubtitle" class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate"></p>
+                </div>
+                <button type="button" id="qrPreviewClose"
+                    class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Tutup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 flex items-center justify-center bg-slate-50 dark:bg-slate-900/40">
+                <img id="qrPreviewImage" src="" alt="Preview Kod QR"
+                     class="max-h-64 w-full object-contain rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-inner"/>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -483,49 +635,6 @@
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                     buktiInput.files = e.dataTransfer.files;
                     buktiInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            });
-        }
-
-        var gambarInput = document.getElementById('gambar');
-        var dzGambar = document.getElementById('reg-dropzone-gambar');
-        if (gambarInput && dzGambar) {
-            var gPh = document.getElementById('reg-gambar-placeholder');
-            var gWrap = document.getElementById('reg-gambar-preview-wrap');
-            var gImg = document.getElementById('reg-gambar-preview');
-            var gFn = document.getElementById('reg-gambar-filename');
-            gambarInput.addEventListener('change', function () {
-                if (!gambarInput.files || !gambarInput.files[0]) return;
-                var file = gambarInput.files[0];
-                if (!/^image\/(jpeg|png)$/i.test(file.type)) {
-                    showToast('Gambar mesti JPEG atau PNG.', 'error');
-                    gambarInput.value = '';
-                    return;
-                }
-                var url = URL.createObjectURL(file);
-                if (gImg) gImg.src = url;
-                gPh.classList.add('hidden');
-                gWrap.classList.remove('hidden');
-                if (gFn) {
-                    gFn.textContent = file.name;
-                    gFn.classList.remove('hidden');
-                }
-            });
-            dzGambar.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                dzGambar.classList.add('ring-4', 'ring-teal-400/40', 'border-teal-500');
-            });
-            ['dragleave', 'drop'].forEach(function (ev) {
-                dzGambar.addEventListener(ev, function (e) {
-                    e.preventDefault();
-                    dzGambar.classList.remove('ring-4', 'ring-teal-400/40', 'border-teal-500');
-                });
-            });
-            dzGambar.addEventListener('drop', function (e) {
-                e.preventDefault();
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    gambarInput.files = e.dataTransfer.files;
-                    gambarInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         }
@@ -689,22 +798,197 @@
 
         var registerForm = document.getElementById('register-member-form');
         if (registerForm) {
-            registerForm.querySelectorAll('.register-section').forEach(function (sec) {
-                sec.classList.add('semak-section-stagger');
-            });
-            registerForm.addEventListener('submit', function () {
-                var btn = document.getElementById('register-submit-btn');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="inline-flex items-center justify-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Menghantar…</span>';
-                }
-            });
             var section = document.getElementById('register-form-section');
             if (section) {
                 section.classList.add('semak-form-enter');
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
+
+        // ── Registration wizard: 3-step navigation ──────────────────────────
+        var regSteps = [
+            document.getElementById('regStep1'),
+            document.getElementById('regStep2'),
+            document.getElementById('regStep3'),
+        ];
+        var regCurrentStep = {{ $regInitialStep }};
+
+        function setRegStepState(currentStep) {
+            var activeMuted = 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500';
+            var activeCurrent = 'bg-teal-600 text-white ring-4 ring-teal-100 dark:ring-teal-900/60 scale-105';
+            var doneStyle = 'bg-emerald-600 text-white ring-2 ring-emerald-100 dark:ring-emerald-900/60';
+            var labelMuted = 'text-slate-400 dark:text-slate-500';
+            var labelActive = 'text-teal-700 dark:text-teal-400';
+            var labelDone = 'text-emerald-700 dark:text-emerald-400';
+
+            for (var i = 0; i < 3; i++) {
+                var dot = document.getElementById('reg-step-dot-' + i);
+                var label = document.getElementById('reg-step-label-' + i);
+                if (!dot || !label) continue;
+                var state = i < currentStep ? 'done' : (i === currentStep ? 'current' : 'muted');
+                dot.textContent = state === 'done' ? '✓' : String(i + 1);
+                var dotClass = state === 'done' ? doneStyle : (state === 'current' ? activeCurrent : activeMuted);
+                var labelClass = state === 'done' ? labelDone : (state === 'current' ? labelActive : labelMuted);
+                dot.className = 'reg-step w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ' + dotClass;
+                label.className = 'text-[10px] mt-2 font-semibold text-center leading-tight w-16 transition-colors ' + labelClass;
+            }
+
+            document.querySelectorAll('.reg-step-connector').forEach(function (line, idx) {
+                var filled = idx < currentStep;
+                line.classList.toggle('bg-teal-400', filled);
+                line.classList.toggle('dark:bg-teal-600', filled);
+                line.classList.toggle('bg-slate-200', !filled);
+                line.classList.toggle('dark:bg-slate-600', !filled);
+            });
+        }
+
+        function goToRegStep(idx) {
+            regCurrentStep = idx;
+            regSteps.forEach(function (el, i) { if (el) el.classList.toggle('hidden', i !== idx); });
+            setRegStepState(idx);
+            if (idx > 0 && regSteps[idx]) regSteps[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function validateRegStep1() {
+            var ok = true;
+            var namaInput = document.getElementById('nama');
+            if (namaInput && !namaInput.value.trim()) {
+                ok = false;
+                namaInput.classList.add('border-red-500');
+                setTimeout(function () { namaInput.classList.remove('border-red-500'); }, 2000);
+            }
+            if (registerForm && !registerForm.querySelector('input[name="jantina"]:checked')) {
+                ok = false;
+            }
+            ['jabatan_id', 'jawatan_id'].forEach(function (fieldId) {
+                var select = document.getElementById(fieldId);
+                var wrap = select ? select.closest('.min-w-0') : null;
+                if (select && !select.value) {
+                    ok = false;
+                    if (wrap) wrap.classList.add('semak-select2-invalid');
+                } else if (wrap) {
+                    wrap.classList.remove('semak-select2-invalid');
+                }
+            });
+            if (!ok) showToast('Sila lengkapkan semua ruangan wajib di Langkah 1.', 'error');
+            return ok;
+        }
+
+        var regGoStep2Btn = document.getElementById('regGoStep2');
+        if (regGoStep2Btn) {
+            regGoStep2Btn.addEventListener('click', function () {
+                if (validateRegStep1()) goToRegStep(1);
+            });
+        }
+        var regBackTo1Btn = document.getElementById('regBackTo1');
+        if (regBackTo1Btn) regBackTo1Btn.addEventListener('click', function () { goToRegStep(0); });
+        var regGoStep3Btn = document.getElementById('regGoStep3');
+        if (regGoStep3Btn) regGoStep3Btn.addEventListener('click', function () { goToRegStep(2); });
+        var regBackTo2Btn = document.getElementById('regBackTo2');
+        if (regBackTo2Btn) regBackTo2Btn.addEventListener('click', function () { goToRegStep(1); });
+
+        ['jabatan_id', 'jawatan_id'].forEach(function (fieldId) {
+            var select = document.getElementById(fieldId);
+            if (!select) return;
+            select.addEventListener('change', function () {
+                var wrap = select.closest('.min-w-0');
+                if (wrap) wrap.classList.remove('semak-select2-invalid');
+            });
+        });
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', function (e) {
+                if (!validateRegStep1()) {
+                    e.preventDefault();
+                    goToRegStep(0);
+                    return;
+                }
+                var buktiFile = document.getElementById('bukti_bayaran');
+                if (buktiFile && (!buktiFile.files || !buktiFile.files[0])) {
+                    e.preventDefault();
+                    goToRegStep(2);
+                    buktiFile.reportValidity();
+                    return;
+                }
+                var btn = document.getElementById('register-submit-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="inline-flex items-center justify-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Menghantar…</span>';
+                }
+            });
+        }
+
+        if (document.getElementById('reg-step-dot-0')) setRegStepState(regCurrentStep);
+
+        // ── QR preview modal (shared with payment-account cards) ────────────
+        var qrPreviewModal    = document.getElementById('qrPreviewModal');
+        var qrPreviewImage    = document.getElementById('qrPreviewImage');
+        var qrPreviewClose    = document.getElementById('qrPreviewClose');
+        var qrPreviewBackdrop = document.getElementById('qrPreviewBackdrop');
+        var qrPreviewSubtitle = document.getElementById('qrPreviewSubtitle');
+
+        function openQrPreview(url, accountName) {
+            if (!qrPreviewModal || !qrPreviewImage || !url) return;
+            qrPreviewImage.src = url;
+            qrPreviewImage.alt = accountName ? ('Kod QR ' + accountName) : 'Preview Kod QR';
+            if (qrPreviewSubtitle) qrPreviewSubtitle.textContent = accountName || '';
+            qrPreviewModal.classList.remove('hidden');
+            qrPreviewModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQrPreview() {
+            if (!qrPreviewModal || !qrPreviewImage) return;
+            qrPreviewModal.classList.add('hidden');
+            qrPreviewModal.setAttribute('aria-hidden', 'true');
+            qrPreviewImage.removeAttribute('src');
+            qrPreviewImage.alt = 'Preview Kod QR';
+            if (qrPreviewSubtitle) qrPreviewSubtitle.textContent = '';
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.js-qr-preview').forEach(function (btn) {
+            btn.addEventListener('click', function () { openQrPreview(btn.dataset.qrUrl, btn.dataset.qrAccount || ''); });
+        });
+        if (qrPreviewClose) qrPreviewClose.addEventListener('click', closeQrPreview);
+        if (qrPreviewBackdrop) qrPreviewBackdrop.addEventListener('click', closeQrPreview);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && qrPreviewModal && !qrPreviewModal.classList.contains('hidden')) closeQrPreview();
+        });
+
+        function fallbackCopy(text, onSuccess) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                onSuccess();
+            } catch (e) {
+                showToast('Tidak dapat menyalin. Cuba semula.', 'error');
+            }
+            document.body.removeChild(ta);
+        }
+
+        document.querySelectorAll('.js-copy-account').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var number = btn.dataset.accountNumber;
+                if (!number) return;
+                var original = btn.innerHTML;
+                var succeed = function () {
+                    showToast('No. akaun disalin ke papan keratan.', 'success');
+                    btn.innerHTML = '<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+                    setTimeout(function () { btn.innerHTML = original; }, 1800);
+                };
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(number).then(succeed).catch(function () { fallbackCopy(number, succeed); });
+                } else {
+                    fallbackCopy(number, succeed);
+                }
+            });
+        });
     })();
 </script>
 @endsection

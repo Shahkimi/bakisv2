@@ -30,8 +30,6 @@ class RegisterMemberRequest extends FormRequest
             'negeri' => ['nullable', 'string', 'max:255'],
             'no_tel' => ['nullable', 'string', 'max:20'],
             'no_hp' => ['nullable', 'string', 'max:20'],
-            'gambar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'catatan' => ['nullable', 'string'],
             'bukti_bayaran' => ['required', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
             'cf-turnstile-response' => \App\Rules\VerifyTurnstileToken::rules(),
         ];

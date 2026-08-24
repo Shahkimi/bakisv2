@@ -41,7 +41,10 @@ class SemakController extends Controller
         $prefillNoKp = session('no_kp', (string) $request->query('no_kp', ''));
         $showRegisterForm = session('show_register_form', false) || $request->boolean('register');
 
-        return view('semak.index', compact('jabatans', 'jawatans', 'prefillNoKp', 'showRegisterForm'));
+        $willShowRegisterForm = $showRegisterForm || $request->old('nama') !== null;
+        $paymentAccounts = $willShowRegisterForm ? $this->getActivePaymentAccountsForSemak() : collect();
+
+        return view('semak.index', compact('jabatans', 'jawatans', 'prefillNoKp', 'showRegisterForm', 'paymentAccounts'));
     }
 
     public function check(CheckNoKpRequest $request): View|RedirectResponse
