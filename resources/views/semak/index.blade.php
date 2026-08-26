@@ -200,7 +200,6 @@
 
                     <form id="register-member-form" action="{{ route('semak.register') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                         @csrf
-                        <input type="hidden" name="no_kp" value="{{ $prefillNoKp }}">
 
                         {{-- Step 1: Peribadi --}}
                         <div id="regStep1" class="{{ $regInitialStep === 0 ? '' : 'hidden' }} rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 p-4 sm:p-6 space-y-4 sm:space-y-5">
@@ -208,16 +207,51 @@
                                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white shadow-sm">1</span>
                                 <div>
                                     <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Maklumat peribadi</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Nama, jantina, jabatan &amp; jawatan</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">No. KP, nama, jantina, jabatan &amp; jawatan</p>
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                                 <div class="md:col-span-2">
+                                    <label for="reg_no_kp" class="flex items-center justify-between gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                                        <span>No. KP (12 digit) <span class="text-red-500">*</span></span>
+                                        <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400"><span id="reg-kp-digit-count">0</span>/12</span>
+                                    </label>
+                                    <div class="relative">
+                                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"/>
+                                            </svg>
+                                        </span>
+                                        <input
+                                            type="text"
+                                            name="no_kp"
+                                            id="reg_no_kp"
+                                            value="{{ $prefillNoKp }}"
+                                            maxlength="12"
+                                            pattern="[0-9]{12}"
+                                            inputmode="numeric"
+                                            autocomplete="off"
+                                            required
+                                            class="block w-full min-h-[48px] rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-11 pr-3 py-3 text-base sm:text-sm tabular-nums text-slate-900 dark:text-white placeholder-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 @error('no_kp') border-red-500 focus:border-red-500 focus:ring-red-500/15 @enderror"
+                                            placeholder="Contoh: 900101011234"
+                                        >
+                                    </div>
+                                    <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Sahkan No. KP betul — digunakan sebagai pengenalan rekod keahlian.</p>
+                                    @error('no_kp')<p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                                </div>
+                                <div class="md:col-span-2">
                                     <label for="nama" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Nama penuh <span class="text-red-500">*</span></label>
-                                    <input type="text" name="nama" id="nama" value="{{ old('nama') }}" required class="block w-full min-h-[48px] rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-3 text-base sm:text-sm text-slate-900 dark:text-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 @error('nama') border-red-500 @enderror">
+                                    <div class="relative">
+                                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                                            </svg>
+                                        </span>
+                                        <input type="text" name="nama" id="nama" value="{{ old('nama') }}" required class="block w-full min-h-[48px] rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 pl-11 pr-3 py-3 text-base sm:text-sm text-slate-900 dark:text-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 @error('nama') border-red-500 @enderror">
+                                    </div>
                                     @error('nama')<p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
-                                <div>
+                                <div class="md:col-span-2">
                                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Jantina <span class="text-red-500">*</span></label>
                                     <div class="flex flex-col sm:flex-row gap-2 rounded-xl border border-slate-200 dark:border-slate-600 p-2 sm:p-3 bg-white dark:bg-slate-800/50">
                                         <label class="inline-flex items-center min-h-[44px] flex-1 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"><input type="radio" name="jantina" value="L" {{ old('jantina') === 'L' ? 'checked' : '' }} required class="h-5 w-5 shrink-0 border-slate-300 text-orange-600 focus:ring-orange-500"> <span class="ml-3 text-sm text-slate-700 dark:text-slate-300">Lelaki</span></label>
@@ -233,6 +267,7 @@
                                             <option value="{{ $j->id }}" {{ old('jabatan_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jabatan }}</option>
                                         @endforeach
                                     </select>
+                                    <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Jabatan tempat berkhidmat.</p>
                                     @error('jabatan_id')<p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
                                 <div class="min-w-0 @error('jawatan_id') semak-select2-invalid @enderror">
@@ -243,6 +278,7 @@
                                             <option value="{{ $j->id }}" {{ old('jawatan_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jawatan }}</option>
                                         @endforeach
                                     </select>
+                                    <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Jawatan semasa.</p>
                                     @error('jawatan_id')<p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                                 </div>
                             </div>
@@ -566,6 +602,19 @@
             updateKpUi(noKpInput);
         }
 
+        var regNoKpInput = document.getElementById('reg_no_kp');
+        var regKpCountEl = document.getElementById('reg-kp-digit-count');
+        function updateRegKpCount() {
+            if (!regNoKpInput) return;
+            var digits = regNoKpInput.value.replace(/\D/g, '').slice(0, 12);
+            regNoKpInput.value = digits;
+            if (regKpCountEl) regKpCountEl.textContent = String(digits.length);
+        }
+        if (regNoKpInput) {
+            regNoKpInput.addEventListener('input', updateRegKpCount);
+            updateRegKpCount();
+        }
+
         var lookupForm = document.getElementById('semak-lookup-form');
         var lookupBtns = [document.getElementById('lookup-submit-btn'), document.getElementById('lookup-sticky-submit')].filter(Boolean);
         function setLookupLoading(loading) {
@@ -851,6 +900,12 @@
 
         function validateRegStep1() {
             var ok = true;
+            var kpInput = document.getElementById('reg_no_kp');
+            if (kpInput && kpInput.value.replace(/\D/g, '').length !== 12) {
+                ok = false;
+                kpInput.classList.add('border-red-500');
+                setTimeout(function () { kpInput.classList.remove('border-red-500'); }, 2000);
+            }
             var namaInput = document.getElementById('nama');
             if (namaInput && !namaInput.value.trim()) {
                 ok = false;
