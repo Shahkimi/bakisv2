@@ -176,7 +176,7 @@
             <img id="buktiImg" src="" alt="Bukti Pembayaran"
                 class="hidden max-h-[70vh] max-w-full rounded-xl object-contain shadow-md ring-1 ring-gray-200 dark:ring-gray-700"
                 onload="document.getElementById('buktiLoading').classList.add('hidden');this.classList.remove('hidden');"
-                onerror="document.getElementById('buktiLoading').classList.add('hidden');document.getElementById('buktiImgError').classList.remove('hidden');">
+                onerror="document.getElementById('buktiLoading').classList.add('hidden');document.getElementById('buktiImgError').classList.remove('hidden');document.getElementById('buktiImgError').classList.add('flex');">
             <iframe id="buktiFrame" src="" title="Bukti Pembayaran"
                 class="hidden h-[70vh] w-full rounded-xl bg-white dark:bg-gray-900 shadow-md ring-1 ring-gray-200 dark:ring-gray-700"
                 loading="lazy"

@@ -55,7 +55,7 @@ final class SecurityHeaders
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:{$vite}",
             "img-src 'self' data: blob:{$vite}",
             "connect-src 'self' {$cloudflare}{$vite}{$viteSocket}",
-            "frame-src {$cloudflare}",
+            "frame-src 'self' {$cloudflare}",
             "frame-ancestors 'self'",
             "base-uri 'self'",
             "form-action 'self'",
