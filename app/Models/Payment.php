@@ -50,10 +50,25 @@ class Payment extends Model
 
     public function coversYear(int $year): bool
     {
-        $start = $this->tahun_mula ?? $this->tahun_bayar;
-        $end = $this->tahun_tamat ?? $this->tahun_bayar;
+        return $year >= $this->coverageStart() && $year <= $this->coverageEnd();
+    }
 
-        return $year >= $start && $year <= $end;
+    public function coverageStart(): int
+    {
+        return (int) ($this->tahun_mula ?? $this->tahun_bayar);
+    }
+
+    public function coverageEnd(): int
+    {
+        return (int) ($this->tahun_tamat ?? $this->tahun_bayar);
+    }
+
+    public function coverageLabel(): string
+    {
+        $start = $this->coverageStart();
+        $end = $this->coverageEnd();
+
+        return $start === $end ? (string) $start : $start.'–'.$end;
     }
 
     public function getJumlahAttribute(): float

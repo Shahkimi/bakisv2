@@ -125,7 +125,7 @@ final readonly class PaymentService
         $query = Payment::query()
             ->where('member_id', $member->id)
             ->with('yuran:id,jenis_yuran,jumlah')
-            ->select(['id', 'member_id', 'yuran_id', 'tahun_bayar', 'status']);
+            ->select(['id', 'member_id', 'yuran_id', 'tahun_bayar', 'tahun_mula', 'tahun_tamat', 'status']);
 
         $totalRecords = (clone $query)->count();
         $filteredRecords = $totalRecords;
@@ -145,7 +145,7 @@ final readonly class PaymentService
     {
         $order = $request->input('order.0');
         if (! $order || ! isset($order['column'], $order['dir'])) {
-            $query->orderByDesc('tahun_bayar')->orderByDesc('id');
+            $query->orderByRaw('COALESCE(tahun_mula, tahun_bayar) desc')->orderByDesc('id');
 
             return;
         }
@@ -155,8 +155,16 @@ final readonly class PaymentService
 
         // Jumlah/Jenis are accessors derived from the `yuran` relation, not real
         // columns, so only Tahun and Status (both marked orderable client-side)
-        // can be ordered at the database level.
-        $columns = [0 => 'tahun_bayar', 3 => 'status'];
+        // can be ordered at the database level. Tahun orders by coverage year
+        // (tahun_mula), not tahun_bayar (the year the payment was made) — a
+        // multi-year renewal shares one tahun_bayar but distinct coverage years.
+        if ($columnIndex === 0) {
+            $query->orderByRaw("COALESCE(tahun_mula, tahun_bayar) {$dir}")->orderBy('id', $dir);
+
+            return;
+        }
+
+        $columns = [3 => 'status'];
         $column = $columns[$columnIndex] ?? 'tahun_bayar';
 
         $query->orderBy($column, $dir)->orderBy('id', $dir);
@@ -176,6 +184,7 @@ final readonly class PaymentService
 
         return [
             'tahun_bayar' => $payment->tahun_bayar,
+            'tahun_label' => $payment->coverageLabel(),
             'jumlah_formatted' => 'RM '.number_format((float) $payment->jumlah, 2),
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
@@ -268,6 +277,9 @@ final readonly class PaymentService
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
+            'bukti_bayaran_is_pdf' => $payment->bukti_bayaran
+                ? strtolower(pathinfo($payment->bukti_bayaran, PATHINFO_EXTENSION)) === 'pdf'
+                : false,
             'approved_by' => $payment->approvedBy?->name,
             'approved_at' => $payment->approved_at?->format('d/m/Y H:i'),
             'catatan_admin' => $payment->catatan_admin,

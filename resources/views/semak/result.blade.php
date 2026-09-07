@@ -502,7 +502,7 @@
             @elseif($status === 'pending')
                 @php
                     $pendingPayments = $member
-                        ? $member->payments->where('status', 'pending')->sortBy('tahun_bayar')->values()
+                        ? $member->payments->where('status', 'pending')->sortBy(fn ($p) => $p->coverageStart())->values()
                         : collect();
                     $pendingTotal = $pendingPayments->sum('jumlah');
                 @endphp
@@ -548,7 +548,7 @@
                             <div class="p-4 space-y-1.5">
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $pp->tahun_bayar }}</span>
+                                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $pp->coverageLabel() }}</span>
                                         <span class="text-xs text-slate-400 dark:text-slate-500 truncate">
                                             {{ $pp->jenis === 'pendaftaran_baru' ? 'Pendaftaran Baru' : ($pp->jenis === 'pembaharuan' ? 'Pembaharuan' : ($pp->yuran?->jenis_yuran ?? '–')) }}
                                         </span>
@@ -1061,7 +1061,7 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
         mobileEl.innerHTML = rows.map(function (row) {
             return '<div class="p-4 space-y-2.5">' +
                 '<div class="flex items-center justify-between gap-2">' +
-                '<div><span class="font-bold text-slate-800 dark:text-slate-200">' + escapeHtml(row.tahun_bayar) + '</span>' +
+                '<div><span class="font-bold text-slate-800 dark:text-slate-200">' + escapeHtml(row.tahun_label) + '</span>' +
                 '<span class="ml-2 font-mono text-sm text-slate-500 dark:text-slate-400">' + escapeHtml(row.jumlah_formatted) + '</span></div>' +
                 statusBadge(row.status) +
                 '</div>' +
@@ -1083,7 +1083,7 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
             data: function (d) { d.no_kp = '{{ $checkedNoKp }}'; }
         },
         columns: [
-            { data: 'tahun_bayar', className: 'px-5 py-4 font-bold text-slate-800 dark:text-slate-200' },
+            { data: 'tahun_label', className: 'px-5 py-4 font-bold text-slate-800 dark:text-slate-200' },
             { data: 'jumlah_formatted', orderable: false, className: 'px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300' },
             { data: 'jenis_label', orderable: false, className: 'px-5 py-4 text-slate-500 dark:text-slate-400' },
             { data: 'status', className: 'px-5 py-4', render: function (status) { return statusBadge(status); } },
