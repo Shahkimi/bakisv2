@@ -9,8 +9,8 @@ use App\Http\Requests\RegisterMemberRequest;
 use App\Http\Requests\RenewalPaymentRequest;
 use App\Models\Jabatan;
 use App\Models\Jawatan;
-use App\Models\Payment;
 use App\Models\Member;
+use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Services\MemberService;
 use App\Services\PaymentReceiptPdfService;
@@ -253,7 +253,9 @@ class SemakController extends Controller
      */
     public function showQr(PaymentAccount $paymentAccount): StreamedResponse
     {
-        if (empty($paymentAccount->qr_image_path) || ! Storage::disk('local')->exists($paymentAccount->qr_image_path)) {
+        if (empty($paymentAccount->qr_image_path)
+            || ! $paymentAccount->show_qr
+            || ! Storage::disk('local')->exists($paymentAccount->qr_image_path)) {
             abort(404);
         }
 

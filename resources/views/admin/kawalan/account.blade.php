@@ -290,12 +290,14 @@ $(document).ready(function() {
     function renderQrThumb(row) {
         if (!row.has_qr) return '<span class="text-gray-400 text-xs">–</span>';
         const url = accountQrUrl(row.id);
-        return '' +
-            '<button type="button" class="js-qr-preview inline-flex items-center justify-center" ' +
+        const thumb = '<button type="button" class="js-qr-preview inline-flex items-center justify-center' + (row.show_qr ? '' : ' opacity-40') + '" ' +
                 'data-qr-url="' + escapeAttr(url) + '" ' +
                 'aria-label="Lihat imej QR">' +
                 '<img src="' + escapeAttr(url) + '" alt="QR" class="qr-thumb" width="40" height="40">' +
             '</button>';
+        if (row.show_qr) return thumb;
+        return '<div class="inline-flex flex-col items-center gap-1">' + thumb +
+            '<span class="text-[10px] font-medium text-gray-400 dark:text-gray-500">Tersembunyi</span></div>';
     }
 
     function renderStatusBadge(row) {
@@ -315,10 +317,11 @@ $(document).ready(function() {
         const accountName = escapeAttr(a.account_name);
         const accountNumber = escapeAttr(a.account_number);
         const active = a.is_active ? '1' : '0';
+        const showQr = a.show_qr ? '1' : '0';
         const hasQr = !!row.has_qr;
         const qrUrl = hasQr ? accountQrUrl(row.id) : '';
         return '<div class="flex flex-wrap items-center gap-1.5">' +
-            '<button type="button" class="btn-edit-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Edit akaun" aria-label="Edit akaun" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '" data-has-qr="' + (hasQr ? '1' : '0') + '" data-qr-url="' + escapeAttr(qrUrl) + '">' + iconEdit + '</button>' +
+            '<button type="button" class="btn-edit-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm hover:shadow" title="Edit akaun" aria-label="Edit akaun" data-id="' + id + '" data-account-name="' + accountName + '" data-account-number="' + accountNumber + '" data-active="' + active + '" data-show-qr="' + showQr + '" data-has-qr="' + (hasQr ? '1' : '0') + '" data-qr-url="' + escapeAttr(qrUrl) + '">' + iconEdit + '</button>' +
             '<button type="button" class="btn-delete-account inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/50 transition shadow-sm hover:shadow" title="Padam akaun" aria-label="Padam akaun" data-id="' + id + '" data-account-name="' + accountName + '">' + iconTrash + '</button></div>';
     }
 
@@ -383,15 +386,26 @@ $(document).ready(function() {
         });
     });
 
-    function bindToggleInModal(modalEl) {
-        const toggle = modalEl.querySelector('#swal-toggle');
-        const hidden = modalEl.querySelector('#swal-active');
+    function bindToggle(modalEl, toggleId, hiddenId) {
+        const toggle = modalEl.querySelector('#' + toggleId);
+        const hidden = modalEl.querySelector('#' + hiddenId);
         if (toggle && hidden) {
             toggle.addEventListener('click', function() {
-                const isActive = toggle.classList.toggle('active');
-                hidden.value = isActive ? '1' : '0';
+                const isOn = toggle.classList.toggle('active');
+                hidden.value = isOn ? '1' : '0';
+            });
+            toggle.addEventListener('keydown', function(e) {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggle.click();
+                }
             });
         }
+    }
+
+    function bindToggleInModal(modalEl) {
+        bindToggle(modalEl, 'swal-toggle', 'swal-active');
+        bindToggle(modalEl, 'swal-toggle-qr', 'swal-show-qr');
     }
 
     function formatFileSize(bytes) {
@@ -548,6 +562,13 @@ $(document).ready(function() {
                     </div>
                     <div class="field">
                         <div class="toggle-wrap">
+                            <span class="toggle-label">Papar Imej QR</span>
+                            <div class="toggle-track active" id="swal-toggle-qr" role="button" tabindex="0"><span class="toggle-thumb"></span></div>
+                        </div>
+                        <input type="hidden" id="swal-show-qr" name="show_qr" value="1" />
+                    </div>
+                    <div class="field">
+                        <div class="toggle-wrap">
                             <span class="toggle-label">Status Aktif</span>
                             <div class="toggle-track active" id="swal-toggle" role="button" tabindex="0"><span class="toggle-thumb"></span></div>
                         </div>
@@ -569,9 +590,10 @@ $(document).ready(function() {
                 const name = (document.getElementById('swal-account-name').value || '').trim();
                 const number = (document.getElementById('swal-account-number').value || '').trim();
                 const fileInput = document.getElementById('swal-qr-image');
+                const showQr = document.getElementById('swal-show-qr').value === '1';
                 if (!name) { Swal.showValidationMessage('Nama akaun wajib diisi.'); return false; }
                 if (!number) { Swal.showValidationMessage('No. akaun wajib diisi.'); return false; }
-                if (!fileInput || !fileInput.files || !fileInput.files[0]) { Swal.showValidationMessage('Imej QR wajib dimuat naik.'); return false; }
+                if (showQr && (!fileInput || !fileInput.files || !fileInput.files[0])) { Swal.showValidationMessage('Imej QR wajib dimuat naik apabila paparan QR dihidupkan.'); return false; }
                 return true;
             }
         }).then(function(result) {
@@ -580,6 +602,7 @@ $(document).ready(function() {
             const formData = new FormData(form);
             formData.append('_token', csrfToken);
             formData.append('is_active', document.getElementById('swal-active').value);
+            formData.append('show_qr', document.getElementById('swal-show-qr').value);
 
             fetch('{{ route("admin.kawalan.account.store") }}', {
                 method: 'POST',
@@ -592,7 +615,7 @@ $(document).ready(function() {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Akaun berjaya ditambah.', timer: 2000, timerProgressBar: true, showConfirmButton: false });
                     table.ajax.reload(null, false);
                 } else {
-                    const msg = (data.errors && (data.errors.account_name && data.errors.account_name[0]) || (data.errors.account_number && data.errors.account_number[0]) || (data.errors.qr_image && data.errors.qr_image[0])) || data.message || 'Ralat semasa menyimpan.';
+                    const msg = (data.errors && (data.errors.account_name && data.errors.account_name[0]) || (data.errors.account_number && data.errors.account_number[0]) || (data.errors.qr_image && data.errors.qr_image[0]) || (data.errors.show_qr && data.errors.show_qr[0])) || data.message || 'Ralat semasa menyimpan.';
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
                 }
             })
@@ -605,6 +628,7 @@ $(document).ready(function() {
         const accountName = $(this).data('account-name') || '';
         const accountNumber = $(this).data('account-number') || '';
         const active = $(this).data('active') === 1 || $(this).data('active') === '1';
+        const showQr = $(this).data('show-qr') === 1 || $(this).data('show-qr') === '1';
         const hasQr = $(this).data('has-qr') === 1 || $(this).data('has-qr') === '1';
         const existingQrUrl = $(this).data('qr-url') || '';
 
@@ -646,6 +670,13 @@ $(document).ready(function() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <div class="field">
+                        <div class="toggle-wrap">
+                            <span class="toggle-label">Papar Imej QR</span>
+                            <div class="toggle-track ${showQr ? 'active' : ''}" id="swal-toggle-qr" role="button" tabindex="0"><span class="toggle-thumb"></span></div>
+                        </div>
+                        <input type="hidden" id="swal-show-qr" name="show_qr" value="${showQr ? '1' : '0'}" />
                     </div>
                     <div class="field">
                         <div class="toggle-wrap">
@@ -699,8 +730,11 @@ $(document).ready(function() {
             preConfirm: function() {
                 const name = (document.getElementById('swal-account-name').value || '').trim();
                 const number = (document.getElementById('swal-account-number').value || '').trim();
+                const fileInput = document.getElementById('swal-qr-image');
+                const showQrNow = document.getElementById('swal-show-qr').value === '1';
                 if (!name) { Swal.showValidationMessage('Nama akaun wajib diisi.'); return false; }
                 if (!number) { Swal.showValidationMessage('No. akaun wajib diisi.'); return false; }
+                if (showQrNow && !hasQr && (!fileInput || !fileInput.files || !fileInput.files[0])) { Swal.showValidationMessage('Imej QR wajib dimuat naik apabila paparan QR dihidupkan.'); return false; }
                 return true;
             }
         }).then(function(result) {
@@ -712,6 +746,7 @@ $(document).ready(function() {
             formData.append('account_name', document.getElementById('swal-account-name').value);
             formData.append('account_number', document.getElementById('swal-account-number').value);
             formData.append('is_active', document.getElementById('swal-active').value);
+            formData.append('show_qr', document.getElementById('swal-show-qr').value);
             const fileInput = document.getElementById('swal-qr-image');
             if (fileInput && fileInput.files && fileInput.files[0]) formData.append('qr_image', fileInput.files[0]);
 
@@ -726,7 +761,7 @@ $(document).ready(function() {
                     Swal.fire({ icon: 'success', title: 'Berjaya', text: data.message || 'Akaun telah dikemas kini.', timer: 2000, timerProgressBar: true, showConfirmButton: false });
                     table.ajax.reload(null, false);
                 } else {
-                    const msg = (data.errors && (data.errors.account_name && data.errors.account_name[0]) || (data.errors.account_number && data.errors.account_number[0]) || (data.errors.qr_image && data.errors.qr_image[0])) || data.message || 'Ralat semasa menyimpan.';
+                    const msg = (data.errors && (data.errors.account_name && data.errors.account_name[0]) || (data.errors.account_number && data.errors.account_number[0]) || (data.errors.qr_image && data.errors.qr_image[0]) || (data.errors.show_qr && data.errors.show_qr[0])) || data.message || 'Ralat semasa menyimpan.';
                     Swal.fire({ icon: 'error', title: 'Ralat', text: msg });
                 }
             })
@@ -772,6 +807,7 @@ $(document).ready(function() {
         const rowData = table.row(btn.closest('tr')).data();
         const accountName = (rowData && rowData.actions && rowData.actions.account_name) ? rowData.actions.account_name : '';
         const accountNumber = (rowData && rowData.actions && rowData.actions.account_number) ? rowData.actions.account_number : '';
+        const currentShowQr = (rowData && rowData.actions && rowData.actions.show_qr) ? '1' : '0';
         const newActive = btn.data('active') != 1;
 
         const formData = new URLSearchParams();
@@ -780,6 +816,7 @@ $(document).ready(function() {
         formData.append('account_name', accountName);
         formData.append('account_number', accountNumber);
         formData.append('is_active', newActive ? '1' : '0');
+        formData.append('show_qr', currentShowQr);
 
         fetch(accountBaseUrl + '/' + id, {
             method: 'POST',

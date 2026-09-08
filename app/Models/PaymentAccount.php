@@ -14,6 +14,7 @@ class PaymentAccount extends Model
         'account_name',
         'account_number',
         'qr_image_path',
+        'show_qr',
         'is_active',
     ];
 
@@ -21,6 +22,7 @@ class PaymentAccount extends Model
     {
         return [
             'is_active' => 'boolean',
+            'show_qr' => 'boolean',
         ];
     }
 
@@ -38,7 +40,7 @@ class PaymentAccount extends Model
      */
     public function getTemporaryQrUrl(int $expiresMinutes = 60): ?string
     {
-        if (empty($this->qr_image_path)) {
+        if (empty($this->qr_image_path) || ! $this->show_qr) {
             return null;
         }
 

@@ -20,8 +20,9 @@ final class StorePaymentAccountRequest extends FormRequest
         return [
             'account_name' => ['required', 'string', 'max:255'],
             'account_number' => ['required', 'string', 'max:255'],
-            'qr_image' => ['required', File::image(allowSvg: true)->max(2048)],
+            'qr_image' => ['required_if:show_qr,1', 'nullable', File::image(allowSvg: true)->max(2048)],
             'is_active' => ['required', 'boolean'],
+            'show_qr' => ['required', 'boolean'],
         ];
     }
 
@@ -31,7 +32,7 @@ final class StorePaymentAccountRequest extends FormRequest
         return [
             'account_name.required' => 'Nama akaun wajib diisi.',
             'account_number.required' => 'No. akaun wajib diisi.',
-            'qr_image.required' => 'Imej QR wajib dimuat naik.',
+            'qr_image.required_if' => 'Imej QR wajib dimuat naik apabila paparan QR dihidupkan.',
             'qr_image.image' => 'Fail mesti imej (JPEG, PNG, JPG atau SVG).',
             'qr_image.max' => 'Saiz imej tidak boleh melebihi 2MB.',
         ];

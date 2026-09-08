@@ -13,6 +13,7 @@
         'Wilayah Persekutuan Kuala Lumpur', 'Wilayah Persekutuan Labuan', 'Wilayah Persekutuan Putrajaya',
     ];
     $semakRegHasAccounts = !empty($paymentAccounts) && count($paymentAccounts) > 0;
+    $semakRegAnyQr = $semakRegHasAccounts && collect($paymentAccounts)->contains(fn ($a) => ! empty($a->qr_image_url));
 
     $regStep1Fields = ['nama', 'no_kp', 'jantina', 'jabatan_id', 'jawatan_id'];
     $regStep2Fields = ['email', 'alamat1', 'alamat2', 'poskod', 'bandar', 'negeri', 'no_tel', 'no_hp'];
@@ -388,7 +389,7 @@
                             <div class="space-y-2">
                                 @if($semakRegHasAccounts)
                                 <div class="space-y-2.5">
-                                    <p class="text-xs text-slate-600 dark:text-slate-400">Bank in yuran pendaftaran <strong>RM12.00</strong> ke akaun di bawah. Imbas QR atau salin nombor akaun.</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Bank in yuran pendaftaran <strong>RM12.00</strong> ke akaun di bawah. @if($semakRegAnyQr) Imbas QR atau salin nombor akaun. @else Salin nombor akaun untuk membuat pembayaran. @endif</p>
 
                                 @foreach($paymentAccounts as $account)
                                 <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white/70 dark:bg-slate-800/40 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all duration-200 p-3 space-y-3">

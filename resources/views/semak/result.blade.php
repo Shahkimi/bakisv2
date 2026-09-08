@@ -211,6 +211,7 @@
                 {{-- Renewal payment (2-step: pilih tahun -> bank & bukti) --}}
                 @php
                     $semakHasAccounts = !empty($paymentAccounts) && count($paymentAccounts) > 0;
+                    $semakAnyQr = $semakHasAccounts && collect($paymentAccounts)->contains(fn ($a) => ! empty($a->qr_image_url));
                     $semakCurrentYear = (int) date('Y');
                     $semakMaxYear = $semakCurrentYear + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
                     $semakMaxYearSlots = 1 + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
@@ -345,7 +346,7 @@
                     <div class="p-4 sm:p-5 space-y-4">
                         @if($semakHasAccounts)
                         <div class="space-y-2.5">
-                            <p class="text-xs text-slate-400 dark:text-slate-500">Bank in ke akaun di bawah untuk tahun yang dipilih. Imbas QR atau salin nombor akaun.</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500">Bank in ke akaun di bawah untuk tahun yang dipilih. @if($semakAnyQr) Imbas QR atau salin nombor akaun. @else Salin nombor akaun untuk membuat pembayaran. @endif</p>
 
                         @foreach($paymentAccounts as $account)
                         <div class="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all duration-200 p-3 space-y-3">

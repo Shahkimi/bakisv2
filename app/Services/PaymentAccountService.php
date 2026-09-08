@@ -48,7 +48,7 @@ final readonly class PaymentAccountService
 
     public function getDataTableData(Request $request): JsonResponse
     {
-        $query = PaymentAccount::query()->select(['id', 'account_name', 'account_number', 'qr_image_path', 'is_active']);
+        $query = PaymentAccount::query()->select(['id', 'account_name', 'account_number', 'qr_image_path', 'show_qr', 'is_active']);
 
         $this->applySearch($query, $request);
         $totalRecords = PaymentAccount::count();
@@ -99,7 +99,7 @@ final readonly class PaymentAccountService
 
             return;
         }
-        $columns = ['id', 'account_name', 'account_number', 'is_active'];
+        $columns = ['id', 'account_name', 'account_number', 'is_active', 'show_qr'];
         $columnIndex = (int) $order['column'];
         $dir = $order['dir'] === 'desc' ? 'desc' : 'asc';
         $column = $columns[$columnIndex] ?? 'account_name';
@@ -126,12 +126,14 @@ final readonly class PaymentAccountService
             'account_number' => e($account->account_number),
             'qr_image_path' => $account->qr_image_path,
             'has_qr' => ! empty($account->qr_image_path),
+            'show_qr' => $account->show_qr,
             'is_active' => $account->is_active,
             'actions' => [
                 'id' => $account->id,
                 'account_name' => $account->account_name,
                 'account_number' => $account->account_number,
                 'is_active' => $account->is_active,
+                'show_qr' => $account->show_qr,
             ],
         ];
     }
