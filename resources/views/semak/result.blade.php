@@ -737,7 +737,34 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
 @endif
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // ── Rejected payment reason popup ─────────────────────────────────────
+    function showRejectReason(tahun, reason) {
+        if (!window.Swal) return;
+        const safeReason = (reason && String(reason).trim()) ? String(reason) : 'Tiada sebab dinyatakan oleh admin.';
+        const safeTahun = tahun ? String(tahun) : '-';
+        Swal.fire({
+            icon: 'error',
+            title: 'Bukti Bayaran Ditolak',
+            html: `
+                <p class="text-sm text-slate-600 reject-reason-year" style="margin-bottom:10px;">Pembayaran untuk tahun <b></b> tidak diluluskan.</p>
+                <div style="text-align:left;background:#fef2f2;border-left:4px solid #dc2626;padding:10px 14px;border-radius:6px;">
+                    <p style="font-size:12px;font-weight:600;color:#991b1b;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em;">Sebab Penolakan</p>
+                    <p class="reject-reason-text" style="font-size:14px;color:#7f1d1d;margin:0;white-space:pre-wrap;"></p>
+                </div>
+            `,
+            didOpen: (el) => {
+                const yearB = el.querySelector('.reject-reason-year b');
+                if (yearB) yearB.textContent = safeTahun;
+                const reasonP = el.querySelector('.reject-reason-text');
+                if (reasonP) reasonP.textContent = safeReason;
+            },
+            confirmButtonText: 'Faham, hantar semula',
+            confirmButtonColor: '#dc2626',
+        });
+    }
+
     function showSemakToast(message, variant) {
         const root = document.getElementById('semak-toast-root');
         if (!root) return;
@@ -1015,6 +1042,12 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
                 Menghantar...`;
         });
     }
+
+    // ── Auto popup: show rejection reason on load ───────────────────────
+    const rejectData = document.getElementById('reject-reason-data');
+    if (rejectData) {
+        showRejectReason(rejectData.dataset.tahun, rejectData.dataset.reason);
+    }
 </script>
 <script>
 (function () {
@@ -1033,7 +1066,12 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
         rejected: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>Ditolak</span>',
     };
 
-    function statusBadge(status) {
+    function statusBadge(status, row) {
+        if (status === 'rejected') {
+            return '<button type="button" class="js-reason-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors cursor-pointer" '
+                + 'data-tahun="' + escapeHtml(row && row.tahun_label) + '" data-reason="' + escapeHtml(row && row.catatan_admin) + '" title="Lihat sebab penolakan">'
+                + '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>Ditolak</button>';
+        }
         return statusBadges[status] || statusBadges.rejected;
     }
 
@@ -1064,7 +1102,7 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
                 '<div class="flex items-center justify-between gap-2">' +
                 '<div><span class="font-bold text-slate-800 dark:text-slate-200">' + escapeHtml(row.tahun_label) + '</span>' +
                 '<span class="ml-2 font-mono text-sm text-slate-500 dark:text-slate-400">' + escapeHtml(row.jumlah_formatted) + '</span></div>' +
-                statusBadge(row.status) +
+                statusBadge(row.status, row) +
                 '</div>' +
                 '<div class="flex items-center justify-between gap-2">' +
                 '<span class="text-xs text-slate-400 dark:text-slate-500">' + escapeHtml(row.jenis_label) + '</span>' +
@@ -1087,7 +1125,7 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
             { data: 'tahun_label', className: 'px-5 py-4 font-bold text-slate-800 dark:text-slate-200' },
             { data: 'jumlah_formatted', orderable: false, className: 'px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300' },
             { data: 'jenis_label', orderable: false, className: 'px-5 py-4 text-slate-500 dark:text-slate-400' },
-            { data: 'status', className: 'px-5 py-4', render: function (status) { return statusBadge(status); } },
+            { data: 'status', className: 'px-5 py-4', render: function (status, type, row) { return statusBadge(status, row); } },
             { data: null, orderable: false, className: 'px-5 py-4', render: function (row) { return receiptCell(row, false); } },
         ],
         order: [[0, 'desc']],
@@ -1112,6 +1150,11 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
             var wrapper = jQuery(tableEl).closest('.dataTables_wrapper');
             wrapper.find('.dataTables_paginate, .dataTables_length').toggle(!fitsOnePage);
         },
+    });
+
+    // Row-level "Ditolak" badges reopen the reason popup
+    jQuery(document).on('click', '.js-reason-btn', function () {
+        showRejectReason(this.dataset.tahun, this.dataset.reason);
     });
 })();
 </script>

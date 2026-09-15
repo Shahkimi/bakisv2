@@ -125,7 +125,7 @@ final readonly class PaymentService
         $query = Payment::query()
             ->where('member_id', $member->id)
             ->with('yuran:id,jenis_yuran,jumlah')
-            ->select(['id', 'member_id', 'yuran_id', 'tahun_bayar', 'tahun_mula', 'tahun_tamat', 'status']);
+            ->select(['id', 'member_id', 'yuran_id', 'tahun_bayar', 'tahun_mula', 'tahun_tamat', 'status', 'catatan_admin']);
 
         $totalRecords = (clone $query)->count();
         $filteredRecords = $totalRecords;
@@ -189,6 +189,7 @@ final readonly class PaymentService
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'receipt_url' => $receiptUrl,
+            'catatan_admin' => $payment->catatan_admin,
         ];
     }
 

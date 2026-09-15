@@ -425,19 +425,33 @@ $(document).ready(function () {
 
     function renderStatusWithLihat(row) {
         const statusHtml = renderStatusBadge(row.status);
-        if (!row.bukti_bayaran) {
+        const extras = [];
+
+        if (row.bukti_bayaran) {
+            const imgUrl = '/admin/pembayaran/' + row.id + '/bukti';
+            extras.push(`<button type="button"
+                data-bukti-url="${imgUrl}"
+                data-member="${escapeHtml((row.member||{}).nama||'')}"
+                data-is-pdf="${row.bukti_bayaran_is_pdf ? '1' : '0'}"
+                class="js-bukti-btn group mt-1.5 inline-flex items-center gap-2 rounded-lg border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/25 px-3 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-300 shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 active:scale-[0.98]">
+                <svg class="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Lihat
+            </button>`);
+        }
+
+        if (row.status === 'rejected') {
+            extras.push(`<button type="button"
+                data-reason="${escapeHtml(row.catatan_admin || '')}"
+                class="js-reason-btn group mt-1.5 inline-flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/25 px-3 py-2 text-xs font-semibold text-red-600 dark:text-red-300 shadow-sm hover:bg-red-100 dark:hover:bg-red-900/40 hover:border-red-300 dark:hover:border-red-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 active:scale-[0.98]">
+                <svg class="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                Sebab
+            </button>`);
+        }
+
+        if (extras.length === 0) {
             return `<div class="flex flex-col items-center gap-1">${statusHtml}</div>`;
         }
-        const imgUrl = '/admin/pembayaran/' + row.id + '/bukti';
-        const lihatBtn = `<button type="button"
-            data-bukti-url="${imgUrl}"
-            data-member="${escapeHtml((row.member||{}).nama||'')}"
-            data-is-pdf="${row.bukti_bayaran_is_pdf ? '1' : '0'}"
-            class="js-bukti-btn group mt-1.5 inline-flex items-center gap-2 rounded-lg border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/25 px-3 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-300 shadow-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200 active:scale-[0.98]">
-            <svg class="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Lihat
-        </button>`;
-        return `<div class="flex flex-col items-center gap-0.5">${statusHtml}${lihatBtn}</div>`;
+        return `<div class="flex flex-col items-center gap-0.5">${statusHtml}${extras.join('')}</div>`;
     }
 
     function renderBuktiCell(row) {
@@ -824,6 +838,18 @@ $(document).ready(function () {
             }).catch(() => {
                 Swal.fire({ icon:'error', title:'Ralat', text:'Ralat rangkaian. Sila cuba lagi.' });
             });
+        });
+    });
+
+    $(document).on('click', '.js-reason-btn', function () {
+        const reason = this.dataset.reason || 'Tiada sebab dinyatakan oleh admin.';
+        Swal.fire({
+            icon: 'info',
+            title: 'Sebab Penolakan',
+            text: reason,
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: '#dc2626',
+            customClass: { popup: 'rounded-2xl' },
         });
     });
 

@@ -86,6 +86,15 @@
     </p>
     <p class="text-xs text-slate-700 dark:text-slate-300">{{ $config['summary'] }}</p>
     <p class="text-[11px] {{ $config['noticeSub'] }}">{{ $config['nextStep'] }}</p>
+    @if($status === 'rejected')
+        <p class="text-xs text-slate-700 dark:text-slate-300">
+            <span class="font-bold {{ $config['noticeLabel'] }}">Sebab penolakan:</span>
+            {{ $payment?->catatan_admin ?: 'Tiada sebab dinyatakan.' }}
+        </p>
+        <div id="reject-reason-data" hidden
+            data-tahun="{{ $payment?->coverageLabel() }}"
+            data-reason="{{ $payment?->catatan_admin }}"></div>
+    @endif
     @if($showPayment)
         <p class="text-[11px] font-semibold {{ $config['noticeSub'] }}">Yuran pembaharuan: RM10.00 / tahun</p>
     @endif
