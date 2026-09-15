@@ -58,6 +58,7 @@ final readonly class PaymentService
                 'no_resit_transfer',
                 'bukti_bayaran',
                 'status',
+                'catatan_admin',
             ]);
 
         if ($statusFilter !== 'all') {
@@ -165,6 +166,7 @@ final readonly class PaymentService
             'jenis_label' => $jenisLabel,
             'status' => $payment->status,
             'bukti_bayaran' => (bool) $payment->bukti_bayaran,
+            'catatan_admin' => $payment->catatan_admin,
         ];
     }
 

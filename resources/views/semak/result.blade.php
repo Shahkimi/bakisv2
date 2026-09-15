@@ -120,6 +120,15 @@
                                 </span>
                             </div>
                             <p class="text-sm {{ $config['textClass'] }}">{{ $config['summary'] }}</p>
+                            @if($status === 'rejected')
+                                <div class="mt-2 text-xs {{ $config['textClass'] }} bg-white/60 dark:bg-black/20 border {{ $config['panel'] }} px-3 py-2 rounded-lg">
+                                    <span class="font-semibold">Sebab penolakan:</span>
+                                    {{ $payment?->catatan_admin ?: 'Tiada sebab dinyatakan.' }}
+                                </div>
+                                <div id="reject-reason-data" hidden
+                                    data-tahun="{{ $payment?->tahun_bayar }}"
+                                    data-reason="{{ $payment?->catatan_admin }}"></div>
+                            @endif
                             @if($showPayment)
                                 <div class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold {{ $config['titleClass'] }} bg-white/60 dark:bg-black/20 border {{ $config['panel'] }} px-3 py-1.5 rounded-lg">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -224,10 +233,14 @@
                                                     Menunggu
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                                                <button type="button"
+                                                    class="js-reject-reason inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/60 transition-colors cursor-pointer"
+                                                    data-tahun="{{ $p->tahun_bayar }}"
+                                                    data-reason="{{ $p->catatan_admin }}"
+                                                    title="Lihat sebab penolakan">
                                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
                                                     Ditolak
-                                                </span>
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>
@@ -421,7 +434,36 @@
 </div>{{-- /page-wrapper --}}
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // ── Rejected payment reason popup ─────────────────────────────────────
+    function showRejectReason(tahun, reason) {
+        if (!window.Swal) return;
+        const safeReason = (reason && reason.trim()) ? reason : 'Tiada sebab dinyatakan oleh admin.';
+        Swal.fire({
+            icon: 'error',
+            title: 'Bukti Bayaran Ditolak',
+            html: `
+                <p class="text-sm text-slate-600" style="margin-bottom:10px;">Pembayaran untuk tahun <b>${tahun || '-'}</b> tidak diluluskan.</p>
+                <div style="text-align:left;background:#fef2f2;border-left:4px solid #dc2626;padding:10px 14px;border-radius:6px;">
+                    <p style="font-size:12px;font-weight:600;color:#991b1b;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em;">Sebab Penolakan</p>
+                    <p style="font-size:14px;color:#7f1d1d;margin:0;white-space:pre-wrap;"></p>
+                </div>
+            `,
+            didOpen: (el) => {
+                el.querySelector('div p:last-child').textContent = safeReason;
+            },
+            confirmButtonText: 'Faham, hantar semula',
+            confirmButtonColor: '#dc2626',
+        });
+    }
+
+    // Row-level "Ditolak" badges reopen the reason popup
+    document.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.js-reject-reason');
+        if (btn) showRejectReason(btn.dataset.tahun, btn.dataset.reason);
+    });
+
     // ── Copy to clipboard ───────────────────────────────────────────────
     function copyText(text, btn) {
         navigator.clipboard.writeText(text).then(() => {
@@ -542,6 +584,12 @@
                 </svg>
                 Menghantar...`;
         });
+    }
+
+    // ── Auto popup: show rejection reason on load ───────────────────────
+    const rejectData = document.getElementById('reject-reason-data');
+    if (rejectData) {
+        showRejectReason(rejectData.dataset.tahun, rejectData.dataset.reason);
     }
 </script>
 @endpush
