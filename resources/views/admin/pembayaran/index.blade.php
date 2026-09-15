@@ -520,8 +520,7 @@ $(document).ready(function () {
         } else if (row.status === 'rejected') {
             const rejectedBy = row.approved_by || '–';
             const rejectedAt = row.approved_at || '–';
-            const reasonSuffix = row.catatan_admin ? ` — ${row.catatan_admin}` : '';
-            const rejectedText = `Ditolak oleh ${rejectedBy} · ${rejectedAt}${reasonSuffix}`;
+            const rejectedText = `Ditolak oleh ${rejectedBy} · ${rejectedAt}`;
             parts.push(`<div class="w-full text-center text-[11px] leading-snug text-gray-400 dark:text-gray-500 truncate" title="${escapeHtml(rejectedText)}">${escapeHtml(rejectedText)}</div>`);
         } else if (row.status === 'waived') {
             const waivedBy = row.waived_by || '–';
