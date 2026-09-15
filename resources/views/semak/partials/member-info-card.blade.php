@@ -96,6 +96,10 @@
             data-reason="{{ $payment?->catatan_admin }}"></div>
     @endif
     @if($showPayment)
-        <p class="text-[11px] font-semibold {{ $config['noticeSub'] }}">Yuran pembaharuan: RM10.00 / tahun</p>
+        @php
+            $semakNextFeeCode = \App\Models\Member::feeCodeForRenewalYear($member?->latestApprovedCoverageEnd(), (int) date('Y'));
+            $semakNextFee = \App\Models\Yuran::amountForCode($semakNextFeeCode);
+        @endphp
+        <p class="text-[11px] font-semibold {{ $config['noticeSub'] }}">Yuran pembaharuan: RM{{ number_format($semakNextFee, 2) }} / tahun</p>
     @endif
 </div>

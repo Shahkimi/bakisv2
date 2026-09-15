@@ -215,7 +215,6 @@
                     $semakCurrentYear = (int) date('Y');
                     $semakMaxYear = $semakCurrentYear + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
                     $semakMaxYearSlots = 1 + \App\Services\KutipanService::RENEWAL_SELECTABLE_YEARS_AHEAD;
-                    $semakMaxRm = number_format(10 * $semakMaxYearSlots, 2);
                     $semakPaidYears = collect();
                     if ($member) {
                         foreach ($member->payments as $semakP) {
@@ -235,8 +234,35 @@
                             break;
                         }
                     }
+
+                    // Pricing: a year more than GRACE_YEARS past the member's last approved
+                    // coverage (or their very first payment) is a reactivation (pendaftaran,
+                    // priced higher); everything else is a plain renewal (pembaharuan).
+                    // See Member::feeCodeForRenewalYear() — this mirrors it for display, the
+                    // server recomputes authoritatively on submit.
+                    $semakFeePendaftaran = \App\Models\Yuran::amountForCode(\App\Models\Member::YURAN_CODE_PENDAFTARAN);
+                    $semakFeePembaharuan = \App\Models\Yuran::amountForCode(\App\Models\Member::YURAN_CODE_PEMBAHARUAN);
+                    $semakLastCoverageEnd = $member?->latestApprovedCoverageEnd();
+                    $semakLoopCoverageEnd = $semakLastCoverageEnd;
+                    $semakYearFees = [];
+                    for ($y = $semakCurrentYear; $y <= $semakMaxYear; $y++) {
+                        if ($semakPaidYears->contains($y)) continue;
+                        $semakFeeCode = \App\Models\Member::feeCodeForRenewalYear($semakLoopCoverageEnd, $y);
+                        $semakYearFees[$y] = $semakFeeCode === \App\Models\Member::YURAN_CODE_PENDAFTARAN
+                            ? $semakFeePendaftaran
+                            : $semakFeePembaharuan;
+                        $semakLoopCoverageEnd = $semakLoopCoverageEnd === null ? $y : max($semakLoopCoverageEnd, $y);
+                    }
+                    // Realistic display range for the header chip: best case (no reactivation
+                    // needed) vs. one reactivation fee replacing one renewal-priced year.
+                    $semakMinRm = number_format($semakFeePembaharuan * $semakMaxYearSlots, 2);
+                    $semakMaxRangeRm = number_format($semakFeePembaharuan * max($semakMaxYearSlots - 1, 0) + $semakFeePendaftaran, 2);
                 @endphp
-                <form method="POST" action="{{ route('semak.bayar') }}" enctype="multipart/form-data" id="paymentForm">
+                <form method="POST" action="{{ route('semak.bayar') }}" enctype="multipart/form-data" id="paymentForm"
+                    data-last-coverage-end="{{ $semakLastCoverageEnd }}"
+                    data-grace-years="{{ \App\Models\Member::GRACE_YEARS }}"
+                    data-fee-pendaftaran="{{ $semakFeePendaftaran }}"
+                    data-fee-pembaharuan="{{ $semakFeePembaharuan }}">
                     @csrf
                     <input type="hidden" name="no_kp" value="{{ $checkedNoKp }}">
 
@@ -248,7 +274,7 @@
                             <h3 class="text-[11px] font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">Tahun Pembaharuan</h3>
                         </div>
                         <span class="shrink-0 text-[11px] font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 px-2.5 py-1 rounded-lg">
-                            RM10 – RM{{ $semakMaxRm }}
+                            RM{{ $semakMinRm }} – RM{{ $semakMaxRangeRm }}
                         </span>
                     </div>
                     <div class="p-4 space-y-4">
@@ -259,7 +285,10 @@
                                     <p id="semakRenewalYearLegend" class="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Pilih tahun <span class="text-red-500">*</span>
                                     </p>
-                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">RM10.00 setiap tahun</p>
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                        RM{{ number_format($semakFeePembaharuan, 2) }} setiap tahun
+                                        (RM{{ number_format($semakFeePendaftaran, 2) }} jika daftar semula selepas tempoh tangguh)
+                                    </p>
                                 </div>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" id="semakSelectAllYears"
@@ -291,7 +320,7 @@
                                                 @if($semakIsPaid)
                                                     <span class="text-[11px] text-slate-400 dark:text-slate-500">Sudah dibayar</span>
                                                 @else
-                                                    <span class="text-[11px] text-teal-600 dark:text-teal-400">RM10.00</span>
+                                                    <span class="semak-year-price text-[11px] text-teal-600 dark:text-teal-400" data-year="{{ $year }}">RM{{ number_format($semakYearFees[$year] ?? $semakFeePembaharuan, 2) }}</span>
                                                 @endif
                                             </div>
                                             @if($semakIsPaid)
@@ -315,9 +344,9 @@
 
                         {{-- Total --}}
                         <div class="flex items-center justify-between px-4 py-3.5 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jumlah bayaran</span>
-                            <span class="font-bold text-teal-700 dark:text-teal-300" id="semakTotalLine">
-                                RM10 × <span id="semakYearCount">0</span> tahun = <span class="text-base">RM<span id="semakTotalPrice">0.00</span></span>
+                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jumlah bayaran (<span id="semakYearCount">0</span> tahun)</span>
+                            <span class="font-bold text-teal-700 dark:text-teal-300 text-base" id="semakTotalLine">
+                                RM<span id="semakTotalPrice">0.00</span>
                             </span>
                         </div>
 
@@ -1001,13 +1030,56 @@ table.dataTable#semak-payments-table { border-collapse: collapse; width: 100% !i
     function getSemakYearCheckboxes() {
         return document.querySelectorAll('input.semak-year-checkbox:not([disabled])');
     }
+
+    // Mirrors Member::feeCodeForRenewalYear() server-side: a year more than
+    // graceYears past the running coverage end (or when there is no coverage
+    // yet) is a reactivation (higher fee); everything else is a plain renewal.
+    // The server recomputes this authoritatively on submit — this is preview only.
+    function semakFeeForYears(sortedYears, lastCoverageEnd, graceYears, feePendaftaran, feePembaharuan) {
+        let running = lastCoverageEnd;
+        const fees = {};
+        sortedYears.forEach(year => {
+            const isReactivation = running === null || year > running + graceYears;
+            fees[year] = isReactivation ? feePendaftaran : feePembaharuan;
+            running = running === null ? year : Math.max(running, year);
+        });
+        return fees;
+    }
+
     function updateSemakRenewalTotal() {
-        let count = 0;
-        getSemakYearCheckboxes().forEach(cb => { if (cb.checked) count++; });
+        const form = document.getElementById('paymentForm');
+        const lastCoverageEndRaw = form?.dataset.lastCoverageEnd;
+        const lastCoverageEnd = lastCoverageEndRaw ? parseInt(lastCoverageEndRaw, 10) : null;
+        const graceYears = parseInt(form?.dataset.graceYears || '1', 10);
+        const feePendaftaran = parseFloat(form?.dataset.feePendaftaran || '0');
+        const feePembaharuan = parseFloat(form?.dataset.feePembaharuan || '0');
+
+        const checkedYears = [];
+        getSemakYearCheckboxes().forEach(cb => { if (cb.checked) checkedYears.push(parseInt(cb.value, 10)); });
+        checkedYears.sort((a, b) => a - b);
+
+        const fees = semakFeeForYears(checkedYears, lastCoverageEnd, graceYears, feePendaftaran, feePembaharuan);
+        const total = checkedYears.reduce((sum, year) => sum + (fees[year] || 0), 0);
+
+        // Repaint every visible per-year price label too — a year's own price
+        // can change depending on which other years are also checked (e.g.
+        // checking the gap year first turns a later year's price from
+        // reactivation-standalone to plain-renewal).
+        const allYears = [];
+        getSemakYearCheckboxes().forEach(cb => allYears.push(parseInt(cb.value, 10)));
+        allYears.sort((a, b) => a - b);
+        const previewFees = semakFeeForYears(allYears, lastCoverageEnd, graceYears, feePendaftaran, feePembaharuan);
+        document.querySelectorAll('.semak-year-price').forEach(el => {
+            const year = parseInt(el.dataset.year, 10);
+            if (previewFees[year] !== undefined) {
+                el.textContent = 'RM' + previewFees[year].toFixed(2);
+            }
+        });
+
         const yearCountEl  = document.getElementById('semakYearCount');
         const totalPriceEl = document.getElementById('semakTotalPrice');
-        if (yearCountEl)  yearCountEl.textContent  = String(count);
-        if (totalPriceEl) totalPriceEl.textContent = (count * 10).toFixed(2);
+        if (yearCountEl)  yearCountEl.textContent  = String(checkedYears.length);
+        if (totalPriceEl) totalPriceEl.textContent = total.toFixed(2);
     }
     getSemakYearCheckboxes().forEach(cb => cb.addEventListener('change', updateSemakRenewalTotal));
     updateSemakRenewalTotal();

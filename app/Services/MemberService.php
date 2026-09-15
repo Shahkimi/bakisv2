@@ -315,7 +315,7 @@ final readonly class MemberService
     public function submitRenewalPayment(string $noKp, array $data): Member
     {
         $noKp = preg_replace('/\D/', '', $noKp);
-        $member = Member::where('no_kp', $noKp)->first();
+        $member = Member::where('no_kp', $noKp)->with('payments')->first();
         if (! $member) {
             throw new \InvalidArgumentException('Ahli tidak ditemui.');
         }
@@ -325,17 +325,28 @@ final readonly class MemberService
         $years = array_values(array_unique($years));
         sort($years);
 
-        $yuran = Yuran::findByCode(Member::YURAN_CODE_PEMBAHARUAN);
+        // Pricing runs per selected year: the first year that lands more than
+        // GRACE_YEARS past the member's last approved coverage (or their very
+        // first payment) is a reactivation (pendaftaran, RM12); every other
+        // year — including further years bought ahead in this same batch —
+        // is a plain renewal (pembaharuan, RM10). See Member::feeCodeForRenewalYear().
+        $yuranPendaftaran = Yuran::findByCode(Member::YURAN_CODE_PENDAFTARAN);
+        $yuranPembaharuan = Yuran::findByCode(Member::YURAN_CODE_PEMBAHARUAN);
+        $runningCoverageEnd = $member->latestApprovedCoverageEnd();
         $bukti = $data['bukti_bayaran'] ?? null;
 
         /** @var list<int> $paymentIds */
         $paymentIds = [];
         $firstPayment = null;
 
-        DB::transaction(function () use ($member, $years, $yuran, $bukti, &$paymentIds, &$firstPayment): void {
+        DB::transaction(function () use ($member, $years, $yuranPendaftaran, $yuranPembaharuan, $runningCoverageEnd, $bukti, &$paymentIds, &$firstPayment): void {
             $tahunBayar = (int) date('Y');
 
             foreach ($years as $year) {
+                $feeCode = Member::feeCodeForRenewalYear($runningCoverageEnd, $year);
+                $yuran = $feeCode === Member::YURAN_CODE_PENDAFTARAN ? $yuranPendaftaran : $yuranPembaharuan;
+                $runningCoverageEnd = $runningCoverageEnd === null ? $year : max($runningCoverageEnd, $year);
+
                 $payment = Payment::create([
                     'member_id' => $member->id,
                     'yuran_id' => $yuran?->id ?? 2,

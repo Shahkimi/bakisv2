@@ -105,6 +105,39 @@ class Member extends Model
         return Yuran::amountForCode($code);
     }
 
+    /**
+     * The end year of this member's most recent APPROVED payment coverage,
+     * or null if they have no approved payment at all. Used to decide whether
+     * a target renewal year is a plain continuation or a reactivation after a
+     * lapsed gap — see {@see feeCodeForRenewalYear()}.
+     */
+    public function latestApprovedCoverageEnd(): ?int
+    {
+        return $this->payments
+            ->where('status', Payment::STATUS_APPROVED)
+            ->map(fn (Payment $payment): int => $payment->coverageEnd())
+            ->max();
+    }
+
+    /**
+     * Which Yuran code should price a given renewal year, given the member's
+     * coverage so far. A year more than GRACE_YEARS past the last covered year
+     * (or when there is no prior coverage at all) is a reactivation — priced
+     * as a fresh registration — everything else is a plain renewal.
+     *
+     * Mirrors {@see isWithinActiveGrace()}'s comparison, parameterized by an
+     * arbitrary target year instead of "now", so it also works for pricing a
+     * batch of future years bought ahead in one submission.
+     */
+    public static function feeCodeForRenewalYear(?int $lastCoverageEnd, int $targetYear): string
+    {
+        if ($lastCoverageEnd === null || $targetYear > $lastCoverageEnd + self::GRACE_YEARS) {
+            return self::YURAN_CODE_PENDAFTARAN;
+        }
+
+        return self::YURAN_CODE_PEMBAHARUAN;
+    }
+
     public function isAktifThisYear(): bool
     {
         $currentYear = (int) date('Y');
